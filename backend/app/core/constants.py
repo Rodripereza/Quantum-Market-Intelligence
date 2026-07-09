@@ -1,0 +1,12 @@
+APP_NAME = "Quantum Market Intelligence"
+APP_SHORT_NAME = "QMI"
+APP_VERSION = "1.0.0"
+
+DEFAULT_ENVIRONMENT = "development"
+DEFAULT_TIMEZONE = "Europe/Madrid"
+DEFAULT_LANGUAGE = "en"
+DEFAULT_CURRENCY = "USD"
+DEFAULT_MARKET = "US"
+
+API_PREFIX = "/api"
+HEALTH_ENDPOINT = "/health"
