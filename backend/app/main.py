@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 
 from app.api.routes.health import router as health_router
+from app.api.routes.version import router as version_router
+from app.api.routes.status import router as status_router
+from app.api.routes.settings import router as settings_router
+
 from app.core.logging import setup_logging
 from app.core.settings import settings
 
@@ -17,6 +21,9 @@ app = FastAPI(
 
 
 app.include_router(health_router)
+app.include_router(version_router)
+app.include_router(status_router)
+app.include_router(settings_router)
 
 
 @app.get("/")
