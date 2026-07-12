@@ -87,7 +87,16 @@ frontend/dist/
 *.bak
 *.swp
 
-# Database
-backend/data/*.db
-backend/data/*.sqlite
-backend/data/*.sqlite3
+# -----------------------------
+# Runtime data
+# -----------------------------
+backend/data/cache/*
+backend/data/database/*
+backend/data/exports/*
+backend/data/imports/*
+
+# Keep directory structure
+!backend/data/cache/.gitkeep
+!backend/data/database/.gitkeep
+!backend/data/exports/.gitkeep
+!backend/data/imports/.gitkeep
