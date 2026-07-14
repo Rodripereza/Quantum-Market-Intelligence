@@ -6,9 +6,16 @@ from app.api.routes.status import router as status_router
 from app.api.routes.settings import router as settings_router
 from app.api.routes.market import router as market_router
 from app.api.routes.technical import router as technical_router
+from app.exceptions.base_exception import QMIException
+from app.exceptions.handlers import (
+    generic_exception_handler,
+    qmi_exception_handler,
+)
 
 from app.core.logging import setup_logging
 from app.core.settings import settings
+from app.api.routes.test import router as test_router
+from app.middleware import RequestContextMiddleware
 
 
 setup_logging()
@@ -21,13 +28,24 @@ app = FastAPI(
     description="Quantum Market Intelligence backend API",
 )
 
+app.add_exception_handler(
+    QMIException,
+    qmi_exception_handler,
+)
 
+app.add_exception_handler(
+    Exception,
+    generic_exception_handler,
+)
+
+app.add_middleware(RequestContextMiddleware)
 app.include_router(health_router)
 app.include_router(version_router)
 app.include_router(status_router)
 app.include_router(settings_router)
 app.include_router(market_router)
 app.include_router(technical_router)
+app.include_router(test_router)
 
 @app.get("/")
 def root():

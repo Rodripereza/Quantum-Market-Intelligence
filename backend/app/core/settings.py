@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "Quantum Market Intelligence"
-    app_version: str = "1.0.0"
+    app_version: str = "0.5.0"
     environment: str = "development"
     debug: bool = True
 
