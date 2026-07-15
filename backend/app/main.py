@@ -16,7 +16,7 @@ from app.core.logging import setup_logging
 from app.core.settings import settings
 from app.api.routes.test import router as test_router
 from app.middleware import RequestContextMiddleware
-
+from app.api.routes.fundamental import router as fundamental_router
 
 setup_logging()
 
@@ -46,6 +46,7 @@ app.include_router(settings_router)
 app.include_router(market_router)
 app.include_router(technical_router)
 app.include_router(test_router)
+app.include_router(fundamental_router)
 
 @app.get("/")
 def root():
