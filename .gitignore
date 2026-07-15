@@ -30,6 +30,7 @@ env/
 # -----------------------------
 logs/
 *.log
+backend/backend/logs/*.log
 
 # -----------------------------
 # Pytest
