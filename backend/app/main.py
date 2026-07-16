@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.api.routes.health import router as health_router
 from app.api.routes.version import router as version_router
 from app.api.routes.status import router as status_router
@@ -18,8 +17,12 @@ from app.core.settings import settings
 from app.api.routes.test import router as test_router
 from app.middleware import RequestContextMiddleware
 from app.api.routes.fundamental import router as fundamental_router
+from app.core.database import create_db
+from app.models.portfolio import PortfolioPosition
+from app.api.routes.portfolio import router as portfolio_router
 
 setup_logging()
+create_db()
 
 
 app = FastAPI(
@@ -59,6 +62,7 @@ app.include_router(market_router)
 app.include_router(technical_router)
 app.include_router(test_router)
 app.include_router(fundamental_router)
+app.include_router(portfolio_router)
 
 @app.get("/")
 def root():
