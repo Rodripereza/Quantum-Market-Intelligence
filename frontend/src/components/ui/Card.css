@@ -1,0 +1,102 @@
+.qmi-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 34, 56, 0.96),
+      rgba(13, 26, 46, 0.96)
+    );
+
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.025);
+
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.qmi-card:hover {
+  transform: translateY(-2px);
+
+  border-color: rgba(56, 189, 248, 0.28);
+
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.24),
+    0 0 24px rgba(56, 189, 248, 0.05);
+}
+
+.qmi-card--padding-none {
+  padding: 0;
+}
+
+.qmi-card--padding-compact {
+  padding: 16px;
+}
+
+.qmi-card--padding-normal {
+  padding: 22px;
+}
+
+.qmi-card--padding-large {
+  padding: 28px;
+}
+
+.qmi-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+.qmi-card__heading {
+  min-width: 0;
+}
+
+.qmi-card__title {
+  margin: 0;
+
+  color: #f8fafc;
+
+  font-family:
+    "Inter",
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.qmi-card__subtitle {
+  margin: 6px 0 0;
+
+  color: #94a3b8;
+
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.qmi-card__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.qmi-card__content {
+  min-width: 0;
+}
