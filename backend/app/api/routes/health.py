@@ -16,7 +16,7 @@ router = APIRouter(tags=["Health"])
 
 
 @router.get(
-    "/api/health",
+    "/health",
     response_model=HealthApiResponse,
     summary="Get API Health",
     description=(
