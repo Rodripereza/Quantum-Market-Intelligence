@@ -28,6 +28,9 @@ import Overview from "./pages/Overview";
 import Portfolio from "./pages/Portfolio";
 import Market from "./pages/Market";
 import AI from "./pages/AI";
+import RiskPage from "./pages/RiskPage";
+import DataPage from "./pages/DataPage";
+import SettingsPage from "./pages/SettingsPage";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -281,19 +284,6 @@ function LoginScreen({ apiOk, authError, login }) {
       </div>
     </div>
   );
-}
-
-function DataPage({ portfolio, market }) {
-  return <Panel title="Data Layer" subtitle="SQLite operational foundation"><div className="metric-list"><div><strong>Database</strong><span>backend/data/qmi_foundation.db</span></div><div><strong>Portfolio records</strong><span>{portfolio?.positions?.length ?? '--'}</span></div><div><strong>Sector groups</strong><span>{portfolio?.sector_allocation?.length ?? '--'}</span></div><div><strong>Market assets</strong><span>{market?.assets?.length ?? '--'}</span></div></div></Panel>;
-}
-
-function RiskPage({ portfolio }) {
-  const concentration = Math.max(...(portfolio?.positions || []).map(p => p.weight), 0);
-  return <Panel title="Risk Layer" subtitle="Authenticated risk workspace"><div className="grid3"><Card title="Max Position Weight" value={pct(concentration)} subtitle="Concentration signal" icon={<Gauge size={18}/>} /><Card title="Open Positions" value={portfolio?.positions?.length ?? '--'} subtitle="Portfolio breadth" icon={<PieChart size={18}/>} /><Card title="Risk Engine" value="Prepared" subtitle="Future scoring module" icon={<Shield size={18}/>} /></div></Panel>;
-}
-
-function SettingsPage({ apiOk, user }) {
-  return <Panel title="Settings" subtitle="Local environment"><div className="metric-list"><div><strong>Frontend</strong><span>React + Vite</span></div><div><strong>Backend</strong><span>FastAPI + SQLite</span></div><div><strong>Python target</strong><span>3.12.x</span></div><div><strong>API status</strong><span>{apiOk ? 'Online' : 'Offline'}</span></div><div><strong>User</strong><span>{user?.name || 'Rodri'}</span></div><div><strong>Email</strong><span>{user?.email || 'rodripereza8@gmail.com'}</span></div><div><strong>Workspace</strong><span>{user?.workspace || 'Quantum Market Intelligence'}</span></div></div></Panel>;
 }
 
 createRoot(document.getElementById('root')).render(<App />);
