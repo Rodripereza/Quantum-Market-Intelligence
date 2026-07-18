@@ -31,6 +31,10 @@ import AI from "./pages/AI";
 import RiskPage from "./pages/RiskPage";
 import DataPage from "./pages/DataPage";
 import SettingsPage from "./pages/SettingsPage";
+import { getUser } from "./services/authService";
+import { getMarket } from "./services/marketService";
+import { getPortfolio } from "./services/portfolioService";
+import { getAIStatus } from "./services/aiService";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -99,21 +103,32 @@ function App() {
 
   async function load(activeToken = token) {
     try {
-      const health = await fetch(`${API}/health`);
-      setApiOk(health.ok);
-      if (!activeToken) return;
-      const headers = { Authorization: `Bearer ${activeToken}` };
-      const [uRes, mRes, pRes, aRes] = await Promise.all([
-        fetch(`${API}/api/user`, { headers }),
-        fetch(`${API}/api/market`, { headers }),
-        fetch(`${API}/api/portfolio`, { headers }),
-        fetch(`${API}/api/ai/status`, { headers })
-      ]);
-      if ([uRes, mRes, pRes, aRes].some(r => r.status === 401)) {
+        const health = await fetch(`${API}/health`);
+        setApiOk(health.ok);
+
+        if (!activeToken) {
+            return;
+        }
+      let u;
+      let m;
+      let p;
+      let a;
+
+      try {
+        [u, m, p, a] = await Promise.all([
+          getUser(activeToken),
+          getMarket(activeToken),
+          getPortfolio(activeToken),
+          getAIStatus(activeToken)
+        ]);
+    } catch (error) {
+    if (error.status === 401) {
         logout(false);
         return;
-      }
-      const [u, m, p, a] = await Promise.all([uRes.json(), mRes.json(), pRes.json(), aRes.json()]);
+    }
+
+    throw error;
+    }
       setUser(u);
       setMarket(m);
       setPortfolio(p);
