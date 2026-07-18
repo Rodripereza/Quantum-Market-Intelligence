@@ -31,6 +31,7 @@ import {
   YAxis
 } from 'recharts';
 import './style.css';
+import Panel from "./components/ui/Panel";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -351,10 +352,6 @@ function PageShell({ active, children }) {
 
 function Card({ title, value, subtitle, icon }) {
   return <div className="card"><div className="card-title"><span>{title}</span>{icon}</div><div className="card-value">{value}</div><div className="sub">{subtitle}</div></div>;
-}
-
-function Panel({ title, subtitle, children, action }) {
-  return <section className="panel"><div className="panel-head"><div><h2>{title}</h2><p>{subtitle}</p></div>{action}</div>{children}</section>;
 }
 
 function Overview({ portfolio, market, ai, trend, allocation, sectorAllocation, navigate }) {
