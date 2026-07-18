@@ -32,6 +32,7 @@ import {
 } from 'recharts';
 import './style.css';
 import Panel from "./components/ui/Panel";
+import Card from "./components/ui/Card";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -348,10 +349,6 @@ function PageShell({ active, children }) {
       {children}
     </section>
   );
-}
-
-function Card({ title, value, subtitle, icon }) {
-  return <div className="card"><div className="card-title"><span>{title}</span>{icon}</div><div className="card-value">{value}</div><div className="sub">{subtitle}</div></div>;
 }
 
 function Overview({ portfolio, market, ai, trend, allocation, sectorAllocation, navigate }) {
