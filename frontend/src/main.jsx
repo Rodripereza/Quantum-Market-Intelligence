@@ -27,6 +27,7 @@ import PageShell from "./components/layout/PageShell";
 import Overview from "./pages/Overview";
 import Portfolio from "./pages/Portfolio";
 import Market from "./pages/Market";
+import AI from "./pages/AI";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -280,10 +281,6 @@ function LoginScreen({ apiOk, authError, login }) {
       </div>
     </div>
   );
-}
-
-function AI({ ai }) {
-  return <Panel title="AI Intelligence" subtitle={ai?.status || 'loading'}><p>{ai?.message}</p><div className="chips">{(ai?.modules || []).map(m => <span key={m}>{m}</span>)}</div></Panel>;
 }
 
 function DataPage({ portfolio, market }) {
