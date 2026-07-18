@@ -35,6 +35,7 @@ import Panel from "./components/ui/Panel";
 import Card from "./components/ui/Card";
 import Sidebar from "./components/layout/Sidebar";
 import Topbar from "./components/layout/Topbar";
+import PageShell from "./components/layout/PageShell";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -287,21 +288,6 @@ function LoginScreen({ apiOk, authError, login }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function PageShell({ active, children }) {
-  return (
-    <section className="page-shell">
-      <div className="page-intro">
-        <div>
-          <h2>{active.description}</h2>
-          <p>Portfolio Engine v1.3 active. Positions, allocation, P/L and sector exposure are persisted in SQLite.</p>
-        </div>
-        <div className="version-badge">Portfolio v1.3</div>
-      </div>
-      {children}
-    </section>
   );
 }
 
