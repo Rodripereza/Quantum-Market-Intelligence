@@ -14,7 +14,6 @@ import {
   Search,
   Settings,
   Shield,
-  Trash2,
   User,
   Wallet,
   X
@@ -26,6 +25,7 @@ import Sidebar from "./components/layout/Sidebar";
 import Topbar from "./components/layout/Topbar";
 import PageShell from "./components/layout/PageShell";
 import Overview from "./pages/Overview";
+import Portfolio from "./pages/Portfolio";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -283,40 +283,6 @@ function LoginScreen({ apiOk, authError, login }) {
 
 function Market({ market }) {
   return <Panel title="Market Overview" subtitle={market?.source || 'loading'}>{(market?.assets || []).map(a => <div className="row" key={a.ticker}><div><strong>{a.ticker}</strong><span>{a.name}</span></div><div><strong>{money(a.price)}</strong><em className={a.change_pct >= 0 ? 'pos' : 'neg'}>{pct(a.change_pct)}</em></div></div>)}</Panel>;
-}
-
-function Portfolio({ portfolio, form, setForm, savePosition, deletePosition, editingId, setEditingId, startEdit }) {
-  const rows = portfolio?.positions || [];
-  return (
-    <>
-      <div className="grid4">
-        <Card title="Market Value" value={money(portfolio?.total_value)} subtitle="Current portfolio value" icon={<Wallet size={18} />} />
-        <Card title="Cost Basis" value={money(portfolio?.total_cost)} subtitle="Invested capital" icon={<Database size={18} />} />
-        <Card title="Total P/L" value={money(portfolio?.total_pl)} subtitle={pct(portfolio?.total_pl_pct)} icon={<Activity size={18} />} />
-        <Card title="Largest Weight" value={pct(portfolio?.largest_position_weight)} subtitle="Concentration control" icon={<PieChart size={18} />} />
-      </div>
-      <Panel title={editingId ? 'Edit Position' : 'Add Position'} subtitle="Persistent SQLite portfolio engine">
-        <form className="form portfolio-form" onSubmit={savePosition}>
-          <input placeholder="Ticker" value={form.ticker} onChange={e => setForm({ ...form, ticker: e.target.value })} required />
-          <input placeholder="Company" value={form.company} onChange={e => setForm({ ...form, company: e.target.value })} />
-          <input placeholder="Sector" value={form.sector} onChange={e => setForm({ ...form, sector: e.target.value })} />
-          <input placeholder="Quantity" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} required />
-          <input placeholder="Average price" value={form.average_price} onChange={e => setForm({ ...form, average_price: e.target.value })} required />
-          <input placeholder="Current price" value={form.current_price} onChange={e => setForm({ ...form, current_price: e.target.value })} />
-          <input className="wide-input" placeholder="Notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
-          <button>{editingId ? 'Save changes' : 'Add position'}</button>
-          {editingId && <button type="button" className="secondary-button" onClick={() => { setEditingId(null); setForm({ ticker: '', company: '', sector: '', quantity: '', average_price: '', current_price: '', notes: '' }); }}>Cancel</button>}
-        </form>
-      </Panel>
-      <Panel title="Portfolio Positions" subtitle={`${rows.length} positions · editable engine`}>
-        <div className="table-head"><span>Ticker</span><span>Company</span><span>Sector</span><span>Qty</span><span>Avg</span><span>Price</span><span>Value</span><span>P/L</span><span>Weight</span><span>Actions</span></div>
-        <div className="table">{rows.map(p => <div className="trow portfolio-row" key={p.id}><b>{p.ticker}</b><span>{p.company}</span><span>{p.sector}</span><span>{p.quantity}</span><span>{money(p.average_price)}</span><span>{money(p.current_price)}</span><span>{money(p.value)}</span><span className={p.pl >= 0 ? 'pos' : 'neg'}>{money(p.pl)} · {pct(p.pl_pct)}</span><span>{pct(p.weight)}</span><div className="row-actions"><button onClick={() => startEdit(p)}>Edit</button><button onClick={() => deletePosition(p.id)}><Trash2 size={14}/></button></div></div>)}</div>
-      </Panel>
-      <Panel title="Sector Allocation" subtitle="Exposure distribution">
-        <div className="metric-list">{(portfolio?.sector_allocation || []).map(s => <div key={s.sector}><strong>{s.sector}</strong><span>{money(s.value)} · {pct(s.weight)}</span></div>)}</div>
-      </Panel>
-    </>
-  );
 }
 
 function AI({ ai }) {
