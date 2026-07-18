@@ -20,6 +20,7 @@ from app.api.routes.fundamental import router as fundamental_router
 from app.core.database import create_db
 from app.models.portfolio import PortfolioPosition
 from app.api.routes.portfolio import router as portfolio_router
+from app.api.routes.auth import router as auth_router
 
 setup_logging()
 create_db()
@@ -37,6 +38,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "http://localhost:5174",
+        "http://127.0.0.1:5174",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -63,6 +66,7 @@ app.include_router(technical_router)
 app.include_router(test_router)
 app.include_router(fundamental_router)
 app.include_router(portfolio_router)
+app.include_router(auth_router)
 
 @app.get("/")
 def root():
