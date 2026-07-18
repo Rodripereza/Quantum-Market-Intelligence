@@ -26,6 +26,7 @@ import Topbar from "./components/layout/Topbar";
 import PageShell from "./components/layout/PageShell";
 import Overview from "./pages/Overview";
 import Portfolio from "./pages/Portfolio";
+import Market from "./pages/Market";
 
 const API = 'http://127.0.0.1:8000';
 
@@ -279,10 +280,6 @@ function LoginScreen({ apiOk, authError, login }) {
       </div>
     </div>
   );
-}
-
-function Market({ market }) {
-  return <Panel title="Market Overview" subtitle={market?.source || 'loading'}>{(market?.assets || []).map(a => <div className="row" key={a.ticker}><div><strong>{a.ticker}</strong><span>{a.name}</span></div><div><strong>{money(a.price)}</strong><em className={a.change_pct >= 0 ? 'pos' : 'neg'}>{pct(a.change_pct)}</em></div></div>)}</Panel>;
 }
 
 function AI({ ai }) {
