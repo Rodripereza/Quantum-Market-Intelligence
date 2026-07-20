@@ -31,12 +31,23 @@ import AI from "./pages/AI";
 import RiskPage from "./pages/RiskPage";
 import DataPage from "./pages/DataPage";
 import SettingsPage from "./pages/SettingsPage";
-import { getUser } from "./services/authService";
-import { getMarket } from "./services/marketService";
-import { getPortfolio } from "./services/portfolioService";
-import { getAIStatus } from "./services/aiService";
+import { getHealth } from "./services/systemService";
+import {
+  getUser,
+  login as loginService,
+  logout as logoutService
+} from "./services/authService";
 
-const API = 'http://127.0.0.1:8000';
+import { getMarket } from "./services/marketService";
+
+import {
+  getPortfolio,
+  createPosition,
+  updatePosition,
+  deletePosition as deletePositionService
+} from "./services/portfolioService";
+
+import { getAIStatus } from "./services/aiService";
 
 const NAV_SECTIONS = [
   {
@@ -103,8 +114,8 @@ function App() {
 
   async function load(activeToken = token) {
     try {
-        const health = await fetch(`${API}/health`);
-        setApiOk(health.ok);
+        await getHealth();
+        setApiOk(true);
 
         if (!activeToken) {
             return;
@@ -160,30 +171,42 @@ function App() {
     { month: 'Jun', value: 72 }
   ];
 
-  async function savePosition(e) {
-    e.preventDefault();
-    const payload = {
-      ticker: form.ticker,
-      company: form.company || form.ticker,
-      sector: form.sector || 'Unclassified',
-      quantity: Number(form.quantity),
-      average_price: Number(form.average_price),
-      current_price: Number(form.current_price || form.average_price),
-      currency: 'USD',
-      notes: form.notes || ''
-    };
-    const url = editingId ? `${API}/api/portfolio/positions/${editingId}` : `${API}/api/portfolio/positions`;
-    const method = editingId ? 'PUT' : 'POST';
-    const response = await fetch(url, {
-      method,
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify(payload)
-    });
-    const data = await response.json();
-    if (data.portfolio) setPortfolio(data.portfolio);
-    setEditingId(null);
-    setForm({ ticker: '', company: '', sector: '', quantity: '', average_price: '', current_price: '', notes: '' });
+async function savePosition(event) {
+  event.preventDefault();
+
+  const payload = {
+    ticker: form.ticker,
+    company: form.company || form.ticker,
+    sector: form.sector || "Unclassified",
+    quantity: Number(form.quantity),
+    average_price: Number(form.average_price),
+    current_price: Number(
+      form.current_price || form.average_price
+    ),
+    currency: "USD",
+    notes: form.notes || ""
+  };
+
+  const data = editingId
+    ? await updatePosition(token, editingId, payload)
+    : await createPosition(token, payload);
+
+  if (data.portfolio) {
+    setPortfolio(data.portfolio);
   }
+
+  setEditingId(null);
+
+  setForm({
+    ticker: "",
+    company: "",
+    sector: "",
+    quantity: "",
+    average_price: "",
+    current_price: "",
+    notes: ""
+  });
+}
 
   function startEdit(position) {
     setEditingId(position.id);
@@ -200,44 +223,48 @@ function App() {
   }
 
   async function deletePosition(id) {
-    const response = await fetch(`${API}/api/portfolio/positions/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-    const data = await response.json();
-    if (data.portfolio) setPortfolio(data.portfolio); else load();
+  const data = await deletePositionService(token, id);
+
+  if (data.portfolio) {
+    setPortfolio(data.portfolio);
+  } else {
+    load();
   }
+}
 
+async function login(email, password) {
+  setAuthError("");
 
-  async function login(email, password) {
-    setAuthError('');
-    try {
-      const response = await fetch(`${API}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      if (!response.ok) {
-        setAuthError('Invalid email or password');
-        return;
-      }
-      const data = await response.json();
-      localStorage.setItem('qmi_token', data.access_token);
-      setToken(data.access_token);
-      setUser(data.user);
-    } catch (error) {
-      setAuthError('Backend authentication service unavailable');
+  try {
+    const data = await loginService(email, password);
+
+    localStorage.setItem("qmi_token", data.access_token);
+
+    setToken(data.access_token);
+    setUser(data.user);
+  } catch (error) {
+    if (error.status === 401) {
+      setAuthError("Invalid email or password");
+      return;
     }
+
+    setAuthError("Backend authentication service unavailable");
   }
+}
 
   async function logout(callApi = true) {
-    if (callApi && token) {
-      await fetch(`${API}/api/auth/logout`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => null);
-    }
-    localStorage.removeItem('qmi_token');
-    setToken('');
-    setUser(null);
-    setMarket(null);
-    setPortfolio(null);
-    setAi(null);
+  if (callApi && token) {
+    await logoutService(token).catch(() => null);
   }
+
+  localStorage.removeItem("qmi_token");
+
+  setToken("");
+  setUser(null);
+  setMarket(null);
+  setPortfolio(null);
+  setAi(null);
+}
 
   if (!token) {
     return <LoginScreen apiOk={apiOk} authError={authError} login={login} />;
