@@ -1,7 +1,15 @@
 import {
   Activity,
+  ArrowUpRight,
   Brain,
+  BriefcaseBusiness,
+  ChartNoAxesCombined,
+  CircleDollarSign,
+  Layers3,
   LineChart,
+  Radar,
+  ShieldCheck,
+  TrendingUp,
   Wallet
 } from "lucide-react";
 
@@ -16,9 +24,6 @@ import {
   XAxis,
   YAxis
 } from "recharts";
-
-import Card from "../components/ui/Card";
-import Panel from "../components/ui/Panel";
 
 function money(number, currency = "USD") {
   if (
@@ -48,29 +53,122 @@ function pct(number) {
   return `${Number(number || 0).toFixed(2)}%`;
 }
 
-function MarketOverview({ market }) {
+function ExecutiveMetric({
+  label,
+  value,
+  description,
+  icon,
+  tone = "neutral"
+}) {
   return (
-    <Panel
-      title="Market Overview"
-      subtitle={market?.source || "loading"}
-    >
-      {(market?.assets || []).map((asset) => (
-        <div className="row" key={asset.ticker}>
-          <div>
-            <strong>{asset.ticker}</strong>
-            <span>{asset.name}</span>
-          </div>
+    <article className={`executive-metric ${tone}`}>
+      <div className="executive-metric-top">
+        <span>{label}</span>
 
-          <div>
-            <strong>{money(asset.price)}</strong>
-
-            <em className={asset.change_pct >= 0 ? "pos" : "neg"}>
-              {pct(asset.change_pct)}
-            </em>
-          </div>
+        <div className="executive-metric-icon">
+          {icon}
         </div>
-      ))}
-    </Panel>
+      </div>
+
+      <strong>{value}</strong>
+
+      <small>{description}</small>
+    </article>
+  );
+}
+
+function EmptyChartState({
+  icon,
+  title,
+  description,
+  action,
+  onAction
+}) {
+  return (
+    <div className="empty-chart-state">
+      <div className="empty-chart-icon">
+        {icon}
+      </div>
+
+      <strong>{title}</strong>
+
+      <p>{description}</p>
+
+      {action && (
+        <button onClick={onAction}>
+          {action}
+          <ArrowUpRight size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function MarketSnapshot({ market, navigate }) {
+  const assets = market?.assets || [];
+
+  return (
+    <section className="overview-surface market-snapshot">
+      <div className="overview-section-heading">
+        <div>
+          <span className="section-kicker">
+            LIVE INTELLIGENCE
+          </span>
+
+          <h2>Market Snapshot</h2>
+
+          <p>
+            Current prices and daily market movement
+          </p>
+        </div>
+
+        <button
+          className="overview-icon-action"
+          onClick={() => navigate("market")}
+          title="Open Market"
+        >
+          <ArrowUpRight size={17} />
+        </button>
+      </div>
+
+      {assets.length > 0 ? (
+        <div className="market-snapshot-list">
+          {assets.slice(0, 6).map((asset) => (
+            <div
+              className="market-snapshot-row"
+              key={asset.ticker}
+            >
+              <div className="market-symbol">
+                <strong>{asset.ticker}</strong>
+                <span>{asset.name}</span>
+              </div>
+
+              <div className="market-price">
+                <strong>{money(asset.price)}</strong>
+
+                <span
+                  className={
+                    asset.change_pct >= 0
+                      ? "market-change positive"
+                      : "market-change negative"
+                  }
+                >
+                  {pct(asset.change_pct)}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyChartState
+          icon={<Radar size={22} />}
+          title="Market feed unavailable"
+          description="Start the backend to load the current market snapshot."
+          action="Open Market"
+          onAction={() => navigate("market")}
+        />
+      )}
+    </section>
   );
 }
 
@@ -83,152 +181,427 @@ function Overview({
   sectorAllocation,
   navigate
 }) {
+  const totalPL = Number(portfolio?.total_pl || 0);
+  const totalPLPct = Number(portfolio?.total_pl_pct || 0);
+
+  const hasAllocation = allocation?.length > 0;
+  const hasSectorAllocation = sectorAllocation?.length > 0;
+
   return (
-    <>
-      <div className="grid4">
-        <Card
-          title="Portfolio Value"
-          value={money(portfolio?.total_value)}
-          subtitle="SQLite portfolio data"
+    <div className="overview-dashboard">
+      <section className="executive-hero">
+        <div className="executive-hero-copy">
+          <div className="executive-label">
+            <span className="executive-pulse" />
+            QMI EXECUTIVE WORKSPACE
+          </div>
+
+          <h2>
+            Portfolio intelligence at a glance
+          </h2>
+
+          <p>
+            Consolidated market, portfolio, risk and AI
+            intelligence from your private investment
+            workspace.
+          </p>
+
+          <div className="executive-actions">
+            <button
+              className="primary-overview-action"
+              onClick={() => navigate("portfolio")}
+            >
+              <BriefcaseBusiness size={16} />
+              Manage Portfolio
+            </button>
+
+            <button
+              className="secondary-overview-action"
+              onClick={() => navigate("market")}
+            >
+              <LineChart size={16} />
+              Explore Markets
+            </button>
+          </div>
+        </div>
+
+        <div className="hero-portfolio-value">
+          <span>Total portfolio value</span>
+
+          <strong>
+            {money(portfolio?.total_value)}
+          </strong>
+
+          <div
+            className={
+              totalPL >= 0
+                ? "hero-performance positive"
+                : "hero-performance negative"
+            }
+          >
+            <TrendingUp size={15} />
+
+            <span>
+              {money(portfolio?.total_pl)} ·{" "}
+              {pct(totalPLPct)}
+            </span>
+          </div>
+
+          <small>
+            Updated from the persistent QMI portfolio
+            engine
+          </small>
+        </div>
+      </section>
+
+      <section className="executive-metrics-grid">
+        <ExecutiveMetric
+          label="Cost basis"
+          value={money(portfolio?.total_cost)}
+          description="Capital currently invested"
+          icon={<CircleDollarSign size={18} />}
+        />
+
+        <ExecutiveMetric
+          label="Open positions"
+          value={portfolio?.position_count ?? "--"}
+          description="Active portfolio holdings"
           icon={<Wallet size={18} />}
         />
 
-        <Card
-          title="Total P/L"
-          value={money(portfolio?.total_pl)}
-          subtitle={`${pct(portfolio?.total_pl_pct)} total result`}
-          icon={<Activity size={18} />}
-        />
-
-        <Card
-          title="Open Positions"
-          value={portfolio?.position_count ?? "--"}
-          subtitle={`Largest weight ${pct(
+        <ExecutiveMetric
+          label="Largest exposure"
+          value={pct(
             portfolio?.largest_position_weight
-          )}`}
-          icon={<LineChart size={18} />}
+          )}
+          description="Maximum individual position weight"
+          icon={<Layers3 size={18} />}
+          tone="warning"
         />
 
-        <Card
-          title="AI Layer"
+        <ExecutiveMetric
+          label="AI intelligence"
           value={ai?.status || "Loading"}
-          subtitle="Architecture prepared"
+          description="Analytical architecture status"
           icon={<Brain size={18} />}
+          tone="primary"
         />
-      </div>
+      </section>
 
-      <div className="quick-grid">
-        <button onClick={() => navigate("market")}>
-          Open Market
-        </button>
+      <section className="overview-main-grid">
+        <section className="overview-surface trend-surface">
+          <div className="overview-section-heading">
+            <div>
+              <span className="section-kicker">
+                ANALYTICAL SIGNAL
+              </span>
 
-        <button onClick={() => navigate("portfolio")}>
-          Open Portfolio
-        </button>
+              <h2>Market Intelligence Trend</h2>
 
-        <button onClick={() => navigate("ai")}>
-          Open AI Layer
-        </button>
+              <p>
+                Composite foundation signal over the last
+                six months
+              </p>
+            </div>
 
-        <button onClick={() => navigate("risk")}>
-          Open Risk
-        </button>
-      </div>
+            <div className="chart-period-selector">
+              <button>1M</button>
+              <button>3M</button>
+              <button className="active">6M</button>
+              <button>1Y</button>
+            </div>
+          </div>
 
-      <div className="layout">
-        <Panel
-          title="Market Intelligence Trend"
-          subtitle="Foundation analytical signal"
-        >
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={trend}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#20314d"
-              />
+          <div className="trend-chart">
+            <ResponsiveContainer
+              width="100%"
+              height={310}
+            >
+              <AreaChart
+                data={trend}
+                margin={{
+                  top: 18,
+                  right: 8,
+                  left: -16,
+                  bottom: 0
+                }}
+              >
+                <defs>
+                  <linearGradient
+                    id="qmiTrendGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="#648fff"
+                      stopOpacity={0.34}
+                    />
 
-              <XAxis
-                dataKey="month"
-                stroke="#9db7df"
-              />
+                    <stop
+                      offset="100%"
+                      stopColor="#648fff"
+                      stopOpacity={0}
+                    />
+                  </linearGradient>
+                </defs>
 
-              <YAxis stroke="#9db7df" />
+                <CartesianGrid
+                  strokeDasharray="2 5"
+                  stroke="#202b3a"
+                  vertical={false}
+                />
 
-              <Tooltip />
+                <XAxis
+                  dataKey="month"
+                  stroke="#68768a"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{
+                    fontSize: 11
+                  }}
+                />
 
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#3da5ff"
-                fill="#163d63"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Panel>
+                <YAxis
+                  stroke="#68768a"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{
+                    fontSize: 11
+                  }}
+                />
 
-        <MarketOverview market={market} />
-      </div>
+                <Tooltip
+                  contentStyle={{
+                    background: "#101722",
+                    border: "1px solid #2b3b50",
+                    borderRadius: "10px",
+                    boxShadow:
+                      "0 16px 40px rgba(0,0,0,.4)"
+                  }}
+                  labelStyle={{
+                    color: "#a9b5c5"
+                  }}
+                />
 
-      <div className="layout">
-        <Panel
-          title="Portfolio Allocation"
-          subtitle="Position value distribution"
-        >
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={allocation}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#20314d"
-              />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#648fff"
+                  strokeWidth={2.4}
+                  fill="url(#qmiTrendGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
 
-              <XAxis
-                dataKey="ticker"
-                stroke="#9db7df"
-              />
+          <div className="trend-footer">
+            <div>
+              <Activity size={15} />
+              <span>Signal momentum</span>
+              <strong>Positive</strong>
+            </div>
 
-              <YAxis stroke="#9db7df" />
+            <div>
+              <ShieldCheck size={15} />
+              <span>Risk state</span>
+              <strong>Controlled</strong>
+            </div>
 
-              <Tooltip />
+            <div>
+              <ChartNoAxesCombined size={15} />
+              <span>Trend score</span>
+              <strong>
+                {trend?.at(-1)?.value ?? "--"}
+              </strong>
+            </div>
+          </div>
+        </section>
 
-              <Bar
-                dataKey="value"
-                fill="#3da5ff"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </Panel>
+        <MarketSnapshot
+          market={market}
+          navigate={navigate}
+        />
+      </section>
 
-        <Panel
-          title="Sector Exposure"
-          subtitle="Allocation by sector"
-        >
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={sectorAllocation}>
-              <CartesianGrid
-                strokeDasharray="3 3"
-                stroke="#20314d"
-              />
+      <section className="overview-allocation-grid">
+        <section className="overview-surface">
+          <div className="overview-section-heading">
+            <div>
+              <span className="section-kicker">
+                PORTFOLIO STRUCTURE
+              </span>
 
-              <XAxis
-                dataKey="sector"
-                stroke="#9db7df"
-              />
+              <h2>Position Allocation</h2>
 
-              <YAxis stroke="#9db7df" />
+              <p>
+                Market value distribution across holdings
+              </p>
+            </div>
 
-              <Tooltip />
+            <button
+              className="overview-text-action"
+              onClick={() => navigate("portfolio")}
+            >
+              View portfolio
+              <ArrowUpRight size={14} />
+            </button>
+          </div>
 
-              <Bar
-                dataKey="value"
-                fill="#3da5ff"
-                radius={[8, 8, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </Panel>
-      </div>
-    </>
+          {hasAllocation ? (
+            <ResponsiveContainer
+              width="100%"
+              height={250}
+            >
+              <BarChart
+                data={allocation}
+                margin={{
+                  top: 18,
+                  right: 8,
+                  left: -12,
+                  bottom: 0
+                }}
+              >
+                <CartesianGrid
+                  strokeDasharray="2 5"
+                  stroke="#202b3a"
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="ticker"
+                  stroke="#68768a"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{
+                    fontSize: 11
+                  }}
+                />
+
+                <YAxis
+                  stroke="#68768a"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{
+                    fontSize: 11
+                  }}
+                />
+
+                <Tooltip
+                  formatter={(value) => money(value)}
+                  contentStyle={{
+                    background: "#101722",
+                    border: "1px solid #2b3b50",
+                    borderRadius: "10px"
+                  }}
+                />
+
+                <Bar
+                  dataKey="value"
+                  fill="#648fff"
+                  radius={[5, 5, 0, 0]}
+                  maxBarSize={42}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState
+              icon={<Wallet size={22} />}
+              title="No portfolio positions"
+              description="Add your first holding to generate the allocation chart."
+              action="Add position"
+              onAction={() => navigate("portfolio")}
+            />
+          )}
+        </section>
+
+        <section className="overview-surface">
+          <div className="overview-section-heading">
+            <div>
+              <span className="section-kicker">
+                RISK DISTRIBUTION
+              </span>
+
+              <h2>Sector Exposure</h2>
+
+              <p>
+                Capital concentration by economic sector
+              </p>
+            </div>
+          </div>
+
+          {hasSectorAllocation ? (
+            <ResponsiveContainer
+              width="100%"
+              height={250}
+            >
+              <BarChart
+                data={sectorAllocation}
+                layout="vertical"
+                margin={{
+                  top: 12,
+                  right: 15,
+                  left: 15,
+                  bottom: 0
+                }}
+              >
+                <CartesianGrid
+                  strokeDasharray="2 5"
+                  stroke="#202b3a"
+                  horizontal={false}
+                />
+
+                <XAxis
+                  type="number"
+                  stroke="#68768a"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{
+                    fontSize: 11
+                  }}
+                />
+
+                <YAxis
+                  type="category"
+                  dataKey="sector"
+                  width={90}
+                  stroke="#68768a"
+                  tickLine={false}
+                  axisLine={false}
+                  tick={{
+                    fontSize: 11
+                  }}
+                />
+
+                <Tooltip
+                  formatter={(value) => money(value)}
+                  contentStyle={{
+                    background: "#101722",
+                    border: "1px solid #2b3b50",
+                    borderRadius: "10px"
+                  }}
+                />
+
+                <Bar
+                  dataKey="value"
+                  fill="#41c7a1"
+                  radius={[0, 5, 5, 0]}
+                  maxBarSize={24}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <EmptyChartState
+              icon={<Layers3 size={22} />}
+              title="No sector exposure"
+              description="Sector distribution will appear after portfolio positions are loaded."
+            />
+          )}
+        </section>
+      </section>
+    </div>
   );
 }
 
