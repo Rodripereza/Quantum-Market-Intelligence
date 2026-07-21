@@ -25,6 +25,8 @@ import {
   YAxis
 } from "recharts";
 
+import ExecutiveMetric from "../components/overview/ExecutiveMetric";
+
 function money(number, currency = "USD") {
   if (
     number === null ||
@@ -51,30 +53,6 @@ function pct(number) {
   }
 
   return `${Number(number || 0).toFixed(2)}%`;
-}
-
-function ExecutiveMetric({
-  label,
-  value,
-  description,
-  icon,
-  tone = "neutral"
-}) {
-  return (
-    <article className={`executive-metric ${tone}`}>
-      <div className="executive-metric-top">
-        <span>{label}</span>
-
-        <div className="executive-metric-icon">
-          {icon}
-        </div>
-      </div>
-
-      <strong>{value}</strong>
-
-      <small>{description}</small>
-    </article>
-  );
 }
 
 function EmptyChartState({
