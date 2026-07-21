@@ -1,57 +1,134 @@
-import { ChevronRight, X } from "lucide-react";
+import {
+  ChevronRight,
+  CircleDot,
+  Command,
+  X
+} from "lucide-react";
 
 export default function Sidebar({
   page,
   navigate,
   open,
   close,
-  navSections,
+  navSections
 }) {
   return (
     <>
-      <aside className={`sidebar ${open ? "mobile-open" : ""}`}>
-        <div className="brand-row">
-          <div className="logo">QMI</div>
+      <aside
+        className={`sidebar ${open ? "mobile-open" : ""}`}
+      >
+        <div className="sidebar-header">
+          <div className="brand-row">
+            <div className="brand-mark">
+              <div className="brand-symbol">
+                <Command size={17} />
+              </div>
 
-          <button
-            className="icon-button mobile-only"
-            onClick={close}
-            type="button"
-          >
-            <X size={18} />
-          </button>
+              <div>
+                <div className="logo">QMI</div>
+                <span className="brand-subtitle">
+                  Intelligence Terminal
+                </span>
+              </div>
+            </div>
+
+            <button
+              className="icon-button mobile-only"
+              onClick={close}
+              type="button"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          <div className="workspace-card">
+            <div className="workspace-card-top">
+              <span>Private workspace</span>
+
+              <div className="workspace-status">
+                <CircleDot size={11} />
+                Active
+              </div>
+            </div>
+
+            <strong>Institutional Research</strong>
+
+            <small>
+              Quantum Market Intelligence
+            </small>
+          </div>
         </div>
 
-        <div className="workspace-card">
-          <span>Workspace</span>
-          <strong>Institutional Research</strong>
+        <div className="sidebar-navigation">
+          {navSections.map((section) => (
+            <nav
+              key={section.title}
+              className="nav-section"
+              aria-label={section.title}
+            >
+              <div className="nav-title">
+                {section.title}
+              </div>
+
+              <div className="nav-items">
+                {section.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = page === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      className={
+                        isActive
+                          ? "sidebar-nav-item active"
+                          : "sidebar-nav-item"
+                      }
+                      onClick={() => navigate(item.id)}
+                      type="button"
+                    >
+                      <span className="sidebar-nav-icon">
+                        <Icon size={16} />
+                      </span>
+
+                      <span className="sidebar-nav-copy">
+                        <strong>{item.label}</strong>
+                        <small>{item.description}</small>
+                      </span>
+
+                      <ChevronRight
+                        size={14}
+                        className="nav-arrow"
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+          ))}
         </div>
 
-        {navSections.map((section) => (
-          <nav key={section.title} className="nav-section">
-            <div className="nav-title">{section.title}</div>
+        <div className="sidebar-footer">
+          <div className="sidebar-footer-status">
+            <span className="sidebar-footer-dot" />
 
-            {section.items.map((item) => {
-              const Icon = item.icon;
-
-              return (
-                <button
-                  key={item.id}
-                  className={page === item.id ? "active" : ""}
-                  onClick={() => navigate(item.id)}
-                  type="button"
-                >
-                  <Icon size={18} />
-                  <span>{item.label}</span>
-                  <ChevronRight size={15} className="nav-arrow" />
-                </button>
-              );
-            })}
-          </nav>
-        ))}
+            <div>
+              <strong>Foundation v1.3</strong>
+              <small>Architecture operational</small>
+            </div>
+          </div>
+        </div>
       </aside>
 
-      {open && <div className="overlay" onClick={close} />}
+      {open && (
+        <div
+          className="overlay"
+          onClick={close}
+          role="button"
+          tabIndex={0}
+          aria-label="Close navigation"
+        />
+      )}
     </>
   );
 }
+

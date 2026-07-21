@@ -1,58 +1,132 @@
-import { Bell, ChevronRight, Menu, Search, User } from "lucide-react";
+import {
+  Bell,
+  ChevronRight,
+  CircleDot,
+  Command,
+  Menu,
+  Search,
+  User
+} from "lucide-react";
 
 export default function Topbar({
   active,
   apiOk,
   user,
   logout,
-  openSidebar,
+  openSidebar
 }) {
   return (
-    <header className="topbar">
-      <div className="title-block">
+    <header className="topbar topbar-premium">
+      <div className="title-block topbar-title-block">
         <button
           className="icon-button mobile-only"
           onClick={openSidebar}
           type="button"
+          aria-label="Open navigation"
         >
           <Menu size={20} />
         </button>
 
-        <div>
-          <div className="eyebrow">
-            QUANTUM MARKET INTELLIGENCE · FOUNDATION v1.3
+        <div className="topbar-title-content">
+          <div className="topbar-system-line">
+            <span className="topbar-system-icon">
+              <Command size={12} />
+            </span>
+
+            <span>
+              QUANTUM MARKET INTELLIGENCE
+            </span>
+
+            <span className="topbar-system-separator">
+              /
+            </span>
+
+            <span>FOUNDATION v1.3</span>
           </div>
 
-          <h1>{active.label}</h1>
+          <div className="topbar-heading-row">
+            <div>
+              <h1>{active.label}</h1>
 
-          <div className="breadcrumb">
-            <span>QMI</span>
-            <ChevronRight size={14} />
-            <span>{active.label}</span>
+              <div className="breadcrumb">
+                <span>QMI</span>
+                <ChevronRight size={13} />
+                <span>{active.label}</span>
+              </div>
+            </div>
+
+            <div className="topbar-page-status">
+              <CircleDot size={12} />
+              Workspace active
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="top-actions">
-        <div className="search-pill">
-          <Search size={16} />
-          <span>Search modules</span>
-        </div>
+      <div className="top-actions topbar-actions-premium">
+        <button
+          className="topbar-search"
+          type="button"
+        >
+          <Search size={15} />
 
-        <button className="icon-button">
-          <Bell size={18} />
+          <span>Search modules, tickers or commands</span>
+
+          <kbd>Ctrl K</kbd>
         </button>
 
-        <span className={apiOk ? "ok" : "bad"}>
-          {apiOk ? "API OK" : "API OFFLINE"}
-        </span>
+        <button
+          className="topbar-icon-action"
+          type="button"
+          aria-label="Notifications"
+        >
+          <Bell size={17} />
 
-        <div className="user-card">
-          <User size={18} />
+          <span className="notification-dot" />
+        </button>
+
+        <div
+          className={
+            apiOk
+              ? "topbar-api-status online"
+              : "topbar-api-status offline"
+          }
+        >
+          <span className="api-status-dot" />
+
           <div>
-            <strong>{user?.name || "Rodri"}</strong>
-            <span>{user?.email}</span>
+            <strong>
+              {apiOk ? "API Online" : "API Offline"}
+            </strong>
+
+            <small>
+              {apiOk
+                ? "FastAPI operational"
+                : "Backend unavailable"}
+            </small>
           </div>
+        </div>
+
+        <div className="topbar-user-menu">
+          <div className="topbar-user-avatar">
+            <User size={15} />
+          </div>
+
+          <div className="topbar-user-copy">
+            <strong>{user?.name || "Rodri"}</strong>
+
+            <span>
+              {user?.role || "Founder / Investor"}
+            </span>
+          </div>
+
+          <button
+            className="topbar-logout"
+            onClick={() => logout()}
+            type="button"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </header>

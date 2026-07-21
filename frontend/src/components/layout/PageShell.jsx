@@ -1,6 +1,6 @@
 export default function PageShell({ active, children }) {
   return (
-    <section className="page-shell">
+    <section className={`page-shell page-${active.id}`}>
       <div className="page-intro">
         <div>
           <h2>{active.description}</h2>

@@ -1,0 +1,1068 @@
+/* =========================================================
+   QMI — AI INVESTMENT ADVISOR
+   Institutional Visual System v1.0
+   ========================================================= */
+
+.advisor-dashboard {
+  --advisor-bg: #0b111a;
+  --advisor-surface: #0f1722;
+  --advisor-surface-raised: #131e2b;
+  --advisor-border: #202e40;
+  --advisor-border-strong: #2b3d53;
+
+  --advisor-text: #eef3f8;
+  --advisor-text-secondary: #a6b2c2;
+  --advisor-text-muted: #66758a;
+
+  --advisor-blue: #5f8fff;
+  --advisor-blue-soft: rgba(95, 143, 255, 0.12);
+
+  --advisor-green: #4fd37a;
+  --advisor-green-soft: rgba(79, 211, 122, 0.11);
+
+  --advisor-yellow: #e6bd48;
+  --advisor-yellow-soft: rgba(230, 189, 72, 0.11);
+
+  --advisor-red: #ef6270;
+  --advisor-red-soft: rgba(239, 98, 112, 0.11);
+
+  --advisor-purple: #a66cff;
+  --advisor-purple-soft: rgba(166, 108, 255, 0.11);
+
+  display: grid;
+  width: 100%;
+  gap: 12px;
+  color: var(--advisor-text);
+}
+
+.advisor-dashboard *,
+.advisor-dashboard *::before,
+.advisor-dashboard *::after {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   GENERAL SURFACES
+   ========================================================= */
+
+.advisor-header,
+.advisor-card,
+.advisor-position-strip {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.018),
+      transparent 55%
+    ),
+    var(--advisor-surface);
+  border: 1px solid var(--advisor-border);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.015);
+}
+
+.advisor-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 15px;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.advisor-card:hover {
+  transform: translateY(-1px);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025),
+      transparent 55%
+    ),
+    var(--advisor-surface-raised);
+  border-color: var(--advisor-border-strong);
+  box-shadow: 0 17px 42px rgba(0, 0, 0, 0.27);
+}
+
+.advisor-card-label {
+  display: block;
+  color: var(--advisor-text-muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.85px;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   HERO
+   ========================================================= */
+
+.advisor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 17px 19px;
+  background:
+    radial-gradient(
+      circle at 85% 10%,
+      rgba(95, 143, 255, 0.15),
+      transparent 28%
+    ),
+    linear-gradient(
+      105deg,
+      rgba(95, 143, 255, 0.045),
+      transparent 42%
+    ),
+    var(--advisor-surface);
+}
+
+.advisor-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #91abff;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.15px;
+}
+
+.advisor-eyebrow svg {
+  color: var(--advisor-purple);
+}
+
+.advisor-eyebrow span {
+  padding: 3px 7px;
+  background: var(--advisor-purple-soft);
+  color: #c7a2ff;
+  border: 1px solid rgba(166, 108, 255, 0.3);
+  border-radius: 6px;
+  font-size: 7px;
+  letter-spacing: 0.65px;
+}
+
+.advisor-header h2 {
+  margin: 7px 0 0;
+  color: var(--advisor-text);
+  font-size: clamp(19px, 1.5vw, 25px);
+  font-weight: 750;
+  letter-spacing: -0.65px;
+}
+
+.advisor-header p {
+  max-width: 900px;
+  margin: 5px 0 0;
+  color: var(--advisor-text-muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.advisor-header-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  background: var(--advisor-green-soft);
+  color: var(--advisor-green);
+  border: 1px solid rgba(79, 211, 122, 0.22);
+  border-radius: 9px;
+  font-size: 8px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   KPI GRID
+   ========================================================= */
+
+.advisor-kpi-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(280px, 1.2fr)
+    repeat(4, minmax(175px, 0.85fr));
+  gap: 10px;
+}
+
+/* =========================================================
+   RECOMMENDATION CARD
+   ========================================================= */
+
+.advisor-recommendation-card {
+  min-height: 185px;
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba(230, 189, 72, 0.09),
+      transparent 32%
+    ),
+    var(--advisor-surface);
+}
+
+.advisor-recommendation-card::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--advisor-yellow);
+  content: "";
+}
+
+.advisor-recommendation-card.recommendation-positive::before {
+  background: var(--advisor-green);
+}
+
+.advisor-recommendation-card.recommendation-negative::before {
+  background: var(--advisor-red);
+}
+
+.recommendation-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.recommendation-status {
+  padding: 4px 7px;
+  background: var(--advisor-yellow-soft);
+  color: var(--advisor-yellow);
+  border: 1px solid rgba(230, 189, 72, 0.25);
+  border-radius: 6px;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.recommendation-status.positive {
+  background: var(--advisor-green-soft);
+  color: var(--advisor-green);
+  border-color: rgba(79, 211, 122, 0.25);
+}
+
+.recommendation-status.negative {
+  background: var(--advisor-red-soft);
+  color: var(--advisor-red);
+  border-color: rgba(239, 98, 112, 0.25);
+}
+
+.advisor-recommendation-value {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 13px;
+}
+
+.advisor-recommendation-value strong {
+  color: var(--advisor-yellow);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 29px;
+  font-weight: 700;
+  letter-spacing: -1px;
+}
+
+.recommendation-positive .advisor-recommendation-value strong {
+  color: var(--advisor-green);
+}
+
+.recommendation-negative .advisor-recommendation-value strong {
+  color: var(--advisor-red);
+}
+
+.advisor-recommendation-icon {
+  display: flex;
+  width: 43px;
+  height: 43px;
+  align-items: center;
+  justify-content: center;
+  color: var(--advisor-yellow);
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 24px rgba(230, 189, 72, 0.12);
+}
+
+.recommendation-positive .advisor-recommendation-icon {
+  color: var(--advisor-green);
+}
+
+.recommendation-negative .advisor-recommendation-icon {
+  color: var(--advisor-red);
+}
+
+.recommendation-bias {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  color: var(--advisor-yellow);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.recommendation-bias.positive {
+  color: var(--advisor-green);
+}
+
+.recommendation-bias.negative {
+  color: var(--advisor-red);
+}
+
+.advisor-recommendation-card > p {
+  margin: 12px 0 0;
+  color: var(--advisor-text-muted);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.recommendation-card-footer {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #1c2736;
+}
+
+.recommendation-card-footer > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recommendation-card-footer span {
+  color: #59677a;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.45px;
+  text-transform: uppercase;
+}
+
+.recommendation-card-footer strong {
+  color: #b2bdcb;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  font-weight: 600;
+}
+
+/* =========================================================
+   SCORE RING
+   ========================================================= */
+
+.advisor-score-ring {
+  display: flex;
+  min-height: 115px;
+  align-items: center;
+  justify-content: center;
+}
+
+.advisor-score-ring-visual {
+  position: relative;
+  display: flex;
+  width: 96px;
+  height: 96px;
+  align-items: center;
+  justify-content: center;
+  background:
+    conic-gradient(
+      var(--advisor-green) var(--score),
+      #252f3d 0
+    );
+  border-radius: 50%;
+  box-shadow:
+    0 0 30px rgba(79, 211, 122, 0.09),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.advisor-score-ring-visual::before {
+  position: absolute;
+  width: 69px;
+  height: 69px;
+  background: var(--advisor-surface);
+  border: 1px solid #273447;
+  border-radius: 50%;
+  content: "";
+}
+
+.advisor-score-ring-visual > div {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+.advisor-score-ring-visual strong {
+  color: var(--advisor-text);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.advisor-score-ring-visual span {
+  color: var(--advisor-text-muted);
+  font-size: 8px;
+}
+
+/* =========================================================
+   RISK
+   ========================================================= */
+
+.advisor-risk-score {
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+}
+
+.advisor-risk-score strong {
+  color: var(--advisor-yellow);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 25px;
+  font-weight: 650;
+}
+
+.advisor-risk-score span {
+  margin-top: 3px;
+  color: #bd9136;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.advisor-risk-scale {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 3px;
+  margin-top: 19px;
+}
+
+.advisor-risk-scale span {
+  height: 6px;
+  border-radius: 999px;
+}
+
+.advisor-risk-scale span:nth-child(1),
+.advisor-risk-scale span:nth-child(2) {
+  background: var(--advisor-green);
+}
+
+.advisor-risk-scale span:nth-child(3) {
+  background: #d7cc49;
+}
+
+.advisor-risk-scale span:nth-child(4) {
+  background: #e39a3f;
+}
+
+.advisor-risk-scale span:nth-child(5) {
+  background: var(--advisor-red);
+}
+
+.advisor-risk-scale i {
+  position: absolute;
+  top: -5px;
+  left: 56%;
+  width: 2px;
+  height: 16px;
+  background: #ffffff;
+  box-shadow: 0 0 8px #ffffff;
+}
+
+/* =========================================================
+   HISTORICAL PROBABILITY
+   ========================================================= */
+
+.advisor-large-metric {
+  margin-top: 15px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 29px;
+  font-weight: 700;
+}
+
+.advisor-mini-trend {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  color: var(--advisor-green);
+}
+
+.advisor-card small {
+  color: var(--advisor-text-muted);
+  font-size: 8px;
+}
+
+/* =========================================================
+   HORIZON
+   ========================================================= */
+
+.advisor-horizon-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.advisor-horizon-list div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #1b2736;
+}
+
+.advisor-horizon-list div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.advisor-horizon-list span {
+  color: #7b899d;
+  font-size: 9px;
+}
+
+.advisor-horizon-list strong {
+  color: var(--advisor-green);
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   MAIN GRID
+   ========================================================= */
+
+.advisor-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(480px, 1fr);
+  gap: 10px;
+}
+
+.advisor-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 11px;
+}
+
+.advisor-card-heading h3 {
+  margin: 4px 0 0;
+  color: var(--advisor-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.advisor-card-heading > svg {
+  color: #7e8da2;
+}
+
+.advisor-card-heading button {
+  padding: 5px 8px;
+  background: #141e2b;
+  color: #8795a8;
+  border: 1px solid #2a394d;
+  border-radius: 7px;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   CHART
+   ========================================================= */
+
+.advisor-chart-card {
+  min-height: 390px;
+}
+
+.advisor-chart-legend {
+  display: flex;
+  gap: 17px;
+  padding-top: 10px;
+  border-top: 1px solid #1b2736;
+}
+
+.advisor-chart-legend span {
+  position: relative;
+  padding-left: 13px;
+  color: #778599;
+  font-size: 8px;
+}
+
+.advisor-chart-legend span::before {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  width: 8px;
+  height: 2px;
+  content: "";
+}
+
+.advisor-chart-legend .price::before {
+  background: #4f8cff;
+}
+
+.advisor-chart-legend .sentiment::before {
+  background: var(--advisor-green);
+}
+
+.advisor-chart-legend .confidence::before {
+  background: var(--advisor-purple);
+}
+
+/* =========================================================
+   FACTORS TABLE
+   ========================================================= */
+
+.advisor-factor-table {
+  display: grid;
+}
+
+.advisor-factor-table-head,
+.advisor-factor-row {
+  display: grid;
+  grid-template-columns: 0.8fr 0.32fr 1.7fr;
+  align-items: center;
+  gap: 9px;
+}
+
+.advisor-factor-table-head {
+  padding: 7px 8px;
+  color: #647286;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+}
+
+.advisor-factor-row {
+  min-height: 39px;
+  padding: 7px 8px;
+  border-top: 1px solid #1a2635;
+  transition: background 140ms ease;
+}
+
+.advisor-factor-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.advisor-factor-row strong {
+  color: #b9c3d0;
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.advisor-factor-row > span {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.advisor-factor-row p {
+  margin: 0;
+  color: #788598;
+  font-size: 8px;
+  line-height: 1.35;
+}
+
+.advisor-factor-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 7px;
+  padding: 10px 8px 0;
+  border-top: 1px solid #29384c;
+}
+
+.advisor-factor-total span {
+  color: #8b98aa;
+  font-size: 8px;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.advisor-factor-total strong {
+  color: var(--advisor-green);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+}
+
+/* =========================================================
+   LOWER GRID
+   ========================================================= */
+
+.advisor-lower-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.82fr)
+    minmax(330px, 0.9fr);
+  gap: 10px;
+}
+
+/* =========================================================
+   SCENARIOS
+   ========================================================= */
+
+.advisor-scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.advisor-scenario-card {
+  position: relative;
+  overflow: hidden;
+  padding: 12px;
+  background: #111a26;
+  border: 1px solid #223044;
+  border-radius: 10px;
+}
+
+.advisor-scenario-card::after {
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.72;
+  content: "";
+}
+
+.advisor-scenario-card.bullish {
+  color: var(--advisor-green);
+}
+
+.advisor-scenario-card.base {
+  color: var(--advisor-yellow);
+}
+
+.advisor-scenario-card.bearish {
+  color: var(--advisor-red);
+}
+
+.advisor-scenario-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.advisor-scenario-header div {
+  display: flex;
+  flex-direction: column;
+}
+
+.advisor-scenario-header span {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.advisor-scenario-header strong {
+  margin-top: 4px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 19px;
+}
+
+.advisor-scenario-metric {
+  display: flex;
+  flex-direction: column;
+  margin-top: 11px;
+}
+
+.advisor-scenario-metric span {
+  color: #68768a;
+  font-size: 7px;
+  text-transform: uppercase;
+}
+
+.advisor-scenario-metric strong {
+  margin-top: 3px;
+  color: #dce3eb;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+}
+
+/* =========================================================
+   CONVICTION
+   ========================================================= */
+
+.advisor-conviction-list {
+  display: grid;
+  gap: 12px;
+}
+
+.advisor-conviction-list > div {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 35px;
+  align-items: center;
+  gap: 9px;
+}
+
+.advisor-conviction-list span {
+  color: #7c899c;
+  font-size: 8px;
+}
+
+.advisor-conviction-list > div > div {
+  overflow: hidden;
+  height: 7px;
+  background: #1e2938;
+  border-radius: 999px;
+}
+
+.advisor-conviction-list i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--advisor-yellow),
+    var(--advisor-green)
+  );
+  border-radius: inherit;
+  box-shadow: 0 0 10px rgba(79, 211, 122, 0.15);
+}
+
+.advisor-conviction-list strong {
+  color: var(--advisor-green);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 8px;
+}
+
+/* =========================================================
+   POSITION MANAGEMENT
+   ========================================================= */
+
+.advisor-position-management {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.advisor-position-management > div:last-child {
+  display: grid;
+  gap: 9px;
+}
+
+.advisor-position-management span {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  color: #7d8a9d;
+  font-size: 8px;
+}
+
+.advisor-position-management span strong {
+  color: #c7d0dc;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.advisor-position-management i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.advisor-position-management i.hold {
+  background: var(--advisor-green);
+}
+
+.advisor-position-management i.add {
+  background: var(--advisor-blue);
+}
+
+.advisor-position-management i.reduce {
+  background: #a4acb8;
+}
+
+.advisor-position-management i.sell {
+  background: var(--advisor-red);
+}
+
+/* =========================================================
+   POSITION STRIP
+   ========================================================= */
+
+.advisor-position-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  background: #1d2938;
+}
+
+.advisor-position-strip > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 13px 15px;
+  background: var(--advisor-surface);
+}
+
+.advisor-position-strip span {
+  color: #68768a;
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+}
+
+.advisor-position-strip strong {
+  overflow: hidden;
+  margin-top: 5px;
+  color: #dfe5ec;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.advisor-position-strip small {
+  overflow: hidden;
+  margin-top: 3px;
+  color: #657286;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   SEMANTIC COLORS
+   ========================================================= */
+
+.advisor-dashboard .positive {
+  color: var(--advisor-green) !important;
+}
+
+.advisor-dashboard .negative {
+  color: var(--advisor-red) !important;
+}
+
+/* =========================================================
+   LOADING ANIMATION
+   ========================================================= */
+
+@keyframes advisorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.advisor-dashboard > * {
+  animation: advisorFadeIn 260ms ease both;
+}
+
+.advisor-dashboard > *:nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.advisor-dashboard > *:nth-child(3) {
+  animation-delay: 70ms;
+}
+
+.advisor-dashboard > *:nth-child(4) {
+  animation-delay: 105ms;
+}
+
+.advisor-dashboard > *:nth-child(5) {
+  animation-delay: 140ms;
+}
+
+/* =========================================================
+   ULTRAWIDE
+   ========================================================= */
+
+@media (min-width: 1800px) {
+  .advisor-dashboard {
+    gap: 13px;
+  }
+
+  .advisor-kpi-grid {
+    grid-template-columns:
+      minmax(320px, 1.25fr)
+      repeat(4, minmax(210px, 0.9fr));
+  }
+
+  .advisor-main-grid {
+    grid-template-columns: minmax(0, 1.32fr) minmax(560px, 1fr);
+  }
+
+  .advisor-lower-grid {
+    grid-template-columns: 1.18fr 0.82fr 0.92fr;
+  }
+}
+
+@media (min-width: 2400px) {
+  .advisor-card {
+    padding: 17px;
+  }
+
+  .advisor-main-grid {
+    grid-template-columns: minmax(0, 1.45fr) minmax(620px, 1fr);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1500px) {
+  .advisor-kpi-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .advisor-recommendation-card {
+    grid-column: span 2;
+  }
+
+  .advisor-main-grid,
+  .advisor-lower-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .advisor-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .advisor-kpi-grid,
+  .advisor-scenario-grid,
+  .advisor-position-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .advisor-recommendation-card {
+    grid-column: span 1;
+  }
+
+  .advisor-position-management {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .recommendation-card-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .advisor-factor-table-head {
+    display: none;
+  }
+
+  .advisor-factor-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .advisor-factor-row p {
+    grid-column: 1 / -1;
+  }
+}

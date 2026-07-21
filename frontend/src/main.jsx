@@ -48,6 +48,7 @@ import {
 } from "./services/portfolioService";
 
 import { getAIStatus } from "./services/aiService";
+import AIInvestmentAdvisor from "./pages/AIInvestmentAdvisor";
 
 const NAV_SECTIONS = [
   {
@@ -62,8 +63,10 @@ const NAV_SECTIONS = [
     title: 'Intelligence',
     items: [
       { id: 'ai', label: 'AI Intelligence', icon: Brain, description: 'Prediction layer' },
+      { id: "ai-advisor", label: "AI Advisor", icon: Brain, description: "Multi-factor recommendation"},
       { id: 'risk', label: 'Risk', icon: Shield, description: 'Risk monitoring' },
       { id: 'data', label: 'Data', icon: Database, description: 'Data architecture' }
+      
     ]
   },
   {
@@ -72,6 +75,7 @@ const NAV_SECTIONS = [
       { id: 'settings', label: 'Settings', icon: Settings, description: 'Environment settings' }
     ]
   }
+
 ];
 
 const ALL_NAV = NAV_SECTIONS.flatMap(section => section.items);
@@ -295,6 +299,7 @@ async function login(email, password) {
           {page === 'data' && <DataPage portfolio={portfolio} market={market} />}
           {page === 'risk' && <RiskPage portfolio={portfolio} />}
           {page === 'settings' && <SettingsPage apiOk={apiOk} user={user} />}
+          {page === "ai-advisor" && <AIInvestmentAdvisor />}
         </PageShell>
       </main>
     </div>
