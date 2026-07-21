@@ -2482,3 +2482,679 @@ td {
 .app-header {
   font-size: var(--font-sm);
 }
+
+/* =========================================================
+   QMI OVERVIEW — INSTITUTIONAL VISUAL SCALE V2
+   ========================================================= */
+
+.overview-dashboard {
+  gap: 18px;
+}
+
+.executive-hero {
+  grid-template-columns:
+    minmax(0, 1.55fr)
+    minmax(350px, 0.75fr);
+
+  gap: 28px;
+  padding: 32px 34px;
+  border-radius: 20px;
+}
+
+.executive-label {
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 1.9px;
+}
+
+.executive-pulse {
+  width: 8px;
+  height: 8px;
+}
+
+.executive-hero h2 {
+  max-width: 760px;
+  margin-top: 16px;
+
+  font-size: clamp(32px, 3vw, 46px);
+  letter-spacing: -1.7px;
+  line-height: 1.06;
+}
+
+.executive-hero-copy > p {
+  max-width: 760px;
+  margin-top: 15px;
+
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.executive-actions {
+  gap: 12px;
+  margin-top: 26px;
+}
+
+.primary-overview-action,
+.secondary-overview-action {
+  min-height: 46px;
+  gap: 9px;
+  padding: 11px 17px;
+
+  border-radius: 11px;
+
+  font-size: 13px;
+}
+
+.hero-portfolio-value {
+  min-height: 205px;
+  padding: 25px 28px;
+  border-radius: 17px;
+}
+
+.hero-portfolio-value > span {
+  font-size: 12px;
+  letter-spacing: 0.85px;
+}
+
+.hero-portfolio-value > strong {
+  margin-top: 13px;
+
+  font-size: clamp(34px, 3.4vw, 50px);
+  letter-spacing: -2.2px;
+}
+
+.hero-performance {
+  gap: 7px;
+  margin-top: 17px;
+  padding: 8px 11px;
+
+  border-radius: 9px;
+
+  font-size: 12px;
+}
+
+.hero-portfolio-value small {
+  margin-top: 15px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.executive-metrics-grid {
+  gap: 14px;
+}
+
+.executive-metric {
+  min-height: 150px;
+  padding: 19px 20px;
+  border-radius: 16px;
+}
+
+.executive-metric-top > span {
+  font-size: 11px;
+  letter-spacing: 0.85px;
+}
+
+.executive-metric-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+}
+
+.executive-metric-icon svg {
+  width: 21px;
+  height: 21px;
+}
+
+.executive-metric > strong {
+  margin-top: 18px;
+
+  font-size: 27px;
+  letter-spacing: -1px;
+}
+
+.executive-metric > small {
+  margin-top: 8px;
+
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.overview-main-grid {
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(350px, 0.75fr);
+
+  gap: 16px;
+}
+
+.overview-allocation-grid {
+  gap: 16px;
+}
+
+.overview-surface {
+  padding: 23px;
+  border-radius: 17px;
+}
+
+.overview-section-heading {
+  gap: 18px;
+  margin-bottom: 13px;
+}
+
+.section-kicker {
+  margin-bottom: 7px;
+
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.overview-section-heading h2 {
+  font-size: 18px;
+  line-height: 1.25;
+}
+
+.overview-section-heading p {
+  margin-top: 6px;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.overview-icon-action {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.overview-icon-action svg {
+  width: 19px;
+  height: 19px;
+}
+
+.overview-text-action {
+  gap: 6px;
+  font-size: 12px;
+}
+
+.chart-period-selector {
+  gap: 4px;
+  padding: 4px;
+  border-radius: 9px;
+}
+
+.chart-period-selector button {
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.trend-chart {
+  margin-top: 10px;
+  min-height: 340px;
+}
+
+.trend-footer {
+  gap: 11px;
+  padding-top: 16px;
+}
+
+.trend-footer > div {
+  column-gap: 9px;
+  padding: 11px 13px;
+  border-radius: 10px;
+}
+
+.trend-footer svg {
+  width: 18px;
+  height: 18px;
+}
+
+.trend-footer span {
+  font-size: 10px;
+  letter-spacing: 0.5px;
+}
+
+.trend-footer strong {
+  font-size: 12px;
+}
+
+.market-snapshot-list {
+  gap: 9px;
+  margin-top: 19px;
+}
+
+.market-snapshot-row {
+  gap: 18px;
+  padding: 14px 15px;
+  border-radius: 11px;
+}
+
+.market-symbol strong,
+.market-price strong {
+  font-size: 13px;
+}
+
+.market-symbol span {
+  max-width: 190px;
+  font-size: 11px;
+}
+
+.market-change {
+  font-size: 11px;
+}
+
+.empty-chart-state {
+  min-height: 270px;
+  padding: 30px;
+}
+
+.empty-chart-icon {
+  width: 58px;
+  height: 58px;
+  margin-bottom: 15px;
+  border-radius: 15px;
+}
+
+.empty-chart-icon svg {
+  width: 27px;
+  height: 27px;
+}
+
+.empty-chart-state strong {
+  font-size: 14px;
+}
+
+.empty-chart-state p {
+  max-width: 340px;
+  margin-top: 8px;
+
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.empty-chart-state button {
+  gap: 7px;
+  margin-top: 18px;
+  padding: 9px 13px;
+
+  border-radius: 9px;
+
+  font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .executive-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-portfolio-value {
+    min-height: 175px;
+  }
+
+  .overview-main-grid,
+  .overview-allocation-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .executive-hero {
+    padding: 24px;
+  }
+
+  .executive-hero h2 {
+    font-size: 31px;
+  }
+
+  .executive-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-surface {
+    padding: 19px;
+  }
+}
+
+/* =========================================================
+   QMI HERO MINI METRIC
+   ========================================================= */
+
+.hero-mini-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 23px;
+}
+
+.hero-mini-metric {
+  position: relative;
+
+  display: grid;
+  min-width: 190px;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+
+  padding: 13px 15px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.045),
+      rgba(255, 255, 255, 0.012)
+    ),
+    rgba(8, 14, 23, 0.58);
+
+  border: 1px solid rgba(126, 157, 211, 0.18);
+  border-radius: 13px;
+
+  backdrop-filter: blur(10px);
+
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.hero-mini-metric:hover {
+  transform: translateY(-2px);
+  border-color: rgba(126, 157, 211, 0.34);
+}
+
+.hero-mini-metric::after {
+  position: absolute;
+  inset: auto 0 0;
+
+  height: 2px;
+
+  background: #64748b;
+
+  content: "";
+}
+
+.hero-mini-metric--primary::after {
+  background: #648fff;
+}
+
+.hero-mini-metric--positive::after {
+  background: #43dda0;
+}
+
+.hero-mini-metric--warning::after {
+  background: #e9ad52;
+}
+
+.hero-mini-metric__icon {
+  display: flex;
+  width: 39px;
+  height: 39px;
+  align-items: center;
+  justify-content: center;
+
+  color: #91acff;
+  background: rgba(100, 143, 255, 0.1);
+  border: 1px solid rgba(100, 143, 255, 0.2);
+  border-radius: 11px;
+}
+
+.hero-mini-metric--positive .hero-mini-metric__icon {
+  color: #43dda0;
+  background: rgba(67, 221, 160, 0.08);
+  border-color: rgba(67, 221, 160, 0.18);
+}
+
+.hero-mini-metric--warning .hero-mini-metric__icon {
+  color: #e9ad52;
+  background: rgba(233, 173, 82, 0.08);
+  border-color: rgba(233, 173, 82, 0.18);
+}
+
+.hero-mini-metric__content {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.hero-mini-metric__label {
+  color: #7f8da2;
+
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.9px;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.hero-mini-metric__value {
+  margin-top: 3px;
+
+  color: #f4f7fb;
+
+  font-family: "JetBrains Mono", monospace;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+  line-height: 1.3;
+}
+
+.hero-mini-metric__detail {
+  margin-top: 2px;
+
+  color: #6f7d91;
+
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+@media (max-width: 700px) {
+  .hero-mini-metrics {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .hero-mini-metric {
+    min-width: 0;
+  }
+}
+
+/* =========================================================
+   QMI HERO VALUE CARD
+   ========================================================= */
+
+.hero-value-card {
+  position: relative;
+
+  display: flex;
+  min-height: 205px;
+  flex-direction: column;
+  justify-content: center;
+
+  overflow: hidden;
+  padding: 25px 28px;
+
+  background:
+    radial-gradient(
+      circle at 80% 12%,
+      rgba(100, 143, 255, 0.18),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      rgba(18, 29, 47, 0.95),
+      rgba(8, 14, 23, 0.98)
+    );
+
+  border: 1px solid rgba(126, 157, 211, 0.24);
+  border-radius: 17px;
+
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+
+  backdrop-filter: blur(12px);
+}
+
+.hero-value-card::before {
+  position: absolute;
+  top: -80px;
+  right: -55px;
+
+  width: 190px;
+  height: 190px;
+
+  background: rgba(100, 143, 255, 0.1);
+  border-radius: 50%;
+  filter: blur(34px);
+
+  content: "";
+  pointer-events: none;
+}
+
+.hero-value-card__header {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.hero-value-card__header > span {
+  color: #8b98ab;
+
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.85px;
+  text-transform: uppercase;
+}
+
+.hero-value-card__live {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 5px 8px;
+
+  color: #6ce5b2;
+  background: rgba(67, 221, 160, 0.08);
+  border: 1px solid rgba(67, 221, 160, 0.16);
+  border-radius: 999px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.hero-value-card__live span {
+  width: 6px;
+  height: 6px;
+
+  background: #43dda0;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(67, 221, 160, 0.08);
+}
+
+.hero-value-card__value {
+  position: relative;
+  z-index: 1;
+
+  margin-top: 15px;
+
+  color: #ffffff;
+
+  font-family: "JetBrains Mono", monospace;
+  font-size: clamp(34px, 3.4vw, 50px);
+  font-weight: 650;
+  letter-spacing: -2px;
+  line-height: 1;
+
+  text-shadow: 0 0 24px rgba(100, 143, 255, 0.12);
+}
+
+.hero-value-card__performance {
+  position: relative;
+  z-index: 1;
+
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+
+  margin-top: 15px;
+  padding: 7px 10px;
+
+  border-radius: 9px;
+
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.hero-value-card__performance.positive {
+  color: #43dda0;
+  background: rgba(67, 221, 160, 0.09);
+}
+
+.hero-value-card__performance.negative {
+  color: #ff7086;
+  background: rgba(255, 112, 134, 0.09);
+}
+
+.hero-value-card__sparkline {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  height: 40px;
+  align-items: flex-end;
+  gap: 5px;
+
+  margin-top: 19px;
+  padding-bottom: 5px;
+
+  border-bottom: 1px solid rgba(126, 157, 211, 0.12);
+}
+
+.hero-value-card__sparkline span {
+  flex: 1;
+
+  min-width: 4px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(113, 157, 255, 0.95),
+      rgba(74, 113, 201, 0.4)
+    );
+
+  border-radius: 4px 4px 1px 1px;
+  box-shadow: 0 0 12px rgba(100, 143, 255, 0.1);
+}
+
+.hero-value-card__footer {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  margin-top: 12px;
+}
+
+.hero-value-card__footer span {
+  color: #69778b;
+  font-size: 10px;
+}
+
+.hero-value-card__footer strong {
+  color: #91acff;
+
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 650;
+}
