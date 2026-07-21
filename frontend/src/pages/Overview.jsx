@@ -26,6 +26,7 @@ import {
 } from "recharts";
 
 import ExecutiveMetric from "../components/overview/ExecutiveMetric";
+import EmptyChartState from "../components/overview/EmptyChartState";
 
 function money(number, currency = "USD") {
   if (
@@ -53,33 +54,6 @@ function pct(number) {
   }
 
   return `${Number(number || 0).toFixed(2)}%`;
-}
-
-function EmptyChartState({
-  icon,
-  title,
-  description,
-  action,
-  onAction
-}) {
-  return (
-    <div className="empty-chart-state">
-      <div className="empty-chart-icon">
-        {icon}
-      </div>
-
-      <strong>{title}</strong>
-
-      <p>{description}</p>
-
-      {action && (
-        <button onClick={onAction}>
-          {action}
-          <ArrowUpRight size={14} />
-        </button>
-      )}
-    </div>
-  );
 }
 
 function MarketSnapshot({ market, navigate }) {
