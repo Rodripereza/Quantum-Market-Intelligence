@@ -1066,3 +1066,76 @@
     grid-column: 1 / -1;
   }
 }
+
+/* =========================================================
+   QMI INSTITUTIONAL TYPOGRAPHY SCALE
+   ========================================================= */
+
+.page-ai-advisor {
+  font-size: inherit;
+}
+
+.page-ai-advisor .advisor-eyebrow,
+.page-ai-advisor .advisor-card-label,
+.page-ai-advisor .advisor-section-label,
+.page-ai-advisor small {
+  font-size: 13px;
+}
+
+.page-ai-advisor .advisor-hero h1,
+.page-ai-advisor .advisor-hero h2 {
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.page-ai-advisor .advisor-hero p {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.page-ai-advisor .advisor-card {
+  min-height: 190px;
+  padding: 24px;
+}
+
+.page-ai-advisor .advisor-large-metric {
+  font-size: 42px;
+  line-height: 1;
+}
+
+.page-ai-advisor .advisor-risk-score strong {
+  font-size: 36px;
+}
+
+.page-ai-advisor .advisor-risk-score span {
+  font-size: 15px;
+}
+
+.page-ai-advisor .advisor-recommendation-value {
+  font-size: 40px;
+}
+
+.page-ai-advisor .advisor-card h3,
+.page-ai-advisor .advisor-panel h3 {
+  font-size: 20px;
+}
+
+.page-ai-advisor .advisor-card p,
+.page-ai-advisor .advisor-panel p,
+.page-ai-advisor td,
+.page-ai-advisor th {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.page-ai-advisor .advisor-panel {
+  padding: 24px;
+}
+
+.page-ai-advisor .advisor-position-value {
+  font-size: 18px;
+}
+
+.page-ai-advisor .advisor-position-label {
+  font-size: 13px;
+}

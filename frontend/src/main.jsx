@@ -18,6 +18,14 @@ import {
   Wallet,
   X
 } from 'lucide-react';
+
+import "./styles/design-system/tokens.css";
+import "./styles/design-system/reset.css";
+import "./styles/design-system/typography.css";
+import "./styles/design-system/layout.css";
+import "./styles/design-system/components.css";
+import "./styles/design-system/utilities.css";
+
 import './style.css';
 import Panel from "./components/ui/Panel";
 import Card from "./components/ui/Card";

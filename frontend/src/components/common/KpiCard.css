@@ -1,0 +1,40 @@
+.kpi-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.kpi-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.kpi-icon {
+    display: flex;
+    align-items: center;
+}
+
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.kpi-subtitle {
+    opacity: .7;
+    font-size: .9rem;
+}
+
+.kpi-trend.up {
+    color: #22c55e;
+}
+
+.kpi-trend.down {
+    color: #ef4444;
+}

@@ -7,6 +7,8 @@ function Card({
   actions,
   className = "",
   padding = "normal",
+  as: Component = "section",
+  ...props
 }) {
   const cardClassName = [
     "qmi-card",
@@ -17,7 +19,7 @@ function Card({
     .join(" ");
 
   return (
-    <section className={cardClassName}>
+    <Component className={cardClassName} {...props}>
       {(title || subtitle || actions) && (
         <header className="qmi-card__header">
           <div className="qmi-card__heading">
@@ -35,7 +37,7 @@ function Card({
       )}
 
       <div className="qmi-card__content">{children}</div>
-    </section>
+    </Component>
   );
 }
 

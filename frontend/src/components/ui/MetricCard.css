@@ -117,3 +117,52 @@
 
   font-size: 0.75rem;
 }
+
+.metric-card--loading {
+  min-height: 128px;
+}
+
+.metric-card__skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(51, 65, 85, 0.72) 25%,
+    rgba(100, 116, 139, 0.9) 50%,
+    rgba(51, 65, 85, 0.72) 75%
+  );
+  background-size: 200% 100%;
+  animation: metric-card-skeleton 1.4s ease-in-out infinite;
+}
+
+.metric-card__skeleton--label {
+  width: 42%;
+  height: 12px;
+}
+
+.metric-card__skeleton--value {
+  width: 68%;
+  height: 30px;
+  margin-top: 18px;
+}
+
+.metric-card__skeleton--footer {
+  width: 52%;
+  height: 12px;
+  margin-top: 18px;
+}
+
+@keyframes metric-card-skeleton {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .metric-card__skeleton {
+    animation: none;
+  }
+}

@@ -23,8 +23,7 @@ function Dashboard() {
         </div>
       </section>
 
-      <section className="dashboard__metrics">
-        <MetricCard
+       <MetricCard
           label="Portfolio Value"
           value="$128,450.72"
           change="+2.84%"
@@ -59,6 +58,7 @@ function Dashboard() {
           status="positive"
           icon="✦"
         />
+      
       </section>
     </main>
   );

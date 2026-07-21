@@ -2,6 +2,8 @@ import "../styles/advisor.css";
 
 import AdvisorHero from "../components/advisor/AdvisorHero";
 import RecommendationCard from "../components/advisor/RecommendationCard";
+import advisorData from "../data/advisorMock";
+import Card from "../components/ui/Card";
 
 import {
   Activity,
@@ -140,28 +142,39 @@ function AIInvestmentAdvisor() {
 
       <section className="advisor-kpi-grid">
         <RecommendationCard
-          recommendation="HOLD"
-          bias="Slightly bullish"
-          confidence="High"
-          description="Maintaining the current position is presently the most balanced strategy."
+            recommendation={advisorData.recommendation}
+            bias={advisorData.bias}
+            confidence={advisorData.confidenceLabel}
+          description={advisorData.recommendationDescription}
         />
 
-        <article className="advisor-card">
+        <Card
+          as="article"
+          className="advisor-card"
+          padding="normal"
+        >
           <span className="advisor-card-label">
-            Confidence score
+          Confidence score
           </span>
 
-          <ScoreRing value={74} label="High" />
-        </article>
+          <ScoreRing
+            value={advisorData.confidence}
+            label={advisorData.confidenceLabel}
+         />
+        </Card>
 
-        <article className="advisor-card">
+        <Card
+          as="article"
+          className="advisor-card"
+          padding="normal"
+        >
           <span className="advisor-card-label">
             Risk level
           </span>
 
           <div className="advisor-risk-score">
-            <strong>6 / 10</strong>
-            <span>Moderate</span>
+             <strong>{advisorData.risk} / 10</strong>
+             <span>{advisorData.riskLabel}</span>
           </div>
 
           <div className="advisor-risk-scale">
@@ -172,25 +185,27 @@ function AIInvestmentAdvisor() {
             <span />
             <i />
           </div>
-        </article>
+        </Card>
 
-        <article className="advisor-card">
+        <article className="advisor-card card">
           <span className="advisor-card-label">
             Historical success rate
           </span>
 
           <div className="advisor-large-metric positive">
-            68%
+            {advisorData.probability}%
           </div>
 
           <div className="advisor-mini-trend">
             <TrendingUp size={34} />
           </div>
 
-          <small>312 comparable historical signals</small>
-        </article>
+          <small>
+            {advisorData.comparableSignals ?? 312} comparable historical signals
+          </small>
+          </article>
 
-        <article className="advisor-card">
+        <article className="advisor-card card">
           <span className="advisor-card-label">
             Recommended horizon
           </span>

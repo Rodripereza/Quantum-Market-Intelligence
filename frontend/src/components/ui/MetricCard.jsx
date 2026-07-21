@@ -8,6 +8,7 @@ function MetricCard({
   changeLabel,
   icon,
   status = "neutral",
+  loading = false,
 }) {
   const normalizedStatus = [
     "positive",
@@ -17,6 +18,21 @@ function MetricCard({
   ].includes(status)
     ? status
     : "neutral";
+
+if (loading) {
+  return (
+    <Card
+      className="metric-card metric-card--loading"
+      padding="compact"
+      aria-busy="true"
+      aria-label={`Loading ${label || "metric"}`}
+    >
+      <div className="metric-card__skeleton metric-card__skeleton--label" />
+      <div className="metric-card__skeleton metric-card__skeleton--value" />
+      <div className="metric-card__skeleton metric-card__skeleton--footer" />
+    </Card>
+  );
+}
 
   return (
     <Card
