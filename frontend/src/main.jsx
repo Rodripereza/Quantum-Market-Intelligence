@@ -27,6 +27,7 @@ import "./styles/design-system/components.css";
 import "./styles/design-system/utilities.css";
 
 import './style.css';
+import "./styles/pages/overview.css";
 import Panel from "./components/ui/Panel";
 import Card from "./components/ui/Card";
 import Sidebar from "./components/layout/Sidebar";
