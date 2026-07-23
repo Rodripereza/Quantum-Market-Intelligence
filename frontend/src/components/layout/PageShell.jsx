@@ -1,21 +1,38 @@
-export default function PageShell({ active, children }) {
+export default function PageShell({
+  active,
+  children
+}) {
   return (
-    <section className={`page-shell page-${active.id}`}>
-      <div className="page-intro">
-        <div>
-          <h2>{active.description}</h2>
+    <section
+      className={`page-shell page-${active.id}`}
+    >
+      <header className="page-intro">
+        <div className="page-intro-copy">
+          <span className="page-intro-kicker">
+            QMI MODULE
+          </span>
+
+          <h2>{active.label}</h2>
+
           <p>
-            Portfolio Engine v1.3 active. Positions, allocation, P/L and sector
-            exposure are persisted in SQLite.
+            {active.description}
           </p>
         </div>
 
-        <div className="version-badge">
-          Portfolio v1.3
-        </div>
-      </div>
+        <div className="page-intro-meta">
+          <span className="version-badge">
+            Foundation v1.3
+          </span>
 
-      {children}
+          <span className="page-intro-status">
+            Operational
+          </span>
+        </div>
+      </header>
+
+      <div className="page-content">
+        {children}
+      </div>
     </section>
   );
 }

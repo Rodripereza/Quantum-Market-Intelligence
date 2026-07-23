@@ -1,9 +1,9 @@
-function Content({ children }) {
+export default function Content({ children }) {
   return (
     <main className="app-content">
-      {children}
+      <div className="app-content-inner">
+        {children}
+      </div>
     </main>
   );
 }
-
-export default Content;

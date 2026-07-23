@@ -1,6 +1,11 @@
+import { useMemo, useState } from "react";
+
 import {
   Activity,
+  ArrowDownRight,
+  ArrowUpRight,
   ChartNoAxesCombined,
+  Minus,
   ShieldCheck,
 } from "lucide-react";
 
@@ -8,16 +13,136 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 
+function TrendTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const value = Number(payload[0]?.value);
+
+  return (
+    <div className="trend-tooltip">
+      <span className="trend-tooltip-label">
+        {label}
+      </span>
+
+      <strong className="trend-tooltip-value">
+        {Number.isNaN(value) ? "--" : value.toFixed(1)}
+      </strong>
+
+      <span className="trend-tooltip-caption">
+        Intelligence score
+      </span>
+    </div>
+  );
+}
+
 function MarketTrendChart({ trend = [] }) {
+  const [period, setPeriod] = useState("6M");
+
+  const filteredTrend = useMemo(() => {
+    const periodPoints = {
+      "1M": 2,
+      "3M": 3,
+      "6M": 6,
+      "1Y": 12,
+    };
+
+    const pointsToShow =
+      periodPoints[period] ?? trend.length;
+
+    return trend.slice(-pointsToShow);
+  }, [period, trend]);
+
+  const trendMetrics = useMemo(() => {
+    const firstValue = Number(
+      filteredTrend.at(0)?.value
+    );
+
+    const lastValue = Number(
+      filteredTrend.at(-1)?.value
+    );
+
+    if (
+      filteredTrend.length < 2 ||
+      Number.isNaN(firstValue) ||
+      Number.isNaN(lastValue)
+    ) {
+      return {
+        momentum: "Neutral",
+        riskState: "Unavailable",
+        score: "--",
+        change: 0,
+        percentageChange: 0,
+      };
+    }
+
+    const change = lastValue - firstValue;
+
+    const percentageChange =
+      firstValue !== 0
+        ? (change / Math.abs(firstValue)) * 100
+        : 0;
+
+    const absoluteChange = Math.abs(change);
+
+    let momentum = "Neutral";
+
+    if (change > 2) {
+      momentum = "Positive";
+    } else if (change < -2) {
+      momentum = "Negative";
+    }
+
+    let riskState = "Controlled";
+
+    if (absoluteChange >= 15) {
+      riskState = "Elevated";
+    } else if (absoluteChange >= 8) {
+      riskState = "Moderate";
+    }
+
+    return {
+      momentum,
+      riskState,
+      score: lastValue,
+      change,
+      percentageChange,
+    };
+  }, [filteredTrend]);
+
+  const latestPoint = filteredTrend.at(-1);
+
+  const momentumTone =
+    trendMetrics.momentum.toLowerCase();
+
+  const riskTone =
+    trendMetrics.riskState.toLowerCase();
+
+  const changeTone =
+    trendMetrics.change > 0
+      ? "positive"
+      : trendMetrics.change < 0
+        ? "negative"
+        : "neutral";
+
+  const ChangeIcon =
+    trendMetrics.change > 0
+      ? ArrowUpRight
+      : trendMetrics.change < 0
+        ? ArrowDownRight
+        : Minus;
+
   return (
     <section className="overview-surface trend-surface">
-      <div className="overview-section-heading">
+      <div className="overview-section-heading trend-heading">
         <div>
           <span className="section-kicker">
             ANALYTICAL SIGNAL
@@ -26,25 +151,74 @@ function MarketTrendChart({ trend = [] }) {
           <h2>Market Intelligence Trend</h2>
 
           <p>
-            Composite foundation signal over the last six months
+            Composite foundation signal over the
+            selected period
           </p>
         </div>
 
         <div className="chart-period-selector">
-          <button>1M</button>
-          <button>3M</button>
-          <button className="active">6M</button>
-          <button>1Y</button>
+          {["1M", "3M", "6M", "1Y"].map(
+            (item) => (
+              <button
+                key={item}
+                type="button"
+                className={
+                  period === item ? "active" : ""
+                }
+                onClick={() => setPeriod(item)}
+              >
+                {item}
+              </button>
+            )
+          )}
+        </div>
+      </div>
+
+      <div className="trend-summary">
+        <div className="trend-current-value">
+          <span>Current score</span>
+
+          <strong>
+            {trendMetrics.score === "--"
+              ? "--"
+              : Number(
+                  trendMetrics.score
+                ).toFixed(1)}
+          </strong>
+        </div>
+
+        <div
+          className={`trend-change-indicator ${changeTone}`}
+        >
+          <ChangeIcon size={17} />
+
+          <div>
+            <strong>
+              {trendMetrics.change > 0 ? "+" : ""}
+              {trendMetrics.change.toFixed(1)} pts
+            </strong>
+
+            <span>
+              {trendMetrics.percentageChange > 0
+                ? "+"
+                : ""}
+              {trendMetrics.percentageChange.toFixed(
+                1
+              )}
+              %
+            </span>
+          </div>
         </div>
       </div>
 
       <div className="trend-chart">
         <ResponsiveContainer width="100%" height={310}>
           <AreaChart
-            data={trend}
+            key={period}
+            data={filteredTrend}
             margin={{
-              top: 18,
-              right: 8,
+              top: 24,
+              right: 18,
               left: -16,
               bottom: 0,
             }}
@@ -60,7 +234,13 @@ function MarketTrendChart({ trend = [] }) {
                 <stop
                   offset="0%"
                   stopColor="#648fff"
-                  stopOpacity={0.34}
+                  stopOpacity={0.42}
+                />
+
+                <stop
+                  offset="55%"
+                  stopColor="#648fff"
+                  stopOpacity={0.14}
                 />
 
                 <stop
@@ -69,10 +249,28 @@ function MarketTrendChart({ trend = [] }) {
                   stopOpacity={0}
                 />
               </linearGradient>
+
+              <filter
+                id="qmiTrendGlow"
+                x="-50%"
+                y="-50%"
+                width="200%"
+                height="200%"
+              >
+                <feGaussianBlur
+                  stdDeviation="3"
+                  result="blur"
+                />
+
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
 
             <CartesianGrid
-              strokeDasharray="2 5"
+              strokeDasharray="3 6"
               stroke="#202b3a"
               vertical={false}
             />
@@ -82,25 +280,28 @@ function MarketTrendChart({ trend = [] }) {
               stroke="#68768a"
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 11 }}
+              tick={{
+                fontSize: 11,
+              }}
+              minTickGap={20}
             />
 
             <YAxis
               stroke="#68768a"
               tickLine={false}
               axisLine={false}
-              tick={{ fontSize: 11 }}
+              tick={{
+                fontSize: 11,
+              }}
+              domain={["dataMin - 5", "dataMax + 5"]}
             />
 
             <Tooltip
-              contentStyle={{
-                background: "#101722",
-                border: "1px solid #2b3b50",
-                borderRadius: "10px",
-                boxShadow: "0 16px 40px rgba(0,0,0,.4)",
-              }}
-              labelStyle={{
-                color: "#a9b5c5",
+              content={<TrendTooltip />}
+              cursor={{
+                stroke: "#648fff",
+                strokeWidth: 1,
+                strokeDasharray: "4 4",
               }}
             />
 
@@ -108,9 +309,31 @@ function MarketTrendChart({ trend = [] }) {
               type="monotone"
               dataKey="value"
               stroke="#648fff"
-              strokeWidth={2.4}
+              strokeWidth={2.8}
               fill="url(#qmiTrendGradient)"
+              filter="url(#qmiTrendGlow)"
+              activeDot={{
+                r: 5,
+                strokeWidth: 3,
+                stroke: "#101722",
+                fill: "#8caaff",
+              }}
+              isAnimationActive
+              animationDuration={650}
+              animationEasing="ease-out"
             />
+
+            {latestPoint && (
+              <ReferenceDot
+                x={latestPoint.month}
+                y={latestPoint.value}
+                r={5}
+                fill="#8caaff"
+                stroke="#dbe5ff"
+                strokeWidth={2}
+                isFront
+              />
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -118,20 +341,34 @@ function MarketTrendChart({ trend = [] }) {
       <div className="trend-footer">
         <div>
           <Activity size={15} />
+
           <span>Signal momentum</span>
-          <strong>Positive</strong>
+
+          <strong
+            className={`trend-status ${momentumTone}`}
+          >
+            {trendMetrics.momentum}
+          </strong>
         </div>
 
         <div>
           <ShieldCheck size={15} />
+
           <span>Risk state</span>
-          <strong>Controlled</strong>
+
+          <strong
+            className={`trend-status ${riskTone}`}
+          >
+            {trendMetrics.riskState}
+          </strong>
         </div>
 
         <div>
           <ChartNoAxesCombined size={15} />
-          <span>Trend score</span>
-          <strong>{trend?.at(-1)?.value ?? "--"}</strong>
+
+          <span>Selected period</span>
+
+          <strong>{period}</strong>
         </div>
       </div>
     </section>

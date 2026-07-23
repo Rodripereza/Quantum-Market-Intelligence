@@ -1,19 +1,19 @@
 import {
-  Brain,
+  ArrowDownRight,
+  ArrowUpRight,
   BriefcaseBusiness,
-  CircleDollarSign,
-  Layers3,
-  LineChart,
+  CircleDot,
   Wallet,
 } from "lucide-react";
 
-import ExecutiveMetric from "../components/overview/ExecutiveMetric";
-import HeroMiniMetric from "../components/overview/HeroMiniMetric";
-import HeroValueCard from "../components/overview/HeroValueCard";
+import MarketBreadthCard from "../components/overview/MarketBreadthCard";
 import MarketSnapshot from "../components/overview/MarketSnapshot";
 import MarketTrendChart from "../components/overview/MarketTrendChart";
+import PortfolioIntelligenceCard from "../components/overview/PortfolioIntelligenceCard";
+import PortfolioPerformanceCard from "../components/overview/PortfolioPerformanceCard";
 import PositionAllocationChart from "../components/overview/PositionAllocationChart";
 import SectorExposureChart from "../components/overview/SectorExposureChart";
+import TopMoversCard from "../components/overview/TopMoversCard";
 
 function money(number, currency = "USD") {
   if (
@@ -27,11 +27,11 @@ function money(number, currency = "USD") {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
-    maximumFractionDigits: 2,
-  }).format(number);
+    maximumFractionDigits: 0,
+  }).format(Number(number));
 }
 
-function pct(number) {
+function percentage(number) {
   if (
     number === null ||
     number === undefined ||
@@ -40,7 +40,9 @@ function pct(number) {
     return "--";
   }
 
-  return `${Number(number || 0).toFixed(2)}%`;
+  const value = Number(number);
+
+  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
 }
 
 function Overview({
@@ -50,119 +52,166 @@ function Overview({
   trend,
   allocation,
   sectorAllocation,
+  performanceData,
   navigate,
 }) {
+  const safePortfolio = portfolio ?? {};
+  const safeMarket = market ?? {};
+  const safeAi = ai ?? {};
+
+  const safeTrend = Array.isArray(trend)
+    ? trend
+    : [];
+
+  const safeAllocation = Array.isArray(allocation)
+    ? allocation
+    : [];
+
+  const safeSectorAllocation = Array.isArray(
+    sectorAllocation
+  )
+    ? sectorAllocation
+    : [];
+
+  const safeNavigate =
+    typeof navigate === "function"
+      ? navigate
+      : () => {};
+
+  const totalValue =
+    safePortfolio.total_value ??
+    safePortfolio.market_value ??
+    safePortfolio.total_cost;
+
+  const dailyProfitLoss = Number(
+    safePortfolio.daily_profit_loss ??
+      safePortfolio.total_pl ??
+      0
+  );
+
+  const dailyReturn = Number(
+    safePortfolio.daily_return ??
+      safePortfolio.total_pl_pct ??
+      0
+  );
+
+  const positionCount =
+    safePortfolio.position_count ?? 0;
+
+  const cashPercentage = Number(
+    safePortfolio.cash_percentage ?? 0
+  );
+
+  const performanceTone =
+    dailyProfitLoss > 0
+      ? "positive"
+      : dailyProfitLoss < 0
+        ? "negative"
+        : "neutral";
+
+  const PerformanceIcon =
+    dailyProfitLoss >= 0
+      ? ArrowUpRight
+      : ArrowDownRight;
+
   return (
-    <div className="overview-dashboard">
-      <section className="executive-hero">
-        <div className="executive-hero-copy">
-          <div className="executive-label">
-            <span className="executive-pulse" />
-            QMI EXECUTIVE WORKSPACE
+    <div className="overview-dashboard institutional-overview">
+      <section className="terminal-command-header">
+        <div className="terminal-command-identity">
+          <div className="terminal-command-label">
+            <CircleDot size={12} />
+            QMI PORTFOLIO COMMAND
           </div>
 
-          <h2>Portfolio intelligence at a glance</h2>
+          <h2>Portfolio Overview</h2>
 
           <p>
-            Consolidated market, portfolio, risk and AI intelligence from your
-            private investment workspace.
+            Real-time performance, exposure, risk and
+            intelligence monitoring.
           </p>
-
-          <div className="hero-mini-metrics">
-            <HeroMiniMetric
-              label="AI confidence"
-              value={ai?.confidence ? `${ai.confidence}%` : "--"}
-              detail={ai?.status || "Analytical engine"}
-              icon={<Brain size={19} />}
-              tone="primary"
-            />
-
-            <HeroMiniMetric
-              label="Portfolio"
-              value={`${portfolio?.position_count ?? 0} positions`}
-              detail={
-                portfolio?.position_count > 0
-                  ? "Portfolio active"
-                  : "Awaiting positions"
-              }
-              icon={<Wallet size={19} />}
-              tone={
-                portfolio?.position_count > 0 ? "positive" : "neutral"
-              }
-            />
-          </div>
-
-          <div className="executive-actions">
-            <button
-              className="primary-overview-action"
-              onClick={() => navigate("portfolio")}
-            >
-              <BriefcaseBusiness size={16} />
-              Manage Portfolio
-            </button>
-
-            <button
-              className="secondary-overview-action"
-              onClick={() => navigate("market")}
-            >
-              <LineChart size={16} />
-              Explore Markets
-            </button>
-          </div>
         </div>
 
-        <HeroValueCard portfolio={portfolio} />
+        <div className="terminal-command-stats">
+          <div className="terminal-primary-value">
+            <span>Net portfolio value</span>
+
+            <strong>{money(totalValue)}</strong>
+          </div>
+
+          <div
+            className={`terminal-daily-change ${performanceTone}`}
+          >
+            <PerformanceIcon size={18} />
+
+            <div>
+              <strong>
+                {percentage(dailyReturn)}
+              </strong>
+
+              <span>
+                {money(dailyProfitLoss)} today
+              </span>
+            </div>
+          </div>
+
+          <div className="terminal-header-stat">
+            <Wallet size={16} />
+
+            <div>
+              <span>Positions</span>
+              <strong>{positionCount}</strong>
+            </div>
+          </div>
+
+          <div className="terminal-header-stat">
+            <BriefcaseBusiness size={16} />
+
+            <div>
+              <span>Cash</span>
+              <strong>
+                {cashPercentage.toFixed(1)}%
+              </strong>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <section className="executive-metrics-grid">
-        <ExecutiveMetric
-          label="Cost basis"
-          value={money(portfolio?.total_cost)}
-          description="Capital currently invested"
-          icon={<CircleDollarSign size={18} />}
+      <section className="institutional-primary-grid">
+        <PortfolioPerformanceCard
+          performanceData={performanceData}
         />
 
-        <ExecutiveMetric
-          label="Open positions"
-          value={portfolio?.position_count ?? "--"}
-          description="Active portfolio holdings"
-          icon={<Wallet size={18} />}
-        />
-
-        <ExecutiveMetric
-          label="Largest exposure"
-          value={pct(portfolio?.largest_position_weight)}
-          description="Maximum individual position weight"
-          icon={<Layers3 size={18} />}
-          tone="warning"
-        />
-
-        <ExecutiveMetric
-          label="AI intelligence"
-          value={ai?.status || "Loading"}
-          description="Analytical architecture status"
-          icon={<Brain size={18} />}
-          tone="primary"
+        <PortfolioIntelligenceCard
+          portfolio={safePortfolio}
+          ai={safeAi}
         />
       </section>
 
-      <section className="overview-main-grid">
-        <MarketTrendChart trend={trend} />
+      <section className="institutional-market-grid">
+        <MarketTrendChart trend={safeTrend} />
 
         <MarketSnapshot
-          market={market}
-          navigate={navigate}
+          market={safeMarket}
+          navigate={safeNavigate}
         />
       </section>
 
-      <section className="overview-allocation-grid">
+      <section className="institutional-secondary-grid">
+        <TopMoversCard />
+
+        <MarketBreadthCard />
+      </section>
+
+      <section className="institutional-allocation-grid">
         <PositionAllocationChart
-          allocation={allocation}
-          navigate={navigate}
+          allocation={safeAllocation}
+          navigate={safeNavigate}
         />
 
         <SectorExposureChart
-          sectorAllocation={sectorAllocation}
+          sectorAllocation={
+            safeSectorAllocation
+          }
         />
       </section>
     </div>

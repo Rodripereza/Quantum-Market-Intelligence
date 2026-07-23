@@ -1,5 +1,8 @@
 :root {
-  /* Typography */
+  /* ==================================================
+     Typography families
+  ================================================== */
+
   --font-family-sans:
     "Inter",
     system-ui,
@@ -14,6 +17,11 @@
     Consolas,
     monospace;
 
+  /* ==================================================
+     Typography scale
+  ================================================== */
+
+  --font-size-2xs: 0.6875rem;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
@@ -21,7 +29,34 @@
   --font-size-xl: 1.375rem;
   --font-size-2xl: 1.75rem;
   --font-size-3xl: 2.25rem;
-  --font-size-display: 3.25rem;
+  --font-size-4xl: 2.75rem;
+  --font-size-display: 3.5rem;
+
+  /* Semantic typography */
+
+ --font-caption: 0.875rem;
+ --font-label: 0.9375rem;
+
+ --font-body-sm: 1rem;
+ --font-body: 1.0625rem;
+ --font-body-lg: 1.1875rem;
+
+ --font-heading-sm: 1.375rem;
+ --font-heading-md: 1.625rem;
+ --font-heading-lg: 2.125rem;
+ --font-heading-xl: 2.75rem;
+
+ --font-kpi-sm: 1.75rem;
+ --font-kpi-md: 2.25rem;
+ --font-kpi-lg: 3rem;
+ --font-kpi-xl: 4rem;
+
+ --font-display-lg: 3.75rem;
+ --font-display-xl: 4.5rem;
+
+  /* ==================================================
+     Font weights
+  ================================================== */
 
   --font-weight-regular: 400;
   --font-weight-medium: 500;
@@ -29,39 +64,124 @@
   --font-weight-bold: 700;
   --font-weight-extrabold: 800;
 
+  /* ==================================================
+     Line heights
+  ================================================== */
+
+  --line-height-none: 1;
   --line-height-tight: 1.1;
   --line-height-heading: 1.2;
   --line-height-normal: 1.5;
   --line-height-relaxed: 1.65;
 
-  /* Spacing */
+  /* ==================================================
+     Letter spacing
+  ================================================== */
+
+  --letter-spacing-tight: -0.035em;
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-label: 0.045em;
+  --letter-spacing-wide: 0.075em;
+
+  /* ==================================================
+     Spacing system
+     Based on a 4px / 8px rhythm
+  ================================================== */
+
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-5: 1.25rem;
   --space-6: 1.5rem;
+  --space-7: 1.75rem;
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
+  --space-14: 3.5rem;
+  --space-16: 4rem;
 
-  /* Radius */
+  /* Semantic spacing */
+
+  --page-gap: var(--space-6);
+  --section-gap: var(--space-6);
+  --card-gap: var(--space-4);
+
+  --card-padding: var(--space-6);
+  --card-padding-lg: var(--space-8);
+
+  --card-header-gap: var(--space-4);
+  --content-block-gap: var(--space-5);
+
+  /* ==================================================
+     Radius
+  ================================================== */
+
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+  --radius-2xl: 24px;
   --radius-pill: 999px;
 
-  /* Layout */
-  --sidebar-width: 220px;
-  --content-max-width: 1880px;
-  --topbar-height: 72px;
+  /* ==================================================
+     Layout
+  ================================================== */
 
-  /* Motion */
+  --sidebar-width: 240px;
+  --content-max-width: 1880px;
+  --topbar-height: 80px;
+
+  --page-padding-x: 24px;
+  --page-padding-y: 24px;
+
+  --dashboard-column-gap: 16px;
+  --dashboard-row-gap: 16px;
+
+  /* ==================================================
+     Component sizing
+  ================================================== */
+
+  --icon-xs: 14px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 28px;
+
+  --control-height-sm: 32px;
+  --control-height-md: 40px;
+  --control-height-lg: 48px;
+
+  --chart-height-sm: 220px;
+  --chart-height-md: 300px;
+  --chart-height-lg: 380px;
+
+  /* ==================================================
+     Motion
+  ================================================== */
+
   --transition-fast: 140ms ease;
   --transition-normal: 220ms ease;
+  --transition-slow: 360ms ease;
 
-  /* Shadows */
-  --shadow-sm: 0 4px 14px rgba(0, 0, 0, 0.16);
-  --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.22);
+  /* ==================================================
+     Shadows
+  ================================================== */
+
+  --shadow-sm:
+    0 4px 14px rgba(0, 0, 0, 0.16);
+
+  --shadow-md:
+    0 12px 28px rgba(0, 0, 0, 0.22);
+
+  --shadow-card:
+    0 18px 46px rgba(0, 0, 0, 0.2);
+
+  --shadow-floating:
+    0 24px 70px rgba(0, 0, 0, 0.34);
+
+  --shadow-focus:
+    0 0 0 3px rgba(100, 143, 255, 0.16);
 }
