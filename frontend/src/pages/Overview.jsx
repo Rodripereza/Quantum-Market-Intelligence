@@ -15,6 +15,7 @@ import SectorExposureChart from "../components/overview/SectorExposureChart";
 import TopMoversCard from "../components/overview/TopMoversCard";
 import PortfolioIntelligenceCard from "../components/overview/PortfolioIntelligenceCard";
 import PortfolioPerformanceCard from "../components/overview/PortfolioPerformanceCard";
+import MetricCard from "../components/ui/MetricCard";
 
 const FALLBACK_MARKET_ASSETS = [
   {
@@ -83,29 +84,6 @@ function percentage(number) {
   const value = Number(number);
 
   return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
-}
-
-function MetricCard({
-  className = "",
-  icon: Icon,
-  label,
-  value,
-  detail,
-  tone = "neutral",
-}) {
-  return (
-    <article className={`overview-kpi-card ${tone} ${className}`.trim()}>
-      <div className="overview-kpi-icon">
-        <Icon size={20} strokeWidth={1.8} />
-      </div>
-
-      <div className="overview-kpi-content">
-        <span className="overview-kpi-label">{label}</span>
-        <strong className="overview-kpi-value">{value}</strong>
-        <span className="overview-kpi-detail">{detail}</span>
-      </div>
-    </article>
-  );
 }
 
 function Overview({
@@ -233,36 +211,38 @@ function Overview({
 
       <section className="overview-kpi-grid">
         <MetricCard
-          icon={Wallet}
+          icon={<Wallet size={18} strokeWidth={1.8} />}
           label="Portfolio Value"
           value={money(totalValue)}
-          detail={`${percentage(dailyReturn)} today`}
-          tone="primary"
+          change={percentage(dailyReturn)}
+          changeLabel="today"
+          status="neutral"
         />
 
         <MetricCard
-          icon={DailyIcon}
+          icon={<DailyIcon size={18} strokeWidth={1.8} />}
           label="Daily P/L"
           value={money(dailyProfitLoss)}
-          detail={percentage(dailyReturn)}
-          tone={dailyTone}
+          change={percentage(dailyReturn)}
+          changeLabel="today"
+          status={dailyTone}
         />
 
         <MetricCard
-          icon={Crosshair}
+          icon={<Crosshair size={18} strokeWidth={1.8} />}
           label="Total Return"
           value={percentage(totalReturn)}
-          detail="Since inception"
-          tone={totalReturnTone}
+          changeLabel="Since inception"
+          status={totalReturnTone}
         />
 
         <MetricCard
-          icon={BrainCircuit}
+          icon={<BrainCircuit size={18} strokeWidth={1.8} />}
           label="AI Outlook"
           value={aiOutlook}
-          detail={`${aiConfidence.toFixed(0)}% confidence`}
-          tone={aiTone}
-          className="overview-kpi-ai"
+          change={`${aiConfidence.toFixed(0)}%`}
+          changeLabel="confidence"
+          status={aiTone}
         />
       </section>
 

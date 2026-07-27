@@ -4462,139 +4462,6 @@ td {
   gap: 12px;
 }
 
-.overview-executive-v4 .overview-kpi-card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  min-height: 116px;
-  padding: 18px;
-  overflow: hidden;
-  background:
-    linear-gradient(
-      145deg,
-      rgba(109, 147, 255, 0.04),
-      transparent 52%
-    ),
-    #0f1722;
-  border: 1px solid rgba(123, 146, 177, 0.14);
-  border-radius: 12px;
-  box-shadow:
-    0 14px 34px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.02);
-}
-
-.overview-executive-v4 .overview-kpi-card::after {
-  position: absolute;
-  right: -30px;
-  bottom: -52px;
-  width: 130px;
-  height: 130px;
-  content: "";
-  border-radius: 50%;
-  background: rgba(109, 147, 255, 0.08);
-  filter: blur(25px);
-  pointer-events: none;
-}
-
-.overview-executive-v4 .overview-kpi-card.positive::after {
-  background: rgba(53, 212, 139, 0.09);
-}
-
-.overview-executive-v4 .overview-kpi-card.negative::after {
-  background: rgba(255, 106, 128, 0.09);
-}
-
-.overview-executive-v4 .overview-kpi-card.primary::after {
-  background: rgba(68, 120, 255, 0.11);
-}
-
-.overview-executive-v4 .overview-kpi-icon {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  color: #7ca0ff;
-  background: rgba(61, 103, 215, 0.16);
-  border: 1px solid rgba(109, 147, 255, 0.22);
-  border-radius: 50%;
-}
-
-.overview-executive-v4 .overview-kpi-card.positive .overview-kpi-icon {
-  color: #45d99a;
-  background: rgba(53, 212, 139, 0.12);
-  border-color: rgba(53, 212, 139, 0.18);
-}
-
-.overview-executive-v4 .overview-kpi-card.negative .overview-kpi-icon {
-  color: #ff7b90;
-  background: rgba(255, 106, 128, 0.12);
-  border-color: rgba(255, 106, 128, 0.18);
-}
-
-.overview-executive-v4 .overview-kpi-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.overview-executive-v4 .overview-kpi-label {
-  margin-bottom: 6px;
-  color: #8f9db1;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.overview-executive-v4 .overview-kpi-value {
-  overflow: hidden;
-  color: #f5f7fa;
-  font-family: "JetBrains Mono", monospace;
-  font-size: clamp(22px, 1.8vw, 31px);
-  font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.overview-executive-v4 .overview-kpi-detail {
-  margin-top: 7px;
-  color: #8f9db1;
-  font-size: 12px;
-}
-
-.overview-executive-v4 .overview-kpi-card.positive .overview-kpi-value,
-.overview-executive-v4 .overview-kpi-card.positive .overview-kpi-detail {
-  color: #35d48b;
-}
-
-.overview-executive-v4 .overview-kpi-card.negative .overview-kpi-value,
-.overview-executive-v4 .overview-kpi-card.negative .overview-kpi-detail {
-  color: #ff6a80;
-}
-
-.overview-executive-v4 .overview-kpi-card.primary .overview-kpi-detail {
-  color: #35d48b;
-}
-
-.overview-executive-v4 .overview-kpi-ai {
-  background:
-    linear-gradient(
-      145deg,
-      rgba(20, 199, 205, 0.08),
-      transparent 58%
-    ),
-    #0f1722;
-}
-
 /* =========================================================
    SHARED CARD APPEARANCE
    ========================================================= */
@@ -4838,14 +4705,15 @@ td {
   }
 }
 
+.overview-executive-v4 .overview-kpi-grid > .metric-card {
+  min-width: 0;
+  min-height: 116px;
+}
+
 @media (max-width: 640px) {
   .overview-executive-v4 .overview-kpi-grid,
   .overview-executive-v4 .overview-secondary-grid {
     grid-template-columns: 1fr;
-  }
-
-  .overview-executive-v4 .overview-kpi-card {
-    min-height: 104px;
   }
 
   .overview-executive-v4 .overview-titlebar h1 {
@@ -6079,37 +5947,6 @@ td {
 
 .overview-executive-v4 .overview-section-heading p {
   font-size: 11px;
-}
-
-/* =========================================================
-   KPI CARDS
-   ========================================================= */
-
-.overview-executive-v4 .overview-kpi-card {
-  min-height: 88px;
-  padding: 16px 18px;
-}
-
-.overview-executive-v4 .overview-kpi-icon {
-  width: 38px;
-  height: 38px;
-}
-
-.overview-executive-v4 .overview-kpi-icon svg {
-  width: 21px;
-  height: 21px;
-}
-
-.overview-executive-v4 .overview-kpi-label {
-  font-size: 10px;
-}
-
-.overview-executive-v4 .overview-kpi-value {
-  font-size: clamp(23px, 1.7vw, 31px);
-}
-
-.overview-executive-v4 .overview-kpi-detail {
-  font-size: 10px;
 }
 
 /* =========================================================

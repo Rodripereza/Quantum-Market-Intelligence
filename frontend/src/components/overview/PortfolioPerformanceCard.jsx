@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
 import SectionHeader from "../ui/SectionHeader";
+import Card from "../ui/Card";
+import SegmentedControl from "../ui/SegmentedControl";
+import { chartTheme } from "../ui/charts/chartTheme";
+import ChartTooltip from "../ui/charts/ChartTooltip";
 
 import {
   ArrowDownRight,
@@ -20,6 +24,19 @@ import {
 } from "recharts";
 
 const PERIODS = ["1D", "1W", "1M", "YTD"];
+function formatCurrency(value) {
+  const numericValue = Number(value);
+
+  if (Number.isNaN(numericValue)) {
+    return "--";
+  }
+
+  return numericValue.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  });
+}
 
 const FALLBACK_DATA = {
   "1D": [
@@ -56,30 +73,6 @@ const FALLBACK_DATA = {
     { label: "Jun", value: 248430 },
   ],
 };
-
-function PerformanceTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) {
-    return null;
-  }
-
-  const value = Number(payload[0]?.value);
-
-  return (
-    <div className="performance-tooltip">
-      <span>{label}</span>
-
-      <strong>
-        {Number.isNaN(value)
-          ? "--"
-          : value.toLocaleString("en-US", {
-              style: "currency",
-              currency: "USD",
-              maximumFractionDigits: 0,
-            })}
-      </strong>
-    </div>
-  );
-}
 
 function PortfolioPerformanceCard({
   performanceData,
@@ -168,28 +161,28 @@ function PortfolioPerformanceCard({
     });
 
   return (
-    <section className="overview-surface portfolio-performance-card">
+    <Card
+      surface
+      variant="hero"
+      padding="none"
+      hover={false}
+      className="portfolio-performance-card"
+    >
       <SectionHeader
         eyebrow="PORTFOLIO PERFORMANCE"
         title="Performance Analysis"
         subtitle="Portfolio value evolution across the selected period"
         className="overview-section-heading"
         actions={
-          <div className="performance-period-selector">
-            {PERIODS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className={period === item ? "active" : ""}
-                onClick={() => setPeriod(item)}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      }
-    />
-
+          <SegmentedControl
+            options={PERIODS}
+            value={period}
+            onChange={setPeriod}
+            size="compact"
+            ariaLabel="Portfolio performance period"
+          />
+        }
+      />
 
       <div className="performance-summary">
         <div className="performance-current-value">
@@ -244,19 +237,19 @@ function PortfolioPerformanceCard({
               >
                 <stop
                   offset="0%"
-                  stopColor="#7699ff"
+                  stopColor={chartTheme.colors.primary}
                   stopOpacity={0.18}
                 />
 
                 <stop
                   offset="55%"
-                  stopColor="#648fff"
+                  stopColor={chartTheme.colors.primarySoft}
                   stopOpacity={0.06}
                 />
 
                 <stop
                   offset="100%"
-                  stopColor="#648fff"
+                  stopColor={chartTheme.colors.primarySoft}
                   stopOpacity={0}
 
                 />
@@ -264,8 +257,8 @@ function PortfolioPerformanceCard({
             </defs>
 
             <CartesianGrid
-              stroke="rgba(126, 145, 170, 0.10)"
-              strokeDasharray="2 7"
+              stroke={chartTheme.colors.grid}
+              strokeDasharray={chartTheme.grid.strokeDasharray}
               vertical={false}
             />
 
@@ -273,20 +266,21 @@ function PortfolioPerformanceCard({
               dataKey="label"
               axisLine={false}
               tickLine={false}
-              stroke="#68768a"
+              stroke={chartTheme.colors.axis}
               tick={{
-                fontSize: 11,
-                fontFamily: "JetBrains Mono",
-                fill: "#657286",
+                fontSize: chartTheme.typography.xAxisFontSize,
+                fontFamily: chartTheme.typography.axisFontFamily,
+                fill: chartTheme.colors.axisText,
               }}
             />
 
             <YAxis
               axisLine={false}
               tickLine={false}
-              stroke="#68768a"
+              stroke={chartTheme.colors.axis}
               tick={{
-                fontSize: 10,
+                fontSize: chartTheme.typography.yAxisFontSize,
+                fill: chartTheme.colors.axisText,
               }}
               width={68}
               tickMargin={8}
@@ -300,28 +294,29 @@ function PortfolioPerformanceCard({
             />
 
             <Tooltip
-              content={<PerformanceTooltip />}
-              cursor={{
-                stroke:  "rgba(118, 153, 255, 0.55)",
-                strokeWidth: 1,
-                strokeDasharray: "2 5",
-              }}
-            />
+               content={
+                <ChartTooltip
+                  valueKey="value"
+                  valueFormatter={formatCurrency}
+              />
+            }
+            cursor={chartTheme.cursor}
+          />
 
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#7699ff"
-              strokeWidth={1.8}
+              stroke={chartTheme.colors.primary}
+              strokeWidth={chartTheme.area.strokeWidth}
               fill="url(#portfolioPerformanceGradient)"
               activeDot={{
-                r: 4,
-                strokeWidth: 2,
-                stroke: "#0d141e",
-                fill: "#9ab3ff",
+                r: chartTheme.area.activeDotRadius,
+                strokeWidth: chartTheme.area.activeDotStrokeWidth,
+                stroke: chartTheme.colors.activeDotStroke,
+                fill: chartTheme.colors.primaryLight,
               }}
-              animationDuration={500}
-              animationEasing="ease-out"
+              animationDuration={chartTheme.animation.duration}
+              animationEasing={chartTheme.animation.easing}
             />
           </AreaChart>
         </ResponsiveContainer>
@@ -352,7 +347,7 @@ function PortfolioPerformanceCard({
           </strong>
         </div>
       </div>
-    </section>
+    </Card>
   );
 }
 

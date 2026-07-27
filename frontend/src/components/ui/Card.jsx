@@ -10,16 +10,39 @@ function Card({
   as: Component = "section",
   variant = "default",
   padding = "default",
+  hover = true,
+  loading = false,
+  disabled = false,
+  accent = "none",
+  surface = false,
+  ...rest
 }) {
   return (
     <Component
       className={joinClasses(
         "qmi-card",
+        surface && "overview-surface",
         `qmi-card--${variant}`,
         `qmi-card--padding-${padding}`,
+        `qmi-card--accent-${accent}`,
+        hover && !disabled && "qmi-card--hoverable",
+        loading && "qmi-card--loading",
+        disabled && "qmi-card--disabled",
         className
       )}
+      aria-busy={loading || undefined}
+      aria-disabled={disabled || undefined}
+      {...rest}
     >
+      {loading && (
+        <div
+          className="qmi-card__loading-overlay"
+          aria-hidden="true"
+        >
+          <span className="qmi-card__loading-spinner" />
+        </div>
+      )}
+
       {children}
     </Component>
   );
@@ -43,7 +66,7 @@ function CardHeader({
   );
 }
 
-  function CardBody({
+function CardBody({
   children,
   className = "",
 }) {

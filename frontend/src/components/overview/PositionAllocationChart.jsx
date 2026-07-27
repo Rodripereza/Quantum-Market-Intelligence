@@ -1,6 +1,10 @@
 import { ArrowUpRight, Wallet } from "lucide-react";
+
 import EmptyChartState from "./EmptyChartState";
 import SectionHeader from "../ui/SectionHeader";
+import Card from "../ui/Card";
+import ChartTooltip from "../ui/charts/ChartTooltip";
+import { chartTheme } from "../ui/charts/chartTheme";
 
 import {
   Bar,
@@ -35,7 +39,12 @@ function PositionAllocationChart({
   const hasAllocation = allocation.length > 0;
 
   return (
-    <section className="overview-surface position-allocation-card">
+    <Card
+      surface
+      variant="default"
+      hover={false}
+      className="position-allocation-card"
+    >
       <SectionHeader
         size="compact"
         eyebrow="Portfolio Structure"
@@ -68,42 +77,51 @@ function PositionAllocationChart({
             }}
           >
             <CartesianGrid
-              strokeDasharray="2 5"
-              stroke="#202b3a"
+              stroke={chartTheme.colors.grid}
+              strokeDasharray={
+                chartTheme.grid.strokeDasharray
+              }
               vertical={false}
             />
 
             <XAxis
               dataKey="ticker"
-              stroke="#68768a"
+              stroke={chartTheme.colors.axis}
               tickLine={false}
               axisLine={false}
               tick={{
-                fontSize: 11,
+                fontSize:
+                  chartTheme.typography.xAxisFontSize,
+                fontFamily:
+                  chartTheme.typography.axisFontFamily,
+                fill: chartTheme.colors.axisText,
               }}
             />
 
             <YAxis
-              stroke="#68768a"
+              stroke={chartTheme.colors.axis}
               tickLine={false}
               axisLine={false}
               tick={{
-                fontSize: 11,
+                fontSize:
+                  chartTheme.typography.yAxisFontSize,
+                fill: chartTheme.colors.axisText,
               }}
             />
 
             <Tooltip
-              formatter={(value) => money(value)}
-              contentStyle={{
-                background: "#101722",
-                border: "1px solid #2b3b50",
-                borderRadius: "10px",
-              }}
+              content={
+                <ChartTooltip
+                  valueKey="value"
+                  valueFormatter={money}
+                />
+              }
+              cursor={chartTheme.cursor}
             />
 
             <Bar
               dataKey="value"
-              fill="#648fff"
+              fill={chartTheme.colors.primarySoft}
               radius={[5, 5, 0, 0]}
               maxBarSize={42}
             />
@@ -118,7 +136,7 @@ function PositionAllocationChart({
           onAction={() => navigate("portfolio")}
         />
       )}
-    </section>
+    </Card>
   );
 }
 

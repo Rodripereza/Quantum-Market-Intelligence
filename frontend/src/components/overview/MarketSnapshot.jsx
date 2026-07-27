@@ -53,7 +53,9 @@ function MarketSnapshot({ market, navigate }) {
   const assets = market?.assets || [];
 
   return (
-    <section className="overview-surface market-snapshot market-snapshot-pro">
+    <Card
+      className="overview-surface market-snapshot market-snapshot-pro"
+>
       <SectionHeader
         eyebrow="LIVE INTELLIGENCE"
         title="Market Snapshot"
@@ -70,6 +72,7 @@ function MarketSnapshot({ market, navigate }) {
         </button>
       }
     />
+    <CardBody>
 
       {assets.length > 0 ? (
         <>
@@ -143,7 +146,8 @@ function MarketSnapshot({ market, navigate }) {
           onAction={() => navigate("market")}
         />
       )}
-    </section>
+    </CardBody>
+    </Card>
   );
 }
 
