@@ -1,4 +1,6 @@
 import { ArrowUpRight, Wallet } from "lucide-react";
+import EmptyChartState from "./EmptyChartState";
+import SectionHeader from "../ui/SectionHeader";
 
 import {
   Bar,
@@ -9,8 +11,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-import EmptyChartState from "./EmptyChartState";
 
 function money(number, currency = "USD") {
   if (
@@ -35,28 +35,23 @@ function PositionAllocationChart({
   const hasAllocation = allocation.length > 0;
 
   return (
-    <section className="overview-surface">
-      <div className="overview-section-heading">
-        <div>
-          <span className="section-kicker">
-            PORTFOLIO STRUCTURE
-          </span>
-
-          <h2>Position Allocation</h2>
-
-          <p>
-            Market value distribution across holdings
-          </p>
-        </div>
-
-        <button
-          className="overview-text-action"
-          onClick={() => navigate("portfolio")}
-        >
-          View portfolio
-          <ArrowUpRight size={14} />
-        </button>
-      </div>
+    <section className="overview-surface position-allocation-card">
+      <SectionHeader
+        size="compact"
+        eyebrow="Portfolio Structure"
+        title="Position Allocation"
+        subtitle="Market value distribution across holdings"
+        actions={
+          <button
+            className="overview-text-action"
+            type="button"
+            onClick={() => navigate("portfolio")}
+          >
+            View portfolio
+            <ArrowUpRight size={14} />
+          </button>
+        }
+      />
 
       {hasAllocation ? (
         <ResponsiveContainer

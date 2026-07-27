@@ -233,14 +233,14 @@ function MarketTrendChart({ trend = [] }) {
               >
                 <stop
                   offset="0%"
-                  stopColor="#648fff"
-                  stopOpacity={0.42}
+                  stopColor="#7b9eff"
+                  stopOpacity={0.16}
                 />
 
                 <stop
-                  offset="55%"
+                  offset="60%"
                   stopColor="#648fff"
-                  stopOpacity={0.14}
+                  stopOpacity={0.05}
                 />
 
                 <stop
@@ -258,7 +258,7 @@ function MarketTrendChart({ trend = [] }) {
                 height="200%"
               >
                 <feGaussianBlur
-                  stdDeviation="3"
+                  stdDeviation="1.35"
                   result="blur"
                 />
 
@@ -270,8 +270,8 @@ function MarketTrendChart({ trend = [] }) {
             </defs>
 
             <CartesianGrid
-              strokeDasharray="3 6"
-              stroke="#202b3a"
+              stroke="rgba(125,145,170,.10)"
+              strokeDasharray="2 7"
               vertical={false}
             />
 
@@ -281,8 +281,11 @@ function MarketTrendChart({ trend = [] }) {
               tickLine={false}
               axisLine={false}
               tick={{
-                fontSize: 11,
+                fontSize: 10,
+                fontFamily: "JetBrains Mono",
+                fill: "#657286",
               }}
+              tickMargin={12}
               minTickGap={20}
             />
 
@@ -291,7 +294,9 @@ function MarketTrendChart({ trend = [] }) {
               tickLine={false}
               axisLine={false}
               tick={{
-                fontSize: 11,
+                fontSize: 10,
+                fontFamily: "JetBrains Mono",
+                fill: "#657286",
               }}
               domain={["dataMin - 5", "dataMax + 5"]}
             />
@@ -299,9 +304,9 @@ function MarketTrendChart({ trend = [] }) {
             <Tooltip
               content={<TrendTooltip />}
               cursor={{
-                stroke: "#648fff",
+                stroke: "rgba(118,153,255,.45)",
                 strokeWidth: 1,
-                strokeDasharray: "4 4",
+                strokeDasharray: "2 5",
               }}
             />
 
@@ -309,14 +314,14 @@ function MarketTrendChart({ trend = [] }) {
               type="monotone"
               dataKey="value"
               stroke="#648fff"
-              strokeWidth={2.8}
+              strokeWidth={1.9}
               fill="url(#qmiTrendGradient)"
               filter="url(#qmiTrendGlow)"
               activeDot={{
-                r: 5,
-                strokeWidth: 3,
-                stroke: "#101722",
-                fill: "#8caaff",
+                r: 4,
+                strokeWidth: 2,
+                stroke: "#0d141d",
+                fill: "#90adff",
               }}
               isAnimationActive
               animationDuration={650}
@@ -327,9 +332,9 @@ function MarketTrendChart({ trend = [] }) {
               <ReferenceDot
                 x={latestPoint.month}
                 y={latestPoint.value}
-                r={5}
-                fill="#8caaff"
-                stroke="#dbe5ff"
+                r={4}
+                fill="#90adff"
+                stroke="#0d141d"
                 strokeWidth={2}
                 isFront
               />

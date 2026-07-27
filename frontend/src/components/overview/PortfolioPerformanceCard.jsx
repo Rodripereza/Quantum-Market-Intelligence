@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import SectionHeader from "../ui/SectionHeader";
 
 import {
   ArrowDownRight,
@@ -168,35 +169,27 @@ function PortfolioPerformanceCard({
 
   return (
     <section className="overview-surface portfolio-performance-card">
-      <div className="overview-section-heading">
-        <div>
-          <span className="section-kicker">
-            PORTFOLIO PERFORMANCE
-          </span>
-
-          <h2>Performance Analysis</h2>
-
-          <p>
-            Portfolio value evolution across the
-            selected period
-          </p>
-        </div>
-
-        <div className="performance-period-selector">
-          {PERIODS.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className={
-                period === item ? "active" : ""
-              }
-              onClick={() => setPeriod(item)}
+      <SectionHeader
+        eyebrow="PORTFOLIO PERFORMANCE"
+        title="Performance Analysis"
+        subtitle="Portfolio value evolution across the selected period"
+        className="overview-section-heading"
+        actions={
+          <div className="performance-period-selector">
+            {PERIODS.map((item) => (
+              <button
+                key={item}
+                type="button"
+                className={period === item ? "active" : ""}
+                onClick={() => setPeriod(item)}
             >
               {item}
             </button>
           ))}
         </div>
-      </div>
+      }
+    />
+
 
       <div className="performance-summary">
         <div className="performance-current-value">
@@ -230,7 +223,7 @@ function PortfolioPerformanceCard({
       </div>
 
       <div className="performance-chart">
-        <ResponsiveContainer width="100%" height={280}>
+        <ResponsiveContainer width="100%" height={350}>
           <AreaChart
             key={period}
             data={data}
@@ -251,21 +244,28 @@ function PortfolioPerformanceCard({
               >
                 <stop
                   offset="0%"
+                  stopColor="#7699ff"
+                  stopOpacity={0.18}
+                />
+
+                <stop
+                  offset="55%"
                   stopColor="#648fff"
-                  stopOpacity={0.4}
+                  stopOpacity={0.06}
                 />
 
                 <stop
                   offset="100%"
                   stopColor="#648fff"
                   stopOpacity={0}
+
                 />
               </linearGradient>
             </defs>
 
             <CartesianGrid
-              stroke="#202b3a"
-              strokeDasharray="3 6"
+              stroke="rgba(126, 145, 170, 0.10)"
+              strokeDasharray="2 7"
               vertical={false}
             />
 
@@ -276,6 +276,8 @@ function PortfolioPerformanceCard({
               stroke="#68768a"
               tick={{
                 fontSize: 11,
+                fontFamily: "JetBrains Mono",
+                fill: "#657286",
               }}
             />
 
@@ -284,9 +286,10 @@ function PortfolioPerformanceCard({
               tickLine={false}
               stroke="#68768a"
               tick={{
-                fontSize: 11,
+                fontSize: 10,
               }}
-              width={70}
+              width={68}
+              tickMargin={8}
               domain={[
                 "dataMin - 5000",
                 "dataMax + 5000",
@@ -299,25 +302,25 @@ function PortfolioPerformanceCard({
             <Tooltip
               content={<PerformanceTooltip />}
               cursor={{
-                stroke: "#648fff",
+                stroke:  "rgba(118, 153, 255, 0.55)",
                 strokeWidth: 1,
-                strokeDasharray: "4 4",
+                strokeDasharray: "2 5",
               }}
             />
 
             <Area
               type="monotone"
               dataKey="value"
-              stroke="#648fff"
-              strokeWidth={2.7}
+              stroke="#7699ff"
+              strokeWidth={1.8}
               fill="url(#portfolioPerformanceGradient)"
               activeDot={{
-                r: 5,
-                strokeWidth: 3,
-                stroke: "#111923",
-                fill: "#8caaff",
+                r: 4,
+                strokeWidth: 2,
+                stroke: "#0d141e",
+                fill: "#9ab3ff",
               }}
-              animationDuration={650}
+              animationDuration={500}
               animationEasing="ease-out"
             />
           </AreaChart>

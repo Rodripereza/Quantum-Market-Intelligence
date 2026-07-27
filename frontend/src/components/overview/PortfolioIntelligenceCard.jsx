@@ -1,35 +1,90 @@
+import SectionHeader from "../ui/SectionHeader";
+
 import {
   Activity,
   BrainCircuit,
-  BriefcaseBusiness,
+  CheckCircle2,
+  CircleAlert,
   Gauge,
   ShieldCheck,
+  Sparkles,
   TrendingUp,
 } from "lucide-react";
 
-function formatNumber(value, decimals = 2) {
+function clamp(value, minimum = 0, maximum = 100) {
   const number = Number(value);
 
   if (Number.isNaN(number)) {
-    return "--";
+    return minimum;
   }
 
-  return number.toFixed(decimals);
+  return Math.min(maximum, Math.max(minimum, number));
 }
 
-function IntelligenceMetric({
+function normalizeText(value, fallback) {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim() === ""
+  ) {
+    return fallback;
+  }
+
+  return String(value).trim();
+}
+
+function resolveTone(value) {
+  const normalized = String(value).toLowerCase();
+
+  if (
+    normalized.includes("bull") ||
+    normalized.includes("positive") ||
+    normalized.includes("strong") ||
+    normalized.includes("buy") ||
+    normalized.includes("low") ||
+    normalized.includes("holding") ||
+    normalized.includes("confirmed")
+  ) {
+    return "positive";
+  }
+
+  if (
+    normalized.includes("bear") ||
+    normalized.includes("negative") ||
+    normalized.includes("sell") ||
+    normalized.includes("high") ||
+    normalized.includes("weak") ||
+    normalized.includes("broken")
+  ) {
+    return "negative";
+  }
+
+  if (
+    normalized.includes("warning") ||
+    normalized.includes("moderate") ||
+    normalized.includes("watch") ||
+    normalized.includes("mixed") ||
+    normalized.includes("neutral")
+  ) {
+    return "warning";
+  }
+
+  return "neutral";
+}
+
+function InsightRow({
   icon: Icon,
   label,
   value,
   tone = "neutral",
 }) {
   return (
-    <div className="terminal-metric">
-      <div className={`terminal-metric-icon ${tone}`}>
-        <Icon size={16} />
+    <div className="ai-insight-row">
+      <div className={`ai-insight-row-icon ${tone}`}>
+        <Icon size={15} strokeWidth={1.9} />
       </div>
 
-      <div>
+      <div className="ai-insight-row-copy">
         <span>{label}</span>
         <strong className={tone}>{value}</strong>
       </div>
@@ -44,193 +99,171 @@ function PortfolioIntelligenceCard({
   const safePortfolio = portfolio ?? {};
   const safeAi = ai ?? {};
 
-  const riskScore = Math.min(
-    100,
-    Math.max(
-      0,
-      Number(safePortfolio.risk_score ?? 73)
-    )
+  const aiConfidence = clamp(
+    safeAi.confidence ??
+      safeAi.confidence_score ??
+      safePortfolio.ai_confidence ??
+      84
   );
 
-  const sharpeRatio = Number(
-    safePortfolio.sharpe_ratio ?? 1.81
-  );
-
-  const beta = Number(
-    safePortfolio.beta ?? 0.92
-  );
-
-  const volatility = Number(
-    safePortfolio.volatility ?? 17.4
-  );
-
-  const activePositions = Number(
-    safePortfolio.position_count ?? 0
-  );
-
-  const aiConfidence = Math.min(
-    100,
-    Math.max(
-      0,
-      Number(
-        safeAi.confidence ??
-          safePortfolio.ai_confidence ??
-          84
-      )
-    )
-  );
-
-  const aiOutlook =
+  const aiOutlook = normalizeText(
     safeAi.outlook ??
-    safePortfolio.ai_outlook ??
-    "Bullish";
+      safeAi.market_outlook ??
+      safeAi.signal ??
+      safePortfolio.ai_outlook,
+    "Bullish"
+  );
 
-  const summary =
+  const momentum = normalizeText(
+    safeAi.momentum ??
+      safeAi.momentum_state ??
+      safePortfolio.momentum_state,
+    "Positive"
+  );
+
+  const trend = normalizeText(
+    safeAi.trend ??
+      safeAi.trend_state ??
+      safePortfolio.trend_state,
+    "Confirmed"
+  );
+
+  const riskLevel = normalizeText(
+    safeAi.risk_level ??
+      safePortfolio.risk_level ??
+      (
+        Number(safePortfolio.risk_score ?? 42) >= 70
+          ? "High"
+          : Number(safePortfolio.risk_score ?? 42) >= 45
+            ? "Moderate"
+            : "Low"
+      ),
+    "Low"
+  );
+
+  const support = normalizeText(
+    safeAi.support ??
+      safeAi.support_state ??
+      safePortfolio.support_state,
+    "Holding"
+  );
+
+  const earnings = normalizeText(
+    safeAi.earnings ??
+      safeAi.earnings_state ??
+      safePortfolio.earnings_state,
+    "Watch"
+  );
+
+  const summary = normalizeText(
     safeAi.summary ??
-    safePortfolio.ai_summary ??
-    "Portfolio conditions remain constructive. Momentum, diversification and risk remain inside the current operating range.";
+      safePortfolio.ai_summary,
+    "Momentum remains constructive while portfolio risk stays inside the current operating range."
+  );
 
-  const riskTone =
-    riskScore >= 80
-      ? "negative"
-      : riskScore >= 60
-        ? "warning"
-        : "positive";
-
-  const volatilityTone =
-    volatility >= 30
-      ? "negative"
-      : volatility >= 20
-        ? "warning"
-        : "positive";
-
-  const outlookTone =
-    aiOutlook.toLowerCase().includes("bull")
-      ? "positive"
-      : aiOutlook.toLowerCase().includes("bear")
-        ? "negative"
-        : "warning";
+  const outlookTone = resolveTone(aiOutlook);
+  const momentumTone = resolveTone(momentum);
+  const trendTone = resolveTone(trend);
+  const riskTone = resolveTone(riskLevel);
+  const supportTone = resolveTone(support);
+  const earningsTone = resolveTone(earnings);
 
   return (
-    <aside className="institutional-intelligence-panel">
-      <header className="institutional-panel-header">
-        <div>
-          <span className="institutional-panel-kicker">
-            PORTFOLIO CONTROL
-          </span>
+    <aside className="institutional-intelligence-panel ai-insights-panel">
+      <SectionHeader
+        size="compact"
+        eyebrow="QMI Intelligence"
+        title="AI Insights"
+        actions={
+          <div className="ai-insights-live">
+            <span />
+            Live
+          </div>
+        }
+      />
 
-          <h2>Risk & Intelligence</h2>
+      <section className="ai-insights-outlook">
+        <div className={`ai-insights-orb ${outlookTone}`}>
+          <BrainCircuit size={23} strokeWidth={1.75} />
         </div>
 
-        <div className="institutional-live-status">
-          <span />
-          Live
-        </div>
-      </header>
+        <div className="ai-insights-outlook-copy">
+          <span>Portfolio outlook</span>
 
-      <section className="institutional-risk-summary">
-        <div
-          className={`institutional-risk-score ${riskTone}`}
-        >
-          <span>Risk score</span>
-
-          <strong>{riskScore}</strong>
-
-          <small>/ 100</small>
-        </div>
-
-        <div className="institutional-risk-copy">
-          <span>Current classification</span>
-
-          <strong className={riskTone}>
-            {riskScore >= 80
-              ? "Elevated"
-              : riskScore >= 60
-                ? "Moderate"
-                : "Controlled"}
+          <strong className={outlookTone}>
+            {aiOutlook}
           </strong>
-
-          <small>
-            Exposure, concentration and volatility
-          </small>
         </div>
+
+        <span className={`ai-insights-badge ${outlookTone}`}>
+          {aiConfidence.toFixed(0)}%
+        </span>
       </section>
 
-      <section className="terminal-metrics-grid">
-        <IntelligenceMetric
+      <section className="ai-insights-list">
+        <InsightRow
           icon={TrendingUp}
-          label="Sharpe ratio"
-          value={formatNumber(sharpeRatio)}
-          tone={
-            sharpeRatio >= 1
-              ? "positive"
-              : "warning"
-          }
+          label="Momentum"
+          value={momentum}
+          tone={momentumTone}
         />
 
-        <IntelligenceMetric
-          icon={Gauge}
-          label="Portfolio beta"
-          value={formatNumber(beta)}
-        />
-
-        <IntelligenceMetric
+        <InsightRow
           icon={Activity}
-          label="Volatility"
-          value={`${formatNumber(volatility, 1)}%`}
-          tone={volatilityTone}
+          label="Trend"
+          value={trend}
+          tone={trendTone}
         />
 
-        <IntelligenceMetric
-          icon={BriefcaseBusiness}
-          label="Positions"
-          value={activePositions}
+        <InsightRow
+          icon={Gauge}
+          label="Risk level"
+          value={riskLevel}
+          tone={riskTone}
+        />
+
+        <InsightRow
+          icon={CheckCircle2}
+          label="Support"
+          value={support}
+          tone={supportTone}
+        />
+
+        <InsightRow
+          icon={CircleAlert}
+          label="Earnings"
+          value={earnings}
+          tone={earningsTone}
         />
       </section>
 
-      <section className="institutional-ai-summary">
-        <div className="institutional-ai-heading">
-          <div className="institutional-ai-icon">
-            <BrainCircuit size={17} />
-          </div>
-
-          <div>
-            <span>AI portfolio outlook</span>
-
-            <strong className={outlookTone}>
-              {aiOutlook}
-            </strong>
-          </div>
-
-          <span
-            className={`institutional-outlook-badge ${outlookTone}`}
-          >
-            {aiConfidence}%
-          </span>
+      <section className="ai-insights-summary">
+        <div className="ai-insights-summary-heading">
+          <Sparkles size={14} />
+          <span>AI interpretation</span>
         </div>
 
         <p>{summary}</p>
+      </section>
 
-        <div className="institutional-confidence">
-          <div>
-            <span>Confidence</span>
-            <strong>{aiConfidence}%</strong>
-          </div>
+      <section className="ai-insights-confidence">
+        <div className="ai-insights-confidence-heading">
+          <span>Confidence</span>
+          <strong>{aiConfidence.toFixed(0)}%</strong>
+        </div>
 
-          <div className="institutional-confidence-track">
-            <span
-              style={{
-                width: `${aiConfidence}%`,
-              }}
-            />
-          </div>
+        <div className="ai-insights-confidence-track">
+          <span
+            style={{
+              width: `${aiConfidence}%`,
+            }}
+          />
         </div>
       </section>
 
-      <footer className="institutional-panel-footer">
+      <footer className="ai-insights-footer">
         <ShieldCheck size={14} />
-
-        <span>Risk governance operational</span>
+        Intelligence layer operational
       </footer>
     </aside>
   );

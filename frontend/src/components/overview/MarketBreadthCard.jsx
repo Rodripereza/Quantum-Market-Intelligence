@@ -6,6 +6,8 @@ import {
   Gauge,
 } from "lucide-react";
 
+import SectionHeader from "../ui/SectionHeader";
+
 const FALLBACK_BREADTH = {
   advancing: 312,
   declining: 168,
@@ -111,24 +113,18 @@ function MarketBreadthCard({ breadth }) {
 
   return (
     <section className="overview-surface market-breadth-card">
-      <div className="overview-section-heading">
-        <div>
-          <span className="section-kicker">
-            MARKET PARTICIPATION
-          </span>
-
-          <h2>Market Breadth</h2>
-
-          <p>
-            Participation, trend health and internal market strength
-          </p>
-        </div>
-
-        <div className={`market-breadth-state ${breadthTone}`}>
-          <Gauge size={15} />
-          {breadthState}
-        </div>
-      </div>
+      <SectionHeader
+        size="compact"
+        eyebrow="Market Participation"
+        title="Market Breadth"
+        subtitle="Participation, trend health and internal market strength"
+        actions={
+          <div className={`market-breadth-state ${breadthTone}`}>
+            <Gauge size={15} />
+            {breadthState}
+          </div>
+        }
+      />
 
       <div className="market-breadth-main">
         <div className="market-breadth-score-panel">

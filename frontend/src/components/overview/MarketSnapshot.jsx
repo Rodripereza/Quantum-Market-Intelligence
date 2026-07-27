@@ -1,5 +1,13 @@
-import { ArrowUpRight, Radar } from "lucide-react";
+import {
+  ArrowDownRight,
+  ArrowUpRight,
+  Minus,
+  Radar,
+} from "lucide-react";
+
 import EmptyChartState from "./EmptyChartState";
+import SectionHeader from "../ui/SectionHeader";
+import Card, { CardBody } from "../ui/Card";
 
 function money(number, currency = "USD") {
   if (
@@ -26,64 +34,106 @@ function pct(number) {
     return "--";
   }
 
-  return `${Number(number || 0).toFixed(2)}%`;
+  const value = Number(number);
+
+  return `${value > 0 ? "+" : ""}${value.toFixed(2)}%`;
+}
+
+function getTone(change) {
+  const value = Number(change);
+
+  if (Number.isNaN(value) || value === 0) {
+    return "neutral";
+  }
+
+  return value > 0 ? "positive" : "negative";
 }
 
 function MarketSnapshot({ market, navigate }) {
   const assets = market?.assets || [];
 
   return (
-    <section className="overview-surface market-snapshot">
-      <div className="overview-section-heading">
-        <div>
-          <span className="section-kicker">
-            LIVE INTELLIGENCE
-          </span>
-
-          <h2>Market Snapshot</h2>
-
-          <p>
-            Current prices and daily market movement
-          </p>
-        </div>
-
-        <button
-          className="overview-icon-action"
-          onClick={() => navigate("market")}
-          title="Open Market"
+    <section className="overview-surface market-snapshot market-snapshot-pro">
+      <SectionHeader
+        eyebrow="LIVE INTELLIGENCE"
+        title="Market Snapshot"
+        subtitle="Real-time pricing and daily market movement"
+        className="overview-section-heading market-snapshot-heading"
+        actions={
+          <button
+            type="button"
+            className="overview-icon-action"
+            onClick={() => navigate("market")}
+            title="Open Market"
         >
           <ArrowUpRight size={17} />
         </button>
-      </div>
+      }
+    />
 
       {assets.length > 0 ? (
-        <div className="market-snapshot-list">
-          {assets.slice(0, 6).map((asset) => (
-            <div
-              className="market-snapshot-row"
-              key={asset.ticker}
-            >
-              <div className="market-symbol">
-                <strong>{asset.ticker}</strong>
-                <span>{asset.name}</span>
-              </div>
+        <>
+          <div className="market-snapshot-columns">
+            <span>Asset</span>
+            <span>Price</span>
+            <span>Change</span>
+          </div>
 
-              <div className="market-price">
-                <strong>{money(asset.price)}</strong>
+          <div className="market-snapshot-list">
+            {assets.slice(0, 6).map((asset) => {
+              const tone = getTone(asset.change_pct);
 
-                <span
-                  className={
-                    asset.change_pct >= 0
-                      ? "market-change positive"
-                      : "market-change negative"
-                  }
+              const ChangeIcon =
+                tone === "positive"
+                  ? ArrowUpRight
+                  : tone === "negative"
+                    ? ArrowDownRight
+                    : Minus;
+
+              return (
+                <button
+                  type="button"
+                  className="market-snapshot-row"
+                  key={asset.ticker}
+                  onClick={() => navigate("market")}
                 >
-                  {pct(asset.change_pct)}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+                  <div className="market-asset">
+                    <span
+                      className={`market-status-dot ${tone}`}
+                      aria-hidden="true"
+                    />
+
+                    <div className="market-symbol">
+                      <strong>{asset.ticker}</strong>
+                      <span>{asset.name}</span>
+                    </div>
+                  </div>
+
+                  <div className="market-price">
+                    <strong>{money(asset.price)}</strong>
+                  </div>
+
+                  <div className={`market-change-chip ${tone}`}>
+                    <ChangeIcon size={13} />
+                    <span>{pct(asset.change_pct)}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="market-snapshot-footer">
+            <span>Live market feed</span>
+
+            <button
+              type="button"
+              onClick={() => navigate("market")}
+            >
+              Open full market
+              <ArrowUpRight size={13} />
+            </button>
+          </div>
+        </>
       ) : (
         <EmptyChartState
           icon={<Radar size={22} />}

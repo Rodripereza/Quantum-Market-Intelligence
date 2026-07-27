@@ -1,3 +1,5 @@
+import SectionHeader from "../ui/SectionHeader";
+
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -66,24 +68,18 @@ function TopMoversCard({ movers }) {
 
   return (
     <section className="overview-surface top-movers-card">
-      <div className="overview-section-heading">
-        <div>
-          <span className="section-kicker">
-            PORTFOLIO MOVERS
-          </span>
-
-          <h2>Top Movers</h2>
-
-          <p>
-            Assets generating the largest portfolio impact
-          </p>
-        </div>
-
-        <div className="top-movers-status">
-          <BarChart3 size={15} />
-          Live ranking
-        </div>
-      </div>
+      <SectionHeader
+        size="compact"
+        eyebrow="Portfolio Movers"
+        title="Top Movers"
+        subtitle="Assets generating the largest portfolio impact"
+        actions={
+          <div className="top-movers-status">
+            <BarChart3 size={15} />
+            Live ranking
+          </div>
+        }
+      />
 
       <div className="top-movers-table">
         <div className="top-movers-header">

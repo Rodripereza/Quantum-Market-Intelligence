@@ -1,44 +1,84 @@
 import "./Card.css";
 
+function joinClasses(...classes) {
+  return classes.filter(Boolean).join(" ");
+}
+
 function Card({
   children,
-  title,
-  subtitle,
-  actions,
   className = "",
-  padding = "normal",
   as: Component = "section",
-  ...props
+  variant = "default",
+  padding = "default",
 }) {
-  const cardClassName = [
-    "qmi-card",
-    `qmi-card--padding-${padding}`,
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return (
-    <Component className={cardClassName} {...props}>
-      {(title || subtitle || actions) && (
-        <header className="qmi-card__header">
-          <div className="qmi-card__heading">
-            {title && <h2 className="qmi-card__title">{title}</h2>}
-
-            {subtitle && (
-              <p className="qmi-card__subtitle">{subtitle}</p>
-            )}
-          </div>
-
-          {actions && (
-            <div className="qmi-card__actions">{actions}</div>
-          )}
-        </header>
+    <Component
+      className={joinClasses(
+        "qmi-card",
+        `qmi-card--${variant}`,
+        `qmi-card--padding-${padding}`,
+        className
       )}
-
-      <div className="qmi-card__content">{children}</div>
+    >
+      {children}
     </Component>
   );
 }
 
+function CardHeader({
+  children,
+  className = "",
+  divided = false,
+}) {
+  return (
+    <div
+      className={joinClasses(
+        "qmi-card__header",
+        divided && "qmi-card__header--divided",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+  function CardBody({
+  children,
+  className = "",
+}) {
+  return (
+    <div
+      className={joinClasses(
+        "qmi-card__body",
+        className
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function CardFooter({
+  children,
+  className = "",
+}) {
+  return (
+    <footer
+      className={joinClasses(
+        "qmi-card__footer",
+        className
+      )}
+    >
+      {children}
+    </footer>
+  );
+}
+
 export default Card;
+
+export {
+  CardHeader,
+  CardBody,
+  CardFooter,
+};

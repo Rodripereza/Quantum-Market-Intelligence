@@ -1,0 +1,96 @@
+/* =========================================================
+   QMI UI — SECTION HEADER
+   ========================================================= */
+
+.qmi-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-6);
+}
+
+.qmi-section-header__content {
+  min-width: 0;
+}
+
+.qmi-section-header__eyebrow {
+  display: block;
+  margin-bottom: var(--space-2);
+
+  color: var(--color-primary);
+
+  font-size: var(--font-label);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-none);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.qmi-section-header__title {
+  margin: 0;
+
+  color: var(--color-text);
+
+  font-size: var(--font-heading-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+.qmi-section-header__subtitle {
+  max-width: 920px;
+  margin: var(--space-2) 0 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: var(--font-body);
+  line-height: var(--line-height-relaxed);
+}
+
+.qmi-section-header__actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: var(--space-2);
+}
+
+/* =========================================================
+   Compact card-header variant
+   ========================================================= */
+
+.qmi-section-header--compact {
+  gap: var(--space-4);
+}
+
+.qmi-section-header--compact
+  .qmi-section-header__eyebrow {
+  margin-bottom: var(--space-1);
+
+  font-size: var(--font-size-2xs);
+  letter-spacing: 0.11em;
+}
+
+.qmi-section-header--compact
+  .qmi-section-header__title {
+  font-size: var(--font-heading-sm);
+  line-height: var(--line-height-heading);
+}
+
+.qmi-section-header--compact
+  .qmi-section-header__subtitle {
+  max-width: 680px;
+  margin-top: var(--space-1);
+
+  font-size: var(--font-body-sm);
+  line-height: var(--line-height-normal);
+}
+
+@media (max-width: 760px) {
+  .qmi-section-header {
+    flex-direction: column;
+  }
+
+  .qmi-section-header__actions {
+    width: 100%;
+  }
+}

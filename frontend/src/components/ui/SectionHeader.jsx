@@ -1,13 +1,21 @@
+import "./SectionHeader.css";
+
 export default function SectionHeader({
   eyebrow,
   title,
   subtitle,
   actions,
   className = "",
+  size = "default",
   as: Component = "header",
 }) {
+  const normalizedSize = ["default", "compact"].includes(size)
+    ? size
+    : "default";
+
   const sectionHeaderClassName = [
     "qmi-section-header",
+    `qmi-section-header--${normalizedSize}`,
     className,
   ]
     .filter(Boolean)
