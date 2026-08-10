@@ -7,9 +7,15 @@ import "./styles/design-system/typography.css";
 import "./styles/design-system/layout.css";
 import "./styles/design-system/components.css";
 import "./styles/design-system/utilities.css";
-
+import "./styles/tokens.css";
+import "./styles/tokens.css";
 import "./style.css";
 import "./styles/pages/overview.css";
+
+import "./components/market/globalMarketBar.css";
+import "./components/market/marketOverview.css";
+import "./components/market/marketAssetsTable.css";
+
 
 import App from "./App";
 

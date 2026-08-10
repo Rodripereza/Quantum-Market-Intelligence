@@ -1,0 +1,274 @@
+.qmi-datagrid {
+  margin-top: 18px;
+  overflow: hidden;
+
+  border: 1px solid rgba(85, 116, 157, 0.28);
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(14, 24, 39, 0.98) 0%,
+      rgba(8, 15, 26, 0.98) 100%
+    );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 18px 42px rgba(0, 0, 0, 0.2);
+}
+
+.qmi-datagrid__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 20px 22px;
+
+  border-bottom: 1px solid rgba(85, 116, 157, 0.2);
+}
+
+.qmi-datagrid__eyebrow {
+  display: block;
+  margin-bottom: 5px;
+
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+
+  color: #6d96f2;
+}
+
+.qmi-datagrid__header h2 {
+  margin: 0;
+
+  font-size: 1.35rem;
+  font-weight: 760;
+
+  color: #f4f7fb;
+}
+
+.qmi-datagrid__header p {
+  margin: 6px 0 0;
+
+  font-size: 0.9rem;
+  color: #74859d;
+}
+
+.qmi-datagrid__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 6px 10px;
+
+  border: 1px solid rgba(37, 211, 144, 0.2);
+  border-radius: 999px;
+
+  background: rgba(37, 211, 144, 0.08);
+
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  color: #38e4a4;
+}
+
+.qmi-datagrid__status-dot {
+  width: 6px;
+  height: 6px;
+
+  border-radius: 50%;
+  background: #38e4a4;
+
+  box-shadow: 0 0 10px rgba(56, 228, 164, 0.7);
+}
+
+.qmi-datagrid__viewport {
+  overflow-x: auto;
+}
+
+.qmi-datagrid__table {
+  width: 100%;
+  min-width: 920px;
+
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.qmi-datagrid__table th {
+  padding: 11px 16px;
+
+  border-bottom: 1px solid rgba(85, 116, 157, 0.18);
+
+  background: rgba(255, 255, 255, 0.015);
+
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  color: #657690;
+}
+
+.qmi-datagrid__table td {
+  padding: 16px 18px;
+
+  border-bottom: 1px solid rgba(85, 116, 157, 0.12);
+
+  font-size: 0.95rem;
+  color: #dce5f2;
+}
+
+.qmi-datagrid__table tbody tr {
+  transition:
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.qmi-datagrid__table tbody tr:hover {
+  background: rgba(66, 112, 210, 0.07);
+
+  box-shadow:
+    inset 3px 0 0 rgba(84, 137, 255, 0.85);
+}
+
+.qmi-datagrid__table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.qmi-datagrid__numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.qmi-datagrid__instrument {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.qmi-datagrid__symbol {
+  font-size: 1rem;
+  font-weight: 820;
+  letter-spacing: 0.04em;
+  color: #f5f8fd;
+}
+
+.qmi-datagrid__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 0.8rem;
+  color: #73849c;
+}
+
+.qmi-datagrid__badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 8px;
+
+  border: 1px solid rgba(100, 131, 177, 0.2);
+  border-radius: 999px;
+
+  background: rgba(90, 120, 169, 0.08);
+
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  color: #8da1be;
+}
+
+.qmi-datagrid__price {
+  font-weight: 760;
+  color: #f4f7fb;
+}
+
+.qmi-datagrid__muted {
+  color: #8090a7;
+}
+
+.qmi-datagrid__change {
+  display: inline-flex;
+  justify-content: flex-end;
+  min-width: 64px;
+  font-size: 0.92rem;
+  font-weight: 820;
+}
+
+.qmi-datagrid__change--positive {
+  color: #38e4a4;
+}
+
+.qmi-datagrid__change--negative {
+  color: #ff647b;
+}
+
+.qmi-datagrid__change--neutral {
+  color: #8796aa;
+}
+
+.qmi-datagrid__trend {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  border-radius: 8px;
+}
+
+.qmi-datagrid__trend--positive {
+  color: #38e4a4;
+  background: rgba(56, 228, 164, 0.08);
+}
+
+.qmi-datagrid__trend--negative {
+  color: #ff647b;
+  background: rgba(255, 100, 123, 0.08);
+}
+
+.qmi-datagrid__trend--neutral {
+  color: #8796aa;
+  background: rgba(135, 150, 170, 0.08);
+}
+
+.qmi-datagrid__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+
+  padding: 11px 20px;
+
+  border-top: 1px solid rgba(85, 116, 157, 0.18);
+
+  font-size: 0.78rem;
+  color: #65758d;
+}
+
+.qmi-datagrid__empty {
+  padding: 42px 20px;
+  text-align: center;
+
+  font-size: 0.75rem;
+  color: #71829a;
+}
+
+@media (max-width: 720px) {
+  .qmi-datagrid__header {
+    flex-direction: column;
+  }
+
+  .qmi-datagrid__footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

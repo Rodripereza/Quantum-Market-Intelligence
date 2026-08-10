@@ -1,0 +1,255 @@
+/* =========================================================
+   QMI — INSTITUTIONAL DESIGN SYSTEM
+   Design Tokens
+   Sprint 006
+   ========================================================= */
+
+:root {
+  /* =======================================================
+     TYPOGRAPHY
+     ======================================================= */
+
+  --font-family-primary:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+
+  --font-family-mono:
+    "JetBrains Mono",
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+
+  --font-size-2xs: 0.6875rem;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-md: 0.875rem;
+  --font-size-lg: 1rem;
+  --font-size-xl: 1.125rem;
+  --font-size-2xl: 1.375rem;
+  --font-size-3xl: 1.75rem;
+  --font-size-4xl: 2.25rem;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
+
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.04em;
+  --letter-spacing-uppercase: 0.08em;
+
+  /* =======================================================
+     CORE BRAND COLORS
+     ======================================================= */
+
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9eaff;
+  --color-brand-200: #bddcff;
+  --color-brand-300: #90c7ff;
+  --color-brand-400: #5ba8ff;
+  --color-brand-500: #3287f5;
+  --color-brand-600: #1e6ddd;
+  --color-brand-700: #1b57b3;
+  --color-brand-800: #1c4a8d;
+  --color-brand-900: #1c3f72;
+
+  --color-accent-cyan: #36d7ff;
+  --color-accent-blue: #3287f5;
+  --color-accent-violet: #8b7cff;
+  --color-accent-amber: #f2b84b;
+
+  /* =======================================================
+     NEUTRAL PALETTE
+     ======================================================= */
+
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f7f9fc;
+  --color-neutral-100: #eef2f7;
+  --color-neutral-200: #dce3ec;
+  --color-neutral-300: #c1cad6;
+  --color-neutral-400: #8e9aaa;
+  --color-neutral-500: #687587;
+  --color-neutral-600: #4d5968;
+  --color-neutral-700: #35404d;
+  --color-neutral-800: #202934;
+  --color-neutral-850: #19212b;
+  --color-neutral-900: #111821;
+  --color-neutral-950: #090e14;
+
+  /* =======================================================
+     SEMANTIC COLORS
+     ======================================================= */
+
+  --color-success: #20c77a;
+  --color-success-soft: rgba(32, 199, 122, 0.12);
+
+  --color-danger: #ef5f6c;
+  --color-danger-soft: rgba(239, 95, 108, 0.12);
+
+  --color-warning: #f2b84b;
+  --color-warning-soft: rgba(242, 184, 75, 0.12);
+
+  --color-info: #4da3ff;
+  --color-info-soft: rgba(77, 163, 255, 0.12);
+
+  /* =======================================================
+     APPLICATION SURFACES
+     ======================================================= */
+
+  --color-app-background: #0a0f16;
+  --color-sidebar-background: #0d131c;
+  --color-header-background: rgba(13, 19, 28, 0.92);
+
+  --color-surface-primary: #111923;
+  --color-surface-secondary: #151f2b;
+  --color-surface-tertiary: #1a2633;
+  --color-surface-elevated: #1c2937;
+  --color-surface-hover: #202f3f;
+  --color-surface-active: #25374a;
+
+  /* =======================================================
+     TEXT COLORS
+     ======================================================= */
+
+  --color-text-primary: #f3f6fa;
+  --color-text-secondary: #a9b4c2;
+  --color-text-tertiary: #778494;
+  --color-text-disabled: #586473;
+  --color-text-inverse: #0a0f16;
+  --color-text-accent: #64b5ff;
+
+  /* =======================================================
+     BORDER COLORS
+     ======================================================= */
+
+  --color-border-subtle: rgba(255, 255, 255, 0.06);
+  --color-border-default: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-border-focus: rgba(50, 135, 245, 0.75);
+
+  /* =======================================================
+     FINANCIAL COLORS
+     ======================================================= */
+
+  --color-market-positive: #20c77a;
+  --color-market-negative: #ef5f6c;
+  --color-market-neutral: #a9b4c2;
+  --color-market-highlight: #36d7ff;
+
+  /* =======================================================
+     SPACING SYSTEM
+     Base unit: 4px
+     ======================================================= */
+
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-7: 1.75rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* =======================================================
+     BORDER RADIUS
+     ======================================================= */
+
+  --radius-none: 0;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* =======================================================
+     SHADOWS
+     ======================================================= */
+
+  --shadow-xs:
+    0 1px 2px rgba(0, 0, 0, 0.18);
+
+  --shadow-sm:
+    0 4px 12px rgba(0, 0, 0, 0.18);
+
+  --shadow-md:
+    0 10px 30px rgba(0, 0, 0, 0.24);
+
+  --shadow-lg:
+    0 18px 50px rgba(0, 0, 0, 0.32);
+
+  --shadow-panel:
+    0 1px 0 rgba(255, 255, 255, 0.03),
+    0 14px 36px rgba(0, 0, 0, 0.22);
+
+  --shadow-focus:
+    0 0 0 3px rgba(50, 135, 245, 0.2);
+
+  /* =======================================================
+     LAYOUT
+     ======================================================= */
+
+  --sidebar-width-expanded: 15.5rem;
+  --sidebar-width-collapsed: 4.5rem;
+  --header-height: 4rem;
+
+  --content-max-width: 120rem;
+  --content-padding-x: 1.5rem;
+  --content-padding-y: 1.5rem;
+
+  --panel-padding: 1.25rem;
+  --panel-gap: 1rem;
+
+  /* =======================================================
+     Z-INDEX
+     ======================================================= */
+
+  --z-base: 0;
+  --z-content: 10;
+  --z-header: 100;
+  --z-sidebar: 200;
+  --z-dropdown: 500;
+  --z-modal: 1000;
+  --z-tooltip: 1100;
+
+  /* =======================================================
+     TRANSITIONS
+     ======================================================= */
+
+  --transition-fast: 120ms ease;
+  --transition-base: 180ms ease;
+  --transition-slow: 280ms ease;
+
+  --transition-colors:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast);
+
+  --transition-transform:
+    transform var(--transition-base);
+
+  --transition-interactive:
+    color var(--transition-fast),
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
