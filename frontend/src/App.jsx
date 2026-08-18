@@ -46,6 +46,7 @@ import { getMarket } from "./services/marketService";
 
 import {
   getPortfolio,
+  getPortfolioHistory,
   createPosition,
   updatePosition,
   deletePosition as deletePositionService,
@@ -170,6 +171,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [market, setMarket] = useState(null);
   const [portfolio, setPortfolio] = useState(null);
+  const [portfolioHistory, setPortfolioHistory] = useState(null);
   const [ai, setAi] = useState(null);
 
   const [form, setForm] = useState({
@@ -206,11 +208,13 @@ function App() {
         userResult,
         marketResult,
         portfolioResult,
+        portfolioHistoryResult,
         aiResult,
       ] = await Promise.allSettled([
         getUser(activeToken),
         getMarket(activeToken),
         getPortfolio(activeToken),
+        getPortfolioHistory(activeToken, "1y", "1d"),
         getAIStatus(activeToken),
       ]);
 
@@ -218,6 +222,7 @@ function App() {
         userResult,
         marketResult,
         portfolioResult,
+        portfolioHistoryResult,
         aiResult,
       ].find(
         (result) =>
@@ -256,6 +261,16 @@ function App() {
         console.error(
           "Unable to load portfolio:",
           portfolioResult.reason
+        );
+      }
+
+      if (portfolioHistoryResult.status === "fulfilled") {
+        setPortfolioHistory(portfolioHistoryResult.value);
+      } else {
+        setPortfolioHistory(null);
+        console.error(
+          "Unable to load portfolio history:",
+          portfolioHistoryResult.reason
         );
       }
 
@@ -306,15 +321,6 @@ function App() {
     [portfolio]
   );
 
-  const trend = [
-    { month: "Jan", value: 42 },
-    { month: "Feb", value: 47 },
-    { month: "Mar", value: 46 },
-    { month: "Apr", value: 55 },
-    { month: "May", value: 63 },
-    { month: "Jun", value: 72 },
-  ];
-
   async function savePosition(event) {
     event.preventDefault();
 
@@ -341,6 +347,20 @@ function App() {
 
     if (data.portfolio) {
       setPortfolio(data.portfolio);
+    }
+
+    try {
+      const refreshedHistory = await getPortfolioHistory(
+        token,
+        "1y",
+        "1d"
+      );
+      setPortfolioHistory(refreshedHistory);
+    } catch (error) {
+      console.error(
+        "Unable to refresh portfolio history:",
+        error
+      );
     }
 
     setEditingId(null);
@@ -378,7 +398,22 @@ function App() {
     if (data.portfolio) {
       setPortfolio(data.portfolio);
     } else {
-      load();
+      await load();
+      return;
+    }
+
+    try {
+      const refreshedHistory = await getPortfolioHistory(
+        token,
+        "1y",
+        "1d"
+      );
+      setPortfolioHistory(refreshedHistory);
+    } catch (error) {
+      console.error(
+        "Unable to refresh portfolio history:",
+        error
+      );
     }
   }
 
@@ -418,6 +453,7 @@ function App() {
     setUser(null);
     setMarket(null);
     setPortfolio(null);
+    setPortfolioHistory(null);
     setAi(null);
   }
 
@@ -454,6 +490,7 @@ function App() {
           {page === "overview" && (
             <Dashboard
               portfolio={portfolio}
+              portfolioHistory={portfolioHistory}
               market={market}
               ai={ai}
             />

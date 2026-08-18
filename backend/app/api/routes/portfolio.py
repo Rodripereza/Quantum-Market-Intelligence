@@ -4,6 +4,9 @@ from sqlmodel import Session, select
 from app.core.database import get_session
 from app.models.portfolio import PortfolioPosition
 from app.schemas.portfolio_schema import (
+    PortfolioHistoryPoint,
+    PortfolioHistoryResponse,
+    PortfolioHistorySummary,
     PortfolioPositionSnapshot,
     PortfolioSectorAllocation,
     PortfolioSnapshot,
@@ -20,18 +23,18 @@ market_service = MarketService()
 
 
 # ============================================================
-# HELPERS
+# LIVE SNAPSHOT HELPERS
 # ============================================================
 
 def build_position_snapshot(
     position: PortfolioPosition,
 ) -> PortfolioPositionSnapshot:
     """
-    Combina la posición persistida en SQLite con la cotización
-    actual obtenida desde el Market Engine.
+    Combina una posición persistida en SQLite con su cotización
+    actual obtenida mediante MarketService.
     """
 
-    current_price = position.average_price
+    current_price = float(position.average_price)
     previous_close = None
 
     try:
@@ -47,9 +50,9 @@ def build_position_snapshot(
             previous_close = float(market_previous_close)
 
     except Exception:
-        # Si Yahoo no responde, Portfolio continúa operativo
-        # utilizando el precio medio como fallback.
-        current_price = position.average_price
+        # QMI mantiene operativo Portfolio aunque el proveedor
+        # de mercado no esté disponible temporalmente.
+        current_price = float(position.average_price)
         previous_close = None
 
     shares = float(position.shares)
@@ -89,7 +92,8 @@ def build_portfolio_snapshot(
     positions: list[PortfolioPosition],
 ) -> PortfolioSnapshot:
     """
-    Construye la valoración completa del portfolio.
+    Construye el snapshot completo del portfolio valorado
+    con precios actuales.
     """
 
     snapshots = [
@@ -179,16 +183,287 @@ def build_portfolio_snapshot(
 
 
 # ============================================================
+# HISTORICAL PERFORMANCE HELPERS
+# ============================================================
+
+def resolve_portfolio_currency(
+    positions: list[PortfolioPosition],
+) -> str:
+    """
+    Determina la moneda del portfolio.
+
+    QMI todavía no realiza conversión FX. Si existen posiciones
+    con distintas monedas, se identifica el portfolio como MULTI.
+    """
+
+    currencies = {
+        (position.currency or "USD").upper()
+        for position in positions
+    }
+
+    if len(currencies) == 1:
+        return next(iter(currencies))
+
+    if len(currencies) == 0:
+        return "USD"
+
+    return "MULTI"
+
+
+def build_portfolio_history(
+    positions: list[PortfolioPosition],
+    period: str,
+    interval: str,
+) -> PortfolioHistoryResponse:
+    """
+    Construye una serie histórica mark-to-market utilizando
+    las posiciones ACTUALES y precios históricos reales.
+
+    Importante:
+    Esto todavía no es un historial transaccional.
+    No existen fechas de compra/venta en el modelo actual.
+    """
+
+    currency = resolve_portfolio_currency(positions)
+
+    if not positions:
+        return PortfolioHistoryResponse(
+            period=period,
+            interval=interval,
+            currency=currency,
+            positions=0,
+            history=[],
+            summary=PortfolioHistorySummary(
+                start_value=0.0,
+                end_value=0.0,
+                absolute_return=0.0,
+                return_pct=0.0,
+                max_value=0.0,
+                min_value=0.0,
+                observations=0,
+            ),
+        )
+
+    total_cost = sum(
+        float(position.shares)
+        * float(position.average_price)
+        for position in positions
+    )
+
+    histories_by_ticker: dict[str, dict[str, float]] = {}
+
+    # --------------------------------------------------------
+    # Download history for each current position
+    # --------------------------------------------------------
+
+    for position in positions:
+        try:
+            history = market_service.get_history(
+                symbol=position.ticker,
+                period=period,
+                interval=interval,
+            )
+        except Exception:
+            continue
+
+        ticker_history: dict[str, float] = {}
+
+        for point in history:
+            date = point.get("date")
+            close = point.get("close")
+
+            if date is None or close is None:
+                continue
+
+            ticker_history[str(date)] = float(close)
+
+        if ticker_history:
+            histories_by_ticker[position.ticker] = ticker_history
+
+    if not histories_by_ticker:
+        return PortfolioHistoryResponse(
+            period=period,
+            interval=interval,
+            currency=currency,
+            positions=len(positions),
+            history=[],
+            summary=PortfolioHistorySummary(
+                start_value=0.0,
+                end_value=0.0,
+                absolute_return=0.0,
+                return_pct=0.0,
+                max_value=0.0,
+                min_value=0.0,
+                observations=0,
+            ),
+        )
+
+    # --------------------------------------------------------
+    # Use common dates
+    # --------------------------------------------------------
+    #
+    # Para evitar comparar días donde solo una parte del
+    # portfolio tiene cotización, usamos la intersección de
+    # fechas disponibles entre los activos recuperados.
+    # --------------------------------------------------------
+
+    date_sets = [
+        set(history.keys())
+        for history in histories_by_ticker.values()
+    ]
+
+    common_dates = set.intersection(*date_sets)
+
+    sorted_dates = sorted(common_dates)
+
+    history_points: list[PortfolioHistoryPoint] = []
+
+    # --------------------------------------------------------
+    # Build historical portfolio value
+    # --------------------------------------------------------
+
+    for date in sorted_dates:
+        market_value = 0.0
+        usable_positions = 0
+
+        for position in positions:
+            ticker_history = histories_by_ticker.get(
+                position.ticker
+            )
+
+            if ticker_history is None:
+                continue
+
+            close = ticker_history.get(date)
+
+            if close is None:
+                continue
+
+            market_value += (
+                float(position.shares)
+                * float(close)
+            )
+
+            usable_positions += 1
+
+        if usable_positions == 0:
+            continue
+
+        profit_loss = market_value - total_cost
+
+        return_pct = (
+            (profit_loss / total_cost) * 100
+            if total_cost > 0
+            else 0.0
+        )
+
+        history_points.append(
+            PortfolioHistoryPoint(
+                date=date,
+                market_value=round(
+                    market_value,
+                    4,
+                ),
+                cost_basis=round(
+                    total_cost,
+                    4,
+                ),
+                profit_loss=round(
+                    profit_loss,
+                    4,
+                ),
+                return_pct=round(
+                    return_pct,
+                    4,
+                ),
+            )
+        )
+
+    # --------------------------------------------------------
+    # Summary
+    # --------------------------------------------------------
+
+    if not history_points:
+        summary = PortfolioHistorySummary(
+            start_value=0.0,
+            end_value=0.0,
+            absolute_return=0.0,
+            return_pct=0.0,
+            max_value=0.0,
+            min_value=0.0,
+            observations=0,
+        )
+
+    else:
+        start_value = history_points[0].market_value
+        end_value = history_points[-1].market_value
+
+        absolute_return = (
+            end_value - start_value
+        )
+
+        period_return_pct = (
+            (absolute_return / start_value) * 100
+            if start_value > 0
+            else 0.0
+        )
+
+        values = [
+            point.market_value
+            for point in history_points
+        ]
+
+        summary = PortfolioHistorySummary(
+            start_value=round(
+                start_value,
+                4,
+            ),
+            end_value=round(
+                end_value,
+                4,
+            ),
+            absolute_return=round(
+                absolute_return,
+                4,
+            ),
+            return_pct=round(
+                period_return_pct,
+                4,
+            ),
+            max_value=round(
+                max(values),
+                4,
+            ),
+            min_value=round(
+                min(values),
+                4,
+            ),
+            observations=len(history_points),
+        )
+
+    return PortfolioHistoryResponse(
+        period=period,
+        interval=interval,
+        currency=currency,
+        positions=len(positions),
+        history=history_points,
+        summary=summary,
+    )
+
+
+# ============================================================
 # GET PORTFOLIO SNAPSHOT
 # ============================================================
 
-@router.get("/", response_model=PortfolioSnapshot)
+@router.get(
+    "/",
+    response_model=PortfolioSnapshot,
+)
 def get_positions(
     session: Session = Depends(get_session),
 ) -> PortfolioSnapshot:
     """
-    Devuelve el portfolio completo valorado con precios
-    actuales procedentes del Market Engine.
+    Portfolio completo valorado con precios actuales.
     """
 
     statement = select(
@@ -201,7 +476,43 @@ def get_positions(
         session.exec(statement).all()
     )
 
-    return build_portfolio_snapshot(positions)
+    return build_portfolio_snapshot(
+        positions
+    )
+
+
+# ============================================================
+# GET PORTFOLIO HISTORY
+# ============================================================
+
+@router.get(
+    "/history",
+    response_model=PortfolioHistoryResponse,
+)
+def get_portfolio_history(
+    period: str = "1y",
+    interval: str = "1d",
+    session: Session = Depends(get_session),
+) -> PortfolioHistoryResponse:
+    """
+    Devuelve la valoración histórica de las posiciones actuales.
+    """
+
+    statement = select(
+        PortfolioPosition
+    ).order_by(
+        PortfolioPosition.id
+    )
+
+    positions = list(
+        session.exec(statement).all()
+    )
+
+    return build_portfolio_history(
+        positions=positions,
+        period=period,
+        interval=interval,
+    )
 
 
 # ============================================================
@@ -245,10 +556,6 @@ def create_position(
 ) -> PortfolioPosition:
     position.id = None
 
-    # --------------------------------------------------------
-    # Normalize ticker
-    # --------------------------------------------------------
-
     position.ticker = (
         position.ticker
         .strip()
@@ -262,7 +569,7 @@ def create_position(
         )
 
     # --------------------------------------------------------
-    # Market profile enrichment
+    # Automatic market profile enrichment
     # --------------------------------------------------------
 
     try:
@@ -303,10 +610,6 @@ def create_position(
             position.currency
             or "USD"
         )
-
-    # --------------------------------------------------------
-    # Persist
-    # --------------------------------------------------------
 
     session.add(position)
     session.commit()
@@ -361,7 +664,7 @@ def update_position(
     )
 
     # --------------------------------------------------------
-    # Refresh metadata
+    # Refresh company metadata
     # --------------------------------------------------------
 
     try:

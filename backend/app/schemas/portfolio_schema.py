@@ -46,3 +46,43 @@ class PortfolioSnapshot(BaseModel):
     largest_position_weight: float
 
     sector_allocation: list[PortfolioSectorAllocation]
+
+
+# ============================================================
+# HISTORICAL PERFORMANCE
+# ============================================================
+
+class PortfolioHistoryPoint(BaseModel):
+    date: str
+
+    market_value: float
+    cost_basis: float
+
+    profit_loss: float
+    return_pct: float
+
+
+class PortfolioHistorySummary(BaseModel):
+    start_value: float
+    end_value: float
+
+    absolute_return: float
+    return_pct: float
+
+    max_value: float
+    min_value: float
+
+    observations: int
+
+
+class PortfolioHistoryResponse(BaseModel):
+    period: str
+    interval: str
+
+    currency: str
+
+    positions: int
+
+    history: list[PortfolioHistoryPoint]
+
+    summary: PortfolioHistorySummary

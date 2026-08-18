@@ -344,8 +344,118 @@ function normalizeNews(market) {
   }));
 }
 
+
+function buildHistoryChart(history) {
+  if (!Array.isArray(history) || history.length < 2) {
+    return null;
+  }
+
+  const width = 700;
+  const height = 220;
+  const topPadding = 18;
+  const bottomPadding = 26;
+
+  const values = history
+    .map((point) => toFiniteNumber(point?.market_value))
+    .filter((value) => value !== null);
+
+  if (values.length < 2) {
+    return null;
+  }
+
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+
+  const spread =
+    maxValue - minValue || Math.max(Math.abs(maxValue) * 0.02, 1);
+
+  const chartMin = minValue - spread * 0.08;
+  const chartMax = maxValue + spread * 0.08;
+  const chartHeight = height - topPadding - bottomPadding;
+
+  const coordinates = history.map((point, index) => {
+    const value =
+      toFiniteNumber(point?.market_value) ?? chartMin;
+
+    const x =
+      history.length === 1
+        ? 0
+        : (index / (history.length - 1)) * width;
+
+    const normalized =
+      (value - chartMin) / (chartMax - chartMin);
+
+    const y =
+      topPadding +
+      chartHeight -
+      normalized * chartHeight;
+
+    return {
+      x,
+      y,
+      value,
+      date: point?.date ?? "",
+    };
+  });
+
+  const linePath = coordinates
+    .map(
+      (point, index) =>
+        `${index === 0 ? "M" : "L"}${point.x.toFixed(2)},${point.y.toFixed(2)}`
+    )
+    .join(" ");
+
+  const first = coordinates[0];
+  const last = coordinates[coordinates.length - 1];
+
+  const areaPath =
+    `${linePath} ` +
+    `L${last.x.toFixed(2)},${height} ` +
+    `L${first.x.toFixed(2)},${height} Z`;
+
+  const labelIndexes = [
+    0,
+    Math.round((history.length - 1) * 0.2),
+    Math.round((history.length - 1) * 0.4),
+    Math.round((history.length - 1) * 0.6),
+    Math.round((history.length - 1) * 0.8),
+    history.length - 1,
+  ];
+
+  const labels = [
+    ...new Set(labelIndexes),
+  ].map((index) => {
+    const date = history[index]?.date ?? "";
+
+    if (!date) {
+      return "--";
+    }
+
+    const parsed = new Date(`${date}T00:00:00`);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return date;
+    }
+
+    return parsed
+      .toLocaleDateString("en-US", {
+        month: "short",
+      })
+      .toUpperCase();
+  });
+
+  return {
+    linePath,
+    areaPath,
+    labels,
+    startValue: values[0],
+    endValue: values[values.length - 1],
+  };
+}
+
 function Dashboard({
   portfolio = null,
+  portfolioHistory = null,
   market = null,
   ai = null,
 }) {
@@ -354,6 +464,30 @@ function Dashboard({
   const positions = Array.isArray(portfolio?.positions)
     ? portfolio.positions
     : [];
+
+  const historicalPoints =
+    Array.isArray(portfolioHistory?.history)
+      ? portfolioHistory.history
+      : [];
+
+  const historicalSummary =
+    portfolioHistory?.summary ?? {};
+
+  const historyChart =
+    buildHistoryChart(historicalPoints);
+
+  const historicalReturn =
+    toFiniteNumber(historicalSummary?.return_pct);
+
+  const historicalAbsoluteReturn =
+    toFiniteNumber(
+      historicalSummary?.absolute_return
+    );
+
+  const historicalObservations =
+    toFiniteNumber(
+      historicalSummary?.observations
+    );
 
   const portfolioCurrency =
     resolvePortfolioCurrency(portfolio);
@@ -604,7 +738,9 @@ function Dashboard({
                   : ""
               }`}
             >
-              RETURN {totalReturnPercentageDisplay}
+              {historicalReturn !== null
+                ? `1Y ${percentage(historicalReturn)}`
+                : `RETURN ${totalReturnPercentageDisplay}`}
             </span>
           </header>
 
@@ -624,54 +760,167 @@ function Dashboard({
             >
               <span>Unrealized return</span>
               <strong>{totalProfitLossDisplay}</strong>
+
+              {historicalAbsoluteReturn !== null && (
+                <small
+                  style={{
+                    display: "block",
+                    marginTop: "0.25rem",
+                    color:
+                      "var(--text-muted, #64748b)",
+                    fontSize: "0.65rem",
+                  }}
+                >
+                  1Y history{" "}
+                  {money(
+                    historicalAbsoluteReturn,
+                    portfolioHistory?.currency ||
+                      portfolioCurrency
+                  )}
+                </small>
+              )}
             </div>
           </div>
 
           <div
             className="portfolio-chart"
-            role="status"
-            aria-label="Portfolio historical performance unavailable"
+            role="img"
+            aria-label={
+              historyChart
+                ? "Historical portfolio market value"
+                : "Portfolio historical performance unavailable"
+            }
           >
             <div className="portfolio-chart__grid" />
 
-            <div
-              style={{
-                position: "absolute",
-                inset: "0 0 1.75rem",
-                display: "grid",
-                placeItems: "center",
-                padding: "1.5rem",
-                textAlign: "center",
-              }}
-            >
-              <div>
-                <div
-                  style={{
-                    color:
-                      "var(--text-secondary, #cbd5e1)",
-                    fontSize: "0.86rem",
-                    fontWeight: 600,
-                    marginBottom: "0.45rem",
-                  }}
+            {historyChart ? (
+              <>
+                <svg
+                  className="portfolio-chart__line"
+                  viewBox="0 0 700 220"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
                 >
-                  Historical performance pending
+                  <defs>
+                    <linearGradient
+                      id="portfolioHistoricalArea"
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="0%"
+                        stopColor="currentColor"
+                        stopOpacity="0.28"
+                      />
+                      <stop
+                        offset="100%"
+                        stopColor="currentColor"
+                        stopOpacity="0"
+                      />
+                    </linearGradient>
+                  </defs>
+
+                  <path
+                    className="portfolio-chart__area"
+                    d={historyChart.areaPath}
+                    fill="url(#portfolioHistoricalArea)"
+                  />
+
+                  <path
+                    className="portfolio-chart__stroke"
+                    d={historyChart.linePath}
+                  />
+                </svg>
+
+                <div className="portfolio-chart__axis">
+                  {historyChart.labels.map(
+                    (label, index) => (
+                      <span key={`${label}-${index}`}>
+                        {label}
+                      </span>
+                    )
+                  )}
                 </div>
 
                 <div
                   style={{
+                    position: "absolute",
+                    top: "0.75rem",
+                    right: "0.9rem",
+                    display: "flex",
+                    gap: "0.55rem",
+                    alignItems: "center",
+                    fontSize: "0.68rem",
                     color:
                       "var(--text-muted, #64748b)",
-                    fontSize: "0.72rem",
-                    lineHeight: 1.55,
-                    maxWidth: "29rem",
                   }}
                 >
-                  QMI is showing the live portfolio valuation.
-                  A real historical equity curve will be connected
-                  in the next portfolio-history phase.
+                  <span>
+                    {historicalObservations ?? historicalPoints.length} sessions
+                  </span>
+
+                  <span>·</span>
+
+                  <strong
+                    style={{
+                      color:
+                        getStatusFromValue(
+                          historicalReturn
+                        ) === "negative"
+                          ? "var(--negative, #fb7185)"
+                          : "var(--positive, #34d399)",
+                    }}
+                  >
+                    {historicalReturn !== null
+                      ? percentage(
+                          historicalReturn
+                        )
+                      : "--"}
+                  </strong>
+                </div>
+              </>
+            ) : (
+              <div
+                style={{
+                  position: "absolute",
+                  inset: "0 0 1.75rem",
+                  display: "grid",
+                  placeItems: "center",
+                  padding: "1.5rem",
+                  textAlign: "center",
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      color:
+                        "var(--text-secondary, #cbd5e1)",
+                      fontSize: "0.86rem",
+                      fontWeight: 600,
+                      marginBottom: "0.45rem",
+                    }}
+                  >
+                    Historical performance unavailable
+                  </div>
+
+                  <div
+                    style={{
+                      color:
+                        "var(--text-muted, #64748b)",
+                      fontSize: "0.72rem",
+                      lineHeight: 1.55,
+                      maxWidth: "29rem",
+                    }}
+                  >
+                    QMI could not retrieve enough historical
+                    market observations for the current
+                    portfolio.
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </article>
 
