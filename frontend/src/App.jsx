@@ -172,6 +172,8 @@ function App() {
   const [market, setMarket] = useState(null);
   const [portfolio, setPortfolio] = useState(null);
   const [portfolioHistory, setPortfolioHistory] = useState(null);
+  const [portfolioHistoryPeriod, setPortfolioHistoryPeriod] = useState("1y");
+  const [portfolioHistoryLoading, setPortfolioHistoryLoading] = useState(false);
   const [ai, setAi] = useState(null);
 
   const [form, setForm] = useState({
@@ -214,7 +216,7 @@ function App() {
         getUser(activeToken),
         getMarket(activeToken),
         getPortfolio(activeToken),
-        getPortfolioHistory(activeToken, "1y", "1d"),
+        getPortfolioHistory(activeToken, portfolioHistoryPeriod, "1d"),
         getAIStatus(activeToken),
       ]);
 
@@ -321,6 +323,33 @@ function App() {
     [portfolio]
   );
 
+
+  async function changePortfolioHistoryPeriod(period) {
+    if (!token || !period) {
+      return;
+    }
+
+    setPortfolioHistoryPeriod(period);
+    setPortfolioHistoryLoading(true);
+
+    try {
+      const history = await getPortfolioHistory(
+        token,
+        period,
+        "1d"
+      );
+
+      setPortfolioHistory(history);
+    } catch (error) {
+      console.error(
+        "Unable to load portfolio history period:",
+        error
+      );
+    } finally {
+      setPortfolioHistoryLoading(false);
+    }
+  }
+
   async function savePosition(event) {
     event.preventDefault();
 
@@ -352,7 +381,7 @@ function App() {
     try {
       const refreshedHistory = await getPortfolioHistory(
         token,
-        "1y",
+        portfolioHistoryPeriod,
         "1d"
       );
       setPortfolioHistory(refreshedHistory);
@@ -405,7 +434,7 @@ function App() {
     try {
       const refreshedHistory = await getPortfolioHistory(
         token,
-        "1y",
+        portfolioHistoryPeriod,
         "1d"
       );
       setPortfolioHistory(refreshedHistory);
@@ -454,6 +483,7 @@ function App() {
     setMarket(null);
     setPortfolio(null);
     setPortfolioHistory(null);
+    setPortfolioHistoryLoading(false);
     setAi(null);
   }
 
@@ -491,6 +521,9 @@ function App() {
             <Dashboard
               portfolio={portfolio}
               portfolioHistory={portfolioHistory}
+              portfolioHistoryPeriod={portfolioHistoryPeriod}
+              portfolioHistoryLoading={portfolioHistoryLoading}
+              onPortfolioHistoryPeriodChange={changePortfolioHistoryPeriod}
               market={market}
               ai={ai}
             />

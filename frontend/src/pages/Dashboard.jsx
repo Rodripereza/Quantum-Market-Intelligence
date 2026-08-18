@@ -1,6 +1,25 @@
 import MetricCard from "../components/ui/MetricCard";
 import "./Dashboard.css";
 
+
+const PORTFOLIO_HISTORY_PERIODS = [
+  { label: "1M", value: "1mo" },
+  { label: "3M", value: "3mo" },
+  { label: "6M", value: "6mo" },
+  { label: "YTD", value: "ytd" },
+  { label: "1Y", value: "1y" },
+  { label: "3Y", value: "3y" },
+  { label: "MAX", value: "max" },
+];
+
+function getHistoryPeriodLabel(period) {
+  return (
+    PORTFOLIO_HISTORY_PERIODS.find(
+      (item) => item.value === period
+    )?.label ?? String(period || "").toUpperCase()
+  );
+}
+
 /* =========================================================
    QMI — INSTITUTIONAL DASHBOARD
    Sprint 008 · Real Portfolio Metrics
@@ -456,6 +475,9 @@ function buildHistoryChart(history) {
 function Dashboard({
   portfolio = null,
   portfolioHistory = null,
+  portfolioHistoryPeriod = "1y",
+  portfolioHistoryLoading = false,
+  onPortfolioHistoryPeriodChange = () => {},
   market = null,
   ai = null,
 }) {
@@ -487,6 +509,11 @@ function Dashboard({
   const historicalObservations =
     toFiniteNumber(
       historicalSummary?.observations
+    );
+
+  const historicalPeriodLabel =
+    getHistoryPeriodLabel(
+      portfolioHistoryPeriod
     );
 
   const portfolioCurrency =
@@ -739,7 +766,7 @@ function Dashboard({
               }`}
             >
               {historicalReturn !== null
-                ? `1Y ${percentage(historicalReturn)}`
+                ? `${historicalPeriodLabel} ${percentage(historicalReturn)}`
                 : `RETURN ${totalReturnPercentageDisplay}`}
             </span>
           </header>
@@ -771,7 +798,7 @@ function Dashboard({
                     fontSize: "0.65rem",
                   }}
                 >
-                  1Y history{" "}
+                  {historicalPeriodLabel} history{" "}
                   {money(
                     historicalAbsoluteReturn,
                     portfolioHistory?.currency ||
@@ -780,6 +807,83 @@ function Dashboard({
                 </small>
               )}
             </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "0.4rem",
+              margin: "0.8rem 0 0.35rem",
+              alignItems: "center",
+            }}
+            aria-label="Portfolio history period selector"
+          >
+            {PORTFOLIO_HISTORY_PERIODS.map(
+              (period) => {
+                const selected =
+                  period.value ===
+                  portfolioHistoryPeriod;
+
+                return (
+                  <button
+                    key={period.value}
+                    type="button"
+                    onClick={() =>
+                      onPortfolioHistoryPeriodChange(
+                        period.value
+                      )
+                    }
+                    disabled={
+                      portfolioHistoryLoading
+                    }
+                    aria-pressed={selected}
+                    style={{
+                      minWidth: "2.8rem",
+                      height: "1.9rem",
+                      padding: "0 0.65rem",
+                      borderRadius: "0.45rem",
+                      border: selected
+                        ? "1px solid rgba(56, 189, 248, 0.55)"
+                        : "1px solid rgba(148, 163, 184, 0.14)",
+                      background: selected
+                        ? "rgba(14, 165, 233, 0.14)"
+                        : "rgba(15, 23, 42, 0.28)",
+                      color: selected
+                        ? "var(--text-primary, #e2e8f0)"
+                        : "var(--text-muted, #64748b)",
+                      fontSize: "0.67rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.04em",
+                      cursor:
+                        portfolioHistoryLoading
+                          ? "wait"
+                          : "pointer",
+                      opacity:
+                        portfolioHistoryLoading &&
+                        !selected
+                          ? 0.55
+                          : 1,
+                    }}
+                  >
+                    {period.label}
+                  </button>
+                );
+              }
+            )}
+
+            {portfolioHistoryLoading && (
+              <span
+                style={{
+                  marginLeft: "0.25rem",
+                  color:
+                    "var(--text-muted, #64748b)",
+                  fontSize: "0.67rem",
+                }}
+              >
+                Loading {historicalPeriodLabel}…
+              </span>
+            )}
           </div>
 
           <div
@@ -858,6 +962,7 @@ function Dashboard({
                   }}
                 >
                   <span>
+                    {historicalPeriodLabel} ·{" "}
                     {historicalObservations ?? historicalPoints.length} sessions
                   </span>
 
