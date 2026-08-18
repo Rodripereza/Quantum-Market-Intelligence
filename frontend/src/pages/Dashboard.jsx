@@ -1,85 +1,10 @@
 import MetricCard from "../components/ui/MetricCard";
 import "./Dashboard.css";
 
-const fallbackWatchlist = [
-  {
-    ticker: "NIO",
-    company: "NIO Inc.",
-    price: "$5.18",
-    change: "+3.42%",
-    status: "positive",
-  },
-  {
-    ticker: "NVDA",
-    company: "NVIDIA",
-    price: "$172.36",
-    change: "+1.18%",
-    status: "positive",
-  },
-  {
-    ticker: "PLTR",
-    company: "Palantir",
-    price: "$146.24",
-    change: "-0.64%",
-    status: "negative",
-  },
-  {
-    ticker: "RKLB",
-    company: "Rocket Lab",
-    price: "$48.92",
-    change: "+2.07%",
-    status: "positive",
-  },
-];
-
-const fallbackAllocation = [
-  { label: "Technology", value: 42 },
-  { label: "EV & Mobility", value: 28 },
-  { label: "Aerospace", value: 18 },
-  { label: "Cash", value: 12 },
-];
-
-const fallbackInsights = [
-  {
-    type: "Opportunity",
-    title: "Momentum strengthening",
-    description:
-      "Three monitored assets are trading above their medium-term moving averages.",
-    status: "positive",
-  },
-  {
-    type: "Risk",
-    title: "Portfolio concentration",
-    description:
-      "The largest position currently represents more than 35% of total exposure.",
-    status: "warning",
-  },
-  {
-    type: "Signal",
-    title: "Volatility expansion",
-    description:
-      "Market volatility is increasing and may affect short-term position sizing.",
-    status: "neutral",
-  },
-];
-
-const fallbackNews = [
-  {
-    source: "MARKET",
-    time: "14:32",
-    title: "US equities advance as technology stocks lead gains",
-  },
-  {
-    source: "PORTFOLIO",
-    time: "13:48",
-    title: "EV sector volatility remains elevated during the current session",
-  },
-  {
-    source: "MACRO",
-    time: "12:15",
-    title: "Investors reassess rate expectations ahead of upcoming data",
-  },
-];
+/* =========================================================
+   QMI — INSTITUTIONAL DASHBOARD
+   Sprint 008 · Real Portfolio Metrics
+   ========================================================= */
 
 function toFiniteNumber(value) {
   if (value === null || value === undefined || value === "") {
@@ -91,7 +16,7 @@ function toFiniteNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function money(value, currency = "EUR") {
+function money(value, currency = "USD") {
   const number = toFiniteNumber(value);
 
   if (number === null) {
@@ -149,40 +74,126 @@ function getStatusFromValue(value) {
   return number > 0 ? "positive" : "negative";
 }
 
-function getRiskStatus(score) {
-  const number = toFiniteNumber(score);
+function getConcentrationStatus(weight) {
+  const number = toFiniteNumber(weight);
 
   if (number === null) {
     return "neutral";
   }
 
-  if (number >= 75) {
+  if (number >= 60) {
     return "negative";
   }
 
-  if (number >= 50) {
+  if (number >= 35) {
     return "warning";
   }
 
   return "positive";
 }
 
-function getRiskLabel(score) {
-  const number = toFiniteNumber(score);
+function getConcentrationLabel(weight) {
+  const number = toFiniteNumber(weight);
 
   if (number === null) {
     return "Unavailable";
   }
 
-  if (number >= 75) {
-    return "High";
+  if (number >= 60) {
+    return "High concentration";
   }
 
-  if (number >= 50) {
-    return "Moderate";
+  if (number >= 35) {
+    return "Moderate concentration";
   }
 
-  return "Controlled";
+  return "Diversified";
+}
+
+function resolvePortfolioCurrency(portfolio) {
+  const explicitCurrency =
+    portfolio?.currency ??
+    portfolio?.summary?.currency ??
+    null;
+
+  if (explicitCurrency) {
+    return explicitCurrency;
+  }
+
+  const positions = Array.isArray(portfolio?.positions)
+    ? portfolio.positions
+    : [];
+
+  const currencies = [
+    ...new Set(
+      positions
+        .map((position) => position?.currency)
+        .filter(Boolean),
+    ),
+  ];
+
+  if (currencies.length === 1) {
+    return currencies[0];
+  }
+
+  return "USD";
+}
+
+function calculateDailyMetrics(portfolio) {
+  const positions = Array.isArray(portfolio?.positions)
+    ? portfolio.positions
+    : [];
+
+  let dailyProfitLoss = 0;
+  let previousMarketValue = 0;
+  let coveredPositions = 0;
+
+  positions.forEach((position) => {
+    const shares = toFiniteNumber(
+      position?.shares ?? position?.quantity,
+    );
+
+    const currentPrice = toFiniteNumber(
+      position?.current_price,
+    );
+
+    const previousClose = toFiniteNumber(
+      position?.previous_close,
+    );
+
+    if (
+      shares === null ||
+      currentPrice === null ||
+      previousClose === null
+    ) {
+      return;
+    }
+
+    dailyProfitLoss +=
+      (currentPrice - previousClose) * shares;
+
+    previousMarketValue += previousClose * shares;
+    coveredPositions += 1;
+  });
+
+  if (coveredPositions === 0) {
+    return {
+      dailyProfitLoss: null,
+      dailyReturn: null,
+      coveredPositions: 0,
+    };
+  }
+
+  const dailyReturn =
+    previousMarketValue > 0
+      ? (dailyProfitLoss / previousMarketValue) * 100
+      : null;
+
+  return {
+    dailyProfitLoss,
+    dailyReturn,
+    coveredPositions,
+  };
 }
 
 function normalizeWatchlist(market) {
@@ -192,11 +203,11 @@ function normalizeWatchlist(market) {
     market?.items ??
     [];
 
-  if (!Array.isArray(assets) || assets.length === 0) {
-    return fallbackWatchlist;
+  if (!Array.isArray(assets)) {
+    return [];
   }
 
-  return assets.slice(0, 4).map((asset, index) => {
+  return assets.slice(0, 6).map((asset, index) => {
     const ticker =
       asset?.ticker ??
       asset?.symbol ??
@@ -246,11 +257,11 @@ function normalizeAllocation(portfolio) {
     portfolio?.summary?.sector_allocation ??
     [];
 
-  if (!Array.isArray(allocation) || allocation.length === 0) {
-    return fallbackAllocation;
+  if (!Array.isArray(allocation)) {
+    return [];
   }
 
-  return allocation.slice(0, 5).map((item, index) => ({
+  return allocation.slice(0, 6).map((item, index) => ({
     label:
       item?.sector ??
       item?.label ??
@@ -273,8 +284,8 @@ function normalizeInsights(ai) {
     ai?.recommendations ??
     [];
 
-  if (!Array.isArray(insights) || insights.length === 0) {
-    return fallbackInsights;
+  if (!Array.isArray(insights)) {
+    return [];
   }
 
   return insights.slice(0, 3).map((insight, index) => ({
@@ -292,9 +303,12 @@ function normalizeInsights(ai) {
       insight?.message ??
       insight?.summary ??
       "No additional information is available.",
-    status: ["positive", "negative", "warning", "neutral"].includes(
-      insight?.status,
-    )
+    status: [
+      "positive",
+      "negative",
+      "warning",
+      "neutral",
+    ].includes(insight?.status)
       ? insight.status
       : "neutral",
   }));
@@ -307,11 +321,11 @@ function normalizeNews(market) {
     market?.articles ??
     [];
 
-  if (!Array.isArray(news) || news.length === 0) {
-    return fallbackNews;
+  if (!Array.isArray(news)) {
+    return [];
   }
 
-  return news.slice(0, 3).map((item, index) => ({
+  return news.slice(0, 4).map((item) => ({
     source:
       item?.source ??
       item?.category ??
@@ -321,7 +335,7 @@ function normalizeNews(market) {
       item?.time ??
       item?.published_time ??
       item?.publishedAt ??
-      `0${index + 1}:00`,
+      "--",
     title:
       item?.title ??
       item?.headline ??
@@ -337,110 +351,147 @@ function Dashboard({
 }) {
   const summary = portfolio?.summary ?? portfolio ?? {};
 
+  const positions = Array.isArray(portfolio?.positions)
+    ? portfolio.positions
+    : [];
+
+  const portfolioCurrency =
+    resolvePortfolioCurrency(portfolio);
+
   const portfolioValue =
     summary?.total_value ??
     summary?.portfolio_value ??
     summary?.current_value ??
-    portfolio?.total_value ??
     null;
 
-  const dailyProfitLoss =
-    summary?.daily_pl ??
-    summary?.daily_pnl ??
-    summary?.day_profit_loss ??
-    portfolio?.daily_pl ??
+  const totalCost =
+    summary?.total_cost ??
+    summary?.cost_basis ??
     null;
 
-  const dailyProfitLossPercentage =
-    summary?.daily_pl_pct ??
-    summary?.daily_pnl_pct ??
-    summary?.day_return ??
-    portfolio?.daily_pl_pct ??
-    null;
-
-  const totalReturn =
-    summary?.total_return ??
-    summary?.total_return_value ??
+  const totalProfitLoss =
+    summary?.total_pl ??
     summary?.unrealized_pl ??
     summary?.profit_loss ??
     null;
 
   const totalReturnPercentage =
+    summary?.total_pl_pct ??
     summary?.total_return_pct ??
     summary?.return_pct ??
     summary?.unrealized_pl_pct ??
     null;
 
-  const riskScore =
-    portfolio?.risk_score ??
-    summary?.risk_score ??
-    64;
+  const {
+    dailyProfitLoss,
+    dailyReturn,
+    coveredPositions,
+  } = calculateDailyMetrics(portfolio);
+
+  const largestPositionWeight =
+    summary?.largest_position_weight ??
+    portfolio?.largest_position_weight ??
+    null;
+
+  const concentrationStatus =
+    getConcentrationStatus(largestPositionWeight);
 
   const aiConfidence =
     ai?.confidence ??
     ai?.confidence_score ??
     ai?.score ??
-    82.4;
+    null;
+
+  const aiStatus =
+    ai?.status ??
+    ai?.state ??
+    "Unavailable";
 
   const marketIsOpen =
     market?.is_open ??
     market?.market_open ??
-    market?.status === "open" ??
-    true;
+    null;
 
-  const volatility =
-    portfolio?.risk?.volatility ??
-    summary?.volatility ??
-    24.8;
+  const marketStatusRaw = String(
+    market?.status ?? "",
+  ).toLowerCase();
 
-  const maxDrawdown =
-    portfolio?.risk?.max_drawdown ??
-    summary?.max_drawdown ??
-    -18.2;
+  const marketIsLive =
+    marketIsOpen === true ||
+    marketStatusRaw === "live" ||
+    marketStatusRaw === "open";
 
-  const beta =
-    portfolio?.risk?.beta ??
-    summary?.beta ??
-    1.34;
-
-  const cashPercentage =
-    summary?.cash_weight ??
-    summary?.cash_percentage ??
-    portfolio?.cash_weight ??
-    12;
+  const marketStatusText =
+    marketIsOpen === true
+      ? "Market Open"
+      : marketIsOpen === false
+        ? "Market Closed"
+        : marketStatusRaw === "live"
+          ? "Market Live"
+          : "Market Status --";
 
   const portfolioValueDisplay =
     toFiniteNumber(portfolioValue) !== null
-      ? money(portfolioValue)
-      : "128.450,72 €";
+      ? money(portfolioValue, portfolioCurrency)
+      : "--";
 
-  const dailyProfitLossDisplay =
-    toFiniteNumber(dailyProfitLoss) !== null
-      ? money(dailyProfitLoss)
-      : "+3.542,18 €";
+  const totalCostDisplay =
+    toFiniteNumber(totalCost) !== null
+      ? money(totalCost, portfolioCurrency)
+      : "--";
 
-  const dailyPercentageDisplay =
-    toFiniteNumber(dailyProfitLossPercentage) !== null
-      ? percentage(dailyProfitLossPercentage)
-      : "+1,92%";
-
-  const totalReturnDisplay =
-    toFiniteNumber(totalReturn) !== null
-      ? money(totalReturn)
-      : "+14.382,20 €";
+  const totalProfitLossDisplay =
+    toFiniteNumber(totalProfitLoss) !== null
+      ? money(totalProfitLoss, portfolioCurrency)
+      : "--";
 
   const totalReturnPercentageDisplay =
     toFiniteNumber(totalReturnPercentage) !== null
       ? percentage(totalReturnPercentage)
-      : "+12,48%";
+      : "--";
 
-  const dailyStatus = getStatusFromValue(dailyProfitLoss);
-  const riskStatus = getRiskStatus(riskScore);
+  const dailyProfitLossDisplay =
+    toFiniteNumber(dailyProfitLoss) !== null
+      ? money(dailyProfitLoss, portfolioCurrency)
+      : "--";
 
-  const watchlist = normalizeWatchlist(market);
-  const allocation = normalizeAllocation(portfolio);
-  const insights = normalizeInsights(ai);
-  const news = normalizeNews(market);
+  const dailyPercentageDisplay =
+    toFiniteNumber(dailyReturn) !== null
+      ? percentage(dailyReturn)
+      : "--";
+
+  const dailyStatus =
+    getStatusFromValue(dailyProfitLoss);
+
+  const totalReturnStatus =
+    getStatusFromValue(totalProfitLoss);
+
+  const watchlist =
+    normalizeWatchlist(market);
+
+  const allocation =
+    normalizeAllocation(portfolio);
+
+  const insights =
+    normalizeInsights(ai);
+
+  const news =
+    normalizeNews(market);
+
+  const sectorCount =
+    Array.isArray(portfolio?.sector_allocation)
+      ? portfolio.sector_allocation.length
+      : 0;
+
+  const priceCoverage =
+    positions.length > 0
+      ? (positions.filter(
+          (position) =>
+            toFiniteNumber(position?.current_price) !== null,
+        ).length /
+          positions.length) *
+        100
+      : null;
 
   return (
     <main className="dashboard">
@@ -450,32 +501,31 @@ function Dashboard({
             QUANTUM MARKET INTELLIGENCE
           </span>
 
-          <h1 className="dashboard__title">Dashboard Overview</h1>
+          <h1 className="dashboard__title">
+            Dashboard Overview
+          </h1>
 
           <p className="dashboard__description">
-            Institutional market intelligence, portfolio monitoring and
-            AI-assisted decision support from a unified control center.
+            Institutional market intelligence, portfolio
+            monitoring and AI-assisted decision support from a
+            unified control center.
           </p>
         </div>
 
         <div
           className={`dashboard__status ${
-            marketIsOpen
+            marketIsLive
               ? "dashboard__status--open"
               : "dashboard__status--closed"
           }`}
-          aria-label={
-            marketIsOpen
-              ? "Market status: open"
-              : "Market status: closed"
-          }
+          aria-label={marketStatusText}
         >
           <span
             className="dashboard__status-dot"
             aria-hidden="true"
           />
 
-          {marketIsOpen ? "Market Open" : "Market Closed"}
+          {marketStatusText}
         </div>
       </section>
 
@@ -488,7 +538,7 @@ function Dashboard({
           value={portfolioValueDisplay}
           change={totalReturnPercentageDisplay}
           changeLabel="Total return"
-          status={getStatusFromValue(totalReturnPercentage)}
+          status={totalReturnStatus}
           icon="◈"
         />
 
@@ -496,21 +546,21 @@ function Dashboard({
           label="Daily P&L"
           value={dailyProfitLossDisplay}
           change={dailyPercentageDisplay}
-          changeLabel="vs. previous close"
+          changeLabel={
+            coveredPositions > 0
+              ? "vs. previous close"
+              : "market close data unavailable"
+          }
           status={dailyStatus}
           icon={dailyStatus === "negative" ? "↘" : "↗"}
         />
 
         <MetricCard
-          label="Risk Score"
-          value={
-            toFiniteNumber(riskScore) !== null
-              ? `${Math.round(Number(riskScore))} / 100`
-              : "--"
-          }
-          change={getRiskLabel(riskScore)}
-          changeLabel="Portfolio exposure"
-          status={riskStatus}
+          label="Total Return"
+          value={totalReturnPercentageDisplay}
+          change={totalProfitLossDisplay}
+          changeLabel={`Cost basis ${totalCostDisplay}`}
+          status={totalReturnStatus}
           icon="◇"
         />
 
@@ -521,13 +571,14 @@ function Dashboard({
               ? compactPercentage(aiConfidence)
               : "--"
           }
-          change={ai?.status ?? "Operational"}
+          change={aiStatus}
           changeLabel="Decision engine"
           status={
-            toFiniteNumber(aiConfidence) !== null &&
-            Number(aiConfidence) < 50
-              ? "warning"
-              : "positive"
+            toFiniteNumber(aiConfidence) === null
+              ? "neutral"
+              : Number(aiConfidence) >= 50
+                ? "positive"
+                : "warning"
           }
           icon="✦"
         />
@@ -548,12 +599,12 @@ function Dashboard({
 
             <span
               className={`dashboard-panel__badge ${
-                getStatusFromValue(totalReturnPercentage) === "negative"
+                totalReturnStatus === "negative"
                   ? "dashboard-panel__badge--negative"
                   : ""
               }`}
             >
-              YTD {totalReturnPercentageDisplay}
+              RETURN {totalReturnPercentageDisplay}
             </span>
           </header>
 
@@ -569,67 +620,57 @@ function Dashboard({
             </div>
 
             <div
-              className={`portfolio-summary__change portfolio-summary__change--${getStatusFromValue(
-                totalReturn,
-              )}`}
+              className={`portfolio-summary__change portfolio-summary__change--${totalReturnStatus}`}
             >
               <span>Unrealized return</span>
-              <strong>{totalReturnDisplay}</strong>
+              <strong>{totalProfitLossDisplay}</strong>
             </div>
           </div>
 
           <div
             className="portfolio-chart"
-            role="img"
-            aria-label="Portfolio performance chart"
+            role="status"
+            aria-label="Portfolio historical performance unavailable"
           >
             <div className="portfolio-chart__grid" />
 
-            <svg
-              className="portfolio-chart__line"
-              viewBox="0 0 700 220"
-              preserveAspectRatio="none"
-              aria-hidden="true"
+            <div
+              style={{
+                position: "absolute",
+                inset: "0 0 1.75rem",
+                display: "grid",
+                placeItems: "center",
+                padding: "1.5rem",
+                textAlign: "center",
+              }}
             >
-              <defs>
-                <linearGradient
-                  id="portfolioArea"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
+              <div>
+                <div
+                  style={{
+                    color:
+                      "var(--text-secondary, #cbd5e1)",
+                    fontSize: "0.86rem",
+                    fontWeight: 600,
+                    marginBottom: "0.45rem",
+                  }}
                 >
-                  <stop
-                    offset="0%"
-                    stopColor="currentColor"
-                    stopOpacity="0.28"
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor="currentColor"
-                    stopOpacity="0"
-                  />
-                </linearGradient>
-              </defs>
+                  Historical performance pending
+                </div>
 
-              <path
-                className="portfolio-chart__area"
-                d="M0,184 C55,175 72,150 124,158 C180,166 210,119 260,126 C320,134 346,84 401,98 C453,111 488,63 535,76 C584,90 622,38 700,28 L700,220 L0,220 Z"
-              />
-
-              <path
-                className="portfolio-chart__stroke"
-                d="M0,184 C55,175 72,150 124,158 C180,166 210,119 260,126 C320,134 346,84 401,98 C453,111 488,63 535,76 C584,90 622,38 700,28"
-              />
-            </svg>
-
-            <div className="portfolio-chart__axis">
-              <span>JAN</span>
-              <span>MAR</span>
-              <span>MAY</span>
-              <span>JUL</span>
-              <span>SEP</span>
-              <span>NOV</span>
+                <div
+                  style={{
+                    color:
+                      "var(--text-muted, #64748b)",
+                    fontSize: "0.72rem",
+                    lineHeight: 1.55,
+                    maxWidth: "29rem",
+                  }}
+                >
+                  QMI is showing the live portfolio valuation.
+                  A real historical equity curve will be connected
+                  in the next portfolio-history phase.
+                </div>
+              </div>
             </div>
           </div>
         </article>
@@ -649,62 +690,101 @@ function Dashboard({
 
           <div className="allocation-score">
             <div
-              className={`allocation-score__ring allocation-score__ring--${riskStatus}`}
+              className={`allocation-score__ring allocation-score__ring--${concentrationStatus}`}
               style={{
-                "--risk-score": `${Math.min(
-                  Math.max(toFiniteNumber(riskScore) ?? 0, 0),
-                  100,
-                )}%`,
+                "--risk-score": `${
+                  Math.min(
+                    Math.max(
+                      toFiniteNumber(
+                        largestPositionWeight,
+                      ) ?? 0,
+                      0,
+                    ),
+                    100,
+                  )
+                }%`,
               }}
             >
               <span>
-                {toFiniteNumber(riskScore) !== null
-                  ? Math.round(Number(riskScore))
+                {toFiniteNumber(
+                  largestPositionWeight,
+                ) !== null
+                  ? Math.round(
+                      Number(largestPositionWeight),
+                    )
                   : "--"}
               </span>
 
-              <small>RISK</small>
+              <small>MAX WT</small>
             </div>
 
             <div>
-              <strong>{getRiskLabel(riskScore)} exposure</strong>
+              <strong>
+                {getConcentrationLabel(
+                  largestPositionWeight,
+                )}
+              </strong>
 
               <p>
-                The portfolio risk profile is calculated from current
-                concentration, diversification and market exposure.
+                Largest-position weight derived from the current
+                marked-to-market portfolio snapshot.
               </p>
             </div>
           </div>
 
           <div className="allocation-list">
-            {allocation.map((item) => {
-              const normalizedValue = Math.min(
-                Math.max(toFiniteNumber(item.value) ?? 0, 0),
-                100,
-              );
+            {allocation.length > 0 ? (
+              allocation.map((item) => {
+                const normalizedValue = Math.min(
+                  Math.max(
+                    toFiniteNumber(item.value) ?? 0,
+                    0,
+                  ),
+                  100,
+                );
 
-              return (
-                <div
-                  className="allocation-item"
-                  key={item.label}
-                >
-                  <div className="allocation-item__header">
-                    <span>{item.label}</span>
-                    <strong>
-                      {normalizedValue.toLocaleString("es-ES", {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 1,
-                      })}
-                      %
-                    </strong>
-                  </div>
+                return (
+                  <div
+                    className="allocation-item"
+                    key={item.label}
+                  >
+                    <div className="allocation-item__header">
+                      <span>{item.label}</span>
 
-                  <div className="allocation-item__track">
-                    <span style={{ width: `${normalizedValue}%` }} />
+                      <strong>
+                        {normalizedValue.toLocaleString(
+                          "es-ES",
+                          {
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 1,
+                          },
+                        )}
+                        %
+                      </strong>
+                    </div>
+
+                    <div className="allocation-item__track">
+                      <span
+                        style={{
+                          width: `${normalizedValue}%`,
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div
+                style={{
+                  color:
+                    "var(--text-muted, #64748b)",
+                  fontSize: "0.76rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                No portfolio allocation data available.
+              </div>
+            )}
           </div>
         </article>
       </section>
@@ -721,13 +801,6 @@ function Dashboard({
                 Watchlist
               </h2>
             </div>
-
-            <button
-              className="dashboard-panel__action"
-              type="button"
-            >
-              View market
-            </button>
           </header>
 
           <div className="watchlist">
@@ -737,27 +810,40 @@ function Dashboard({
               <span>Change</span>
             </div>
 
-            {watchlist.map((asset) => (
-              <div
-                className="watchlist__row"
-                key={asset.ticker}
-              >
-                <div className="watchlist__asset">
-                  <strong>{asset.ticker}</strong>
-                  <span>{asset.company}</span>
-                </div>
-
-                <span className="watchlist__price">
-                  {asset.price}
-                </span>
-
-                <span
-                  className={`watchlist__change watchlist__change--${asset.status}`}
+            {watchlist.length > 0 ? (
+              watchlist.map((asset) => (
+                <div
+                  className="watchlist__row"
+                  key={asset.ticker}
                 >
-                  {asset.change}
-                </span>
+                  <div className="watchlist__asset">
+                    <strong>{asset.ticker}</strong>
+                    <span>{asset.company}</span>
+                  </div>
+
+                  <span className="watchlist__price">
+                    {asset.price}
+                  </span>
+
+                  <span
+                    className={`watchlist__change watchlist__change--${asset.status}`}
+                  >
+                    {asset.change}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div
+                style={{
+                  padding: "1rem 0",
+                  color:
+                    "var(--text-muted, #64748b)",
+                  fontSize: "0.76rem",
+                }}
+              >
+                Live market data unavailable.
               </div>
-            ))}
+            )}
           </div>
         </article>
 
@@ -779,25 +865,46 @@ function Dashboard({
           </header>
 
           <div className="insight-list">
-            {insights.map((insight, index) => (
-              <div
-                className="insight-item"
-                key={`${insight.title}-${index}`}
-              >
-                <span
-                  className={`insight-item__indicator insight-item__indicator--${insight.status}`}
-                />
+            {insights.length > 0 ? (
+              insights.map((insight, index) => (
+                <div
+                  className="insight-item"
+                  key={`${insight.title}-${index}`}
+                >
+                  <span
+                    className={`insight-item__indicator insight-item__indicator--${insight.status}`}
+                  />
+
+                  <div>
+                    <span className="insight-item__type">
+                      {insight.type}
+                    </span>
+
+                    <strong>{insight.title}</strong>
+                    <p>{insight.description}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="insight-item">
+                <span className="insight-item__indicator insight-item__indicator--neutral" />
 
                 <div>
                   <span className="insight-item__type">
-                    {insight.type}
+                    STATUS
                   </span>
 
-                  <strong>{insight.title}</strong>
-                  <p>{insight.description}</p>
+                  <strong>
+                    No live AI insights available
+                  </strong>
+
+                  <p>
+                    QMI will display decision-engine insights here
+                    when the AI endpoint provides live signals.
+                  </p>
                 </div>
               </div>
-            ))}
+            )}
           </div>
         </article>
       </section>
@@ -814,29 +921,36 @@ function Dashboard({
                 Market intelligence
               </h2>
             </div>
-
-            <button
-              className="dashboard-panel__action"
-              type="button"
-            >
-              All news
-            </button>
           </header>
 
           <div className="news-list">
-            {news.map((item, index) => (
-              <article
-                className="news-item"
-                key={`${item.time}-${item.title}-${index}`}
-              >
+            {news.length > 0 ? (
+              news.map((item, index) => (
+                <article
+                  className="news-item"
+                  key={`${item.time}-${item.title}-${index}`}
+                >
+                  <div className="news-item__meta">
+                    <span>{item.source}</span>
+                    <time>{item.time}</time>
+                  </div>
+
+                  <h3>{item.title}</h3>
+                </article>
+              ))
+            ) : (
+              <article className="news-item">
                 <div className="news-item__meta">
-                  <span>{item.source}</span>
-                  <time>{item.time}</time>
+                  <span>STATUS</span>
+                  <time>--</time>
                 </div>
 
-                <h3>{item.title}</h3>
+                <h3>
+                  Live news feed is not connected to the
+                  Dashboard yet.
+                </h3>
               </article>
-            ))}
+            )}
           </div>
         </article>
 
@@ -844,45 +958,60 @@ function Dashboard({
           <header className="dashboard-panel__header">
             <div>
               <span className="dashboard-panel__eyebrow">
-                RISK ANALYTICS
+                PORTFOLIO CONTROLS
               </span>
 
               <h2 className="dashboard-panel__title">
-                Portfolio controls
+                Live portfolio diagnostics
               </h2>
             </div>
           </header>
 
           <div className="risk-grid">
             <div className="risk-metric">
-              <span>Volatility</span>
-              <strong>{compactPercentage(volatility)}</strong>
-              <small>30-day annualized</small>
-            </div>
+              <span>Largest position</span>
 
-            <div className="risk-metric">
-              <span>Max drawdown</span>
-              <strong>{compactPercentage(maxDrawdown)}</strong>
-              <small>Current portfolio</small>
-            </div>
-
-            <div className="risk-metric">
-              <span>Beta</span>
               <strong>
-                {toFiniteNumber(beta) !== null
-                  ? Number(beta).toLocaleString("es-ES", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : "--"}
+                {compactPercentage(
+                  largestPositionWeight,
+                )}
               </strong>
-              <small>vs. S&amp;P 500</small>
+
+              <small>
+                Current concentration
+              </small>
             </div>
 
             <div className="risk-metric">
-              <span>Cash reserve</span>
-              <strong>{compactPercentage(cashPercentage)}</strong>
-              <small>Available liquidity</small>
+              <span>Open positions</span>
+
+              <strong>{positions.length}</strong>
+
+              <small>
+                Persisted portfolio records
+              </small>
+            </div>
+
+            <div className="risk-metric">
+              <span>Sector groups</span>
+
+              <strong>{sectorCount}</strong>
+
+              <small>
+                Current sector allocation
+              </small>
+            </div>
+
+            <div className="risk-metric">
+              <span>Price coverage</span>
+
+              <strong>
+                {compactPercentage(priceCoverage)}
+              </strong>
+
+              <small>
+                Positions with live valuation
+              </small>
             </div>
           </div>
         </article>

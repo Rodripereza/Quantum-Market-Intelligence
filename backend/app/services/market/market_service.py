@@ -84,6 +84,24 @@ class MarketService:
 
         return quote
 
+    def get_profile(self, symbol: str) -> dict:
+        """
+        Obtiene el perfil corporativo de un activo.
+        """
+        normalized_symbol = symbol.strip().upper()
+
+        if not normalized_symbol:
+            raise ValueError("The symbol cannot be empty.")
+
+        profile = self.provider.get_profile(normalized_symbol)
+
+        if not profile:
+            raise ValueError(
+                f"No profile data was found for symbol '{normalized_symbol}'."
+            )
+
+        return profile
+
     def get_global_market(self) -> dict:
         provider_symbols = [
             asset["provider_symbol"]

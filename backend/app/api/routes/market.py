@@ -40,6 +40,22 @@ def get_quote(symbol: str):
             detail="Failed to retrieve market quote.",
         ) from exc
 
+@router.get("/profile/{symbol}")
+def get_profile(symbol: str):
+    try:
+        return service.get_profile(symbol)
+
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve market profile.",
+        ) from exc
 
 @router.get("/history/{symbol}")
 def get_history(

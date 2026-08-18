@@ -27,6 +27,40 @@ class YahooProvider:
         }
 
     @staticmethod
+    def get_profile(symbol: str) -> dict:
+        """
+        Obtiene metadatos corporativos del activo.
+
+        Esta consulta se mantiene separada de get_quote()
+        porque la información corporativa cambia con mucha
+        menor frecuencia que los datos de mercado.
+        """
+        normalized_symbol = symbol.strip().upper()
+
+        if not normalized_symbol:
+            raise ValueError("The symbol cannot be empty.")
+
+        ticker = yf.Ticker(normalized_symbol)
+
+        info = ticker.info or {}
+
+        return {
+            "symbol": normalized_symbol,
+            "company": (
+                info.get("longName")
+                or info.get("shortName")
+                or normalized_symbol
+            ),
+            "sector": info.get("sector") or "Unclassified",
+            "industry": info.get("industry"),
+            "currency": info.get("currency") or "USD",
+            "exchange": (
+                info.get("exchange")
+                or info.get("fullExchangeName")
+            ),
+        }
+
+    @staticmethod
     def get_quotes(symbols: list[str]) -> dict[str, dict[str, Any]]:
         """
         Descarga conjuntamente las últimas cotizaciones de varios activos.
