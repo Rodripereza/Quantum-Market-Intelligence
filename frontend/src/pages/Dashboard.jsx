@@ -364,7 +364,7 @@ function normalizeNews(market) {
 }
 
 
-function buildHistoryChart(history) {
+function buildHistoryChart(history, benchmark = []) {
   if (!Array.isArray(history) || history.length < 2) {
     return null;
   }
@@ -374,101 +374,209 @@ function buildHistoryChart(history) {
   const topPadding = 18;
   const bottomPadding = 26;
 
-  const values = history
-    .map((point) => toFiniteNumber(point?.market_value))
-    .filter((value) => value !== null);
+  // Portfolio:
+  // Prefer backend base-100 values. If they are unavailable,
+  // normalize market_value locally so the chart never disappears.
+  const rawPortfolio = history
+    .map((point) => ({
+      date: point?.date ?? "",
+      normalized: toFiniteNumber(point?.normalized_value),
+      marketValue: toFiniteNumber(point?.market_value),
+    }))
+    .filter(
+      (point) =>
+        point.date &&
+        (point.normalized !== null ||
+          point.marketValue !== null),
+    );
 
-  if (values.length < 2) {
+  if (rawPortfolio.length < 2) {
     return null;
   }
 
-  const minValue = Math.min(...values);
-  const maxValue = Math.max(...values);
+  const firstMarketValue = rawPortfolio.find(
+    (point) => point.marketValue !== null,
+  )?.marketValue;
+
+  const portfolioByDate = new Map(
+    rawPortfolio.map((point) => {
+      let value = point.normalized;
+
+      if (
+        value === null &&
+        point.marketValue !== null &&
+        firstMarketValue !== null &&
+        firstMarketValue > 0
+      ) {
+        value =
+          (point.marketValue / firstMarketValue) * 100;
+      }
+
+      return [point.date, value];
+    }),
+  );
+
+  const portfolioDates = [...portfolioByDate.keys()]
+    .filter(
+      (date) =>
+        toFiniteNumber(portfolioByDate.get(date)) !== null,
+    )
+    .sort();
+
+  if (portfolioDates.length < 2) {
+    return null;
+  }
+
+  // Benchmark:
+  // Uses the backend normalized series when available.
+  const benchmarkByDate = new Map(
+    (Array.isArray(benchmark) ? benchmark : [])
+      .map((point) => [
+        point?.date ?? "",
+        toFiniteNumber(point?.normalized_value),
+      ])
+      .filter(([date, value]) => date && value !== null),
+  );
+
+  const comparisonDates = portfolioDates.filter((date) =>
+    benchmarkByDate.has(date),
+  );
+
+  const hasBenchmark = comparisonDates.length >= 2;
+
+  // If benchmark is available, both lines use identical dates.
+  // Otherwise the portfolio still renders normally.
+  const chartDates = hasBenchmark
+    ? comparisonDates
+    : portfolioDates;
+
+  const portfolioValues = chartDates.map((date) =>
+    Number(portfolioByDate.get(date)),
+  );
+
+  const benchmarkValues = hasBenchmark
+    ? chartDates.map((date) =>
+        Number(benchmarkByDate.get(date)),
+      )
+    : [];
+
+  const allValues = [
+    ...portfolioValues,
+    ...benchmarkValues,
+  ];
+
+  if (allValues.length < 2) {
+    return null;
+  }
+
+  const minValue = Math.min(...allValues);
+  const maxValue = Math.max(...allValues);
 
   const spread =
-    maxValue - minValue || Math.max(Math.abs(maxValue) * 0.02, 1);
+    maxValue - minValue ||
+    Math.max(Math.abs(maxValue) * 0.02, 1);
 
   const chartMin = minValue - spread * 0.08;
   const chartMax = maxValue + spread * 0.08;
-  const chartHeight = height - topPadding - bottomPadding;
+  const chartHeight =
+    height - topPadding - bottomPadding;
 
-  const coordinates = history.map((point, index) => {
-    const value =
-      toFiniteNumber(point?.market_value) ?? chartMin;
+  function buildCoordinates(values) {
+    return values.map((value, index) => {
+      const x =
+        values.length === 1
+          ? 0
+          : (index / (values.length - 1)) * width;
 
-    const x =
-      history.length === 1
-        ? 0
-        : (index / (history.length - 1)) * width;
+      const normalized =
+        (value - chartMin) /
+        (chartMax - chartMin);
 
-    const normalized =
-      (value - chartMin) / (chartMax - chartMin);
+      const y =
+        topPadding +
+        chartHeight -
+        normalized * chartHeight;
 
-    const y =
-      topPadding +
-      chartHeight -
-      normalized * chartHeight;
+      return {
+        x,
+        y,
+        value,
+        date: chartDates[index] ?? "",
+      };
+    });
+  }
 
-    return {
-      x,
-      y,
-      value,
-      date: point?.date ?? "",
-    };
-  });
+  function buildPath(coordinates) {
+    return coordinates
+      .map(
+        (point, index) =>
+          `${index === 0 ? "M" : "L"}${point.x.toFixed(
+            2,
+          )},${point.y.toFixed(2)}`,
+      )
+      .join(" ");
+  }
 
-  const linePath = coordinates
-    .map(
-      (point, index) =>
-        `${index === 0 ? "M" : "L"}${point.x.toFixed(2)},${point.y.toFixed(2)}`
-    )
-    .join(" ");
+  const portfolioCoordinates =
+    buildCoordinates(portfolioValues);
 
-  const first = coordinates[0];
-  const last = coordinates[coordinates.length - 1];
+  const portfolioLinePath =
+    buildPath(portfolioCoordinates);
 
-  const areaPath =
-    `${linePath} ` +
+  const first = portfolioCoordinates[0];
+  const last =
+    portfolioCoordinates[
+      portfolioCoordinates.length - 1
+    ];
+
+  const portfolioAreaPath =
+    `${portfolioLinePath} ` +
     `L${last.x.toFixed(2)},${height} ` +
     `L${first.x.toFixed(2)},${height} Z`;
 
+  const benchmarkLinePath = hasBenchmark
+    ? buildPath(
+        buildCoordinates(benchmarkValues),
+      )
+    : null;
+
   const labelIndexes = [
     0,
-    Math.round((history.length - 1) * 0.2),
-    Math.round((history.length - 1) * 0.4),
-    Math.round((history.length - 1) * 0.6),
-    Math.round((history.length - 1) * 0.8),
-    history.length - 1,
+    Math.round((chartDates.length - 1) * 0.2),
+    Math.round((chartDates.length - 1) * 0.4),
+    Math.round((chartDates.length - 1) * 0.6),
+    Math.round((chartDates.length - 1) * 0.8),
+    chartDates.length - 1,
   ];
 
-  const labels = [
-    ...new Set(labelIndexes),
-  ].map((index) => {
-    const date = history[index]?.date ?? "";
+  const labels = [...new Set(labelIndexes)].map(
+    (index) => {
+      const date = chartDates[index] ?? "";
 
-    if (!date) {
-      return "--";
-    }
+      if (!date) {
+        return "--";
+      }
 
-    const parsed = new Date(`${date}T00:00:00`);
+      const parsed = new Date(`${date}T00:00:00`);
 
-    if (Number.isNaN(parsed.getTime())) {
-      return date;
-    }
+      if (Number.isNaN(parsed.getTime())) {
+        return date;
+      }
 
-    return parsed
-      .toLocaleDateString("en-US", {
-        month: "short",
-      })
-      .toUpperCase();
-  });
+      return parsed
+        .toLocaleDateString("en-US", {
+          month: "short",
+        })
+        .toUpperCase();
+    },
+  );
 
   return {
-    linePath,
-    areaPath,
+    portfolioLinePath,
+    portfolioAreaPath,
+    benchmarkLinePath,
     labels,
-    startValue: values[0],
-    endValue: values[values.length - 1],
+    hasBenchmark,
   };
 }
 
@@ -492,14 +600,37 @@ function Dashboard({
       ? portfolioHistory.history
       : [];
 
+  const benchmarkPoints =
+    Array.isArray(portfolioHistory?.benchmark)
+      ? portfolioHistory.benchmark
+      : [];
+
   const historicalSummary =
     portfolioHistory?.summary ?? {};
 
+  const benchmarkSummary =
+    portfolioHistory?.benchmark_summary ?? {};
+
+  const comparisonSummary =
+    portfolioHistory?.comparison ?? {};
+
   const historyChart =
-    buildHistoryChart(historicalPoints);
+    buildHistoryChart(historicalPoints, benchmarkPoints);
 
   const historicalReturn =
-    toFiniteNumber(historicalSummary?.return_pct);
+    toFiniteNumber(
+      comparisonSummary?.portfolio_return_pct ??
+        historicalSummary?.return_pct,
+    );
+
+  const benchmarkReturn =
+    toFiniteNumber(
+      comparisonSummary?.benchmark_return_pct ??
+        benchmarkSummary?.return_pct,
+    );
+
+  const alphaReturn =
+    toFiniteNumber(comparisonSummary?.alpha_pct);
 
   const historicalAbsoluteReturn =
     toFiniteNumber(
@@ -891,7 +1022,7 @@ function Dashboard({
             role="img"
             aria-label={
               historyChart
-                ? "Historical portfolio market value"
+                ? "Portfolio performance compared with S&P 500"
                 : "Portfolio historical performance unavailable"
             }
           >
@@ -928,14 +1059,25 @@ function Dashboard({
 
                   <path
                     className="portfolio-chart__area"
-                    d={historyChart.areaPath}
+                    d={historyChart.portfolioAreaPath}
                     fill="url(#portfolioHistoricalArea)"
                   />
 
                   <path
                     className="portfolio-chart__stroke"
-                    d={historyChart.linePath}
+                    d={historyChart.portfolioLinePath}
                   />
+
+                  {historyChart.benchmarkLinePath && (
+                    <path
+                      d={historyChart.benchmarkLinePath}
+                      fill="none"
+                      stroke="#f59e0b"
+                      strokeWidth="2"
+                      strokeDasharray="7 5"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  )}
                 </svg>
 
                 <div className="portfolio-chart__axis">
@@ -951,14 +1093,15 @@ function Dashboard({
                 <div
                   style={{
                     position: "absolute",
-                    top: "0.75rem",
+                    top: "0.65rem",
                     right: "0.9rem",
                     display: "flex",
-                    gap: "0.55rem",
+                    flexWrap: "wrap",
+                    justifyContent: "flex-end",
+                    gap: "0.65rem",
                     alignItems: "center",
                     fontSize: "0.68rem",
-                    color:
-                      "var(--text-muted, #64748b)",
+                    color: "var(--text-muted, #64748b)",
                   }}
                 >
                   <span>
@@ -966,24 +1109,92 @@ function Dashboard({
                     {historicalObservations ?? historicalPoints.length} sessions
                   </span>
 
-                  <span>·</span>
-
-                  <strong
+                  <span
                     style={{
-                      color:
-                        getStatusFromValue(
-                          historicalReturn
-                        ) === "negative"
-                          ? "var(--negative, #fb7185)"
-                          : "var(--positive, #34d399)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.32rem",
                     }}
                   >
-                    {historicalReturn !== null
-                      ? percentage(
-                          historicalReturn
-                        )
-                      : "--"}
-                  </strong>
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        width: "0.9rem",
+                        height: "2px",
+                        borderRadius: "999px",
+                        background: "currentColor",
+                        display: "inline-block",
+                      }}
+                    />
+                    Portfolio{" "}
+                    <strong
+                      style={{
+                        color:
+                          getStatusFromValue(historicalReturn) === "negative"
+                            ? "var(--negative, #fb7185)"
+                            : "var(--positive, #34d399)",
+                      }}
+                    >
+                      {historicalReturn !== null
+                        ? percentage(historicalReturn)
+                        : "--"}
+                    </strong>
+                  </span>
+
+                  {historyChart.hasBenchmark && (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.32rem",
+                        color: "#f59e0b",
+                      }}
+                    >
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          width: "0.9rem",
+                          borderTop: "2px dashed #f59e0b",
+                          display: "inline-block",
+                        }}
+                      />
+                      S&P 500{" "}
+                      <strong>
+                        {benchmarkReturn !== null
+                          ? percentage(benchmarkReturn)
+                          : "--"}
+                      </strong>
+                    </span>
+                  )}
+
+                  {alphaReturn !== null && historyChart.hasBenchmark && (
+                    <span
+                      style={{
+                        padding: "0.18rem 0.42rem",
+                        borderRadius: "0.35rem",
+                        border:
+                          getStatusFromValue(alphaReturn) === "negative"
+                            ? "1px solid rgba(251, 113, 133, 0.28)"
+                            : "1px solid rgba(52, 211, 153, 0.28)",
+                        background:
+                          getStatusFromValue(alphaReturn) === "negative"
+                            ? "rgba(251, 113, 133, 0.08)"
+                            : "rgba(52, 211, 153, 0.08)",
+                      }}
+                    >
+                      Alpha{" "}
+                      <strong
+                        style={{
+                          color:
+                            getStatusFromValue(alphaReturn) === "negative"
+                              ? "var(--negative, #fb7185)"
+                              : "var(--positive, #34d399)",
+                        }}
+                      >
+                        {percentage(alphaReturn)} pp
+                      </strong>
+                    </span>
+                  )}
                 </div>
               </>
             ) : (

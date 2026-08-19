@@ -61,6 +61,7 @@ class PortfolioHistoryPoint(BaseModel):
     profit_loss: float
     return_pct: float
 
+    normalized_value: Optional[float] = None
 
 class PortfolioHistorySummary(BaseModel):
     start_value: float
@@ -75,6 +76,31 @@ class PortfolioHistorySummary(BaseModel):
     observations: int
 
 
+class PortfolioBenchmarkPoint(BaseModel):
+    date: str
+
+    benchmark_value: float
+    normalized_value: float
+    return_pct: float
+
+
+class PortfolioBenchmarkSummary(BaseModel):
+    symbol: str
+    name: str
+
+    start_value: float
+    end_value: float
+    return_pct: float
+
+    observations: int
+
+
+class PortfolioComparisonSummary(BaseModel):
+    portfolio_return_pct: float
+    benchmark_return_pct: float
+    alpha_pct: float
+
+
 class PortfolioHistoryResponse(BaseModel):
     period: str
     interval: str
@@ -86,3 +112,7 @@ class PortfolioHistoryResponse(BaseModel):
     history: list[PortfolioHistoryPoint]
 
     summary: PortfolioHistorySummary
+
+    benchmark: list[PortfolioBenchmarkPoint] = []
+    benchmark_summary: Optional[PortfolioBenchmarkSummary] = None
+    comparison: Optional[PortfolioComparisonSummary] = None

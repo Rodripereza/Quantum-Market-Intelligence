@@ -1,9 +1,14 @@
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
 
 from app.core.database import get_session
 from app.models.portfolio import PortfolioPosition
 from app.schemas.portfolio_schema import (
+    PortfolioBenchmarkPoint,
+    PortfolioBenchmarkSummary,
+    PortfolioComparisonSummary,
     PortfolioHistoryPoint,
     PortfolioHistoryResponse,
     PortfolioHistorySummary,
@@ -209,7 +214,6 @@ def resolve_portfolio_currency(
 
     return "MULTI"
 
-
 def build_portfolio_history(
     positions: list[PortfolioPosition],
     period: str,
@@ -218,6 +222,9 @@ def build_portfolio_history(
     """
     Construye una serie histórica mark-to-market utilizando
     las posiciones ACTUALES y precios históricos reales.
+
+    Además compara la evolución del portfolio con el S&P 500
+    normalizando ambas series a base 100.
 
     Importante:
     Esto todavía no es un historial transaccional.
@@ -242,6 +249,9 @@ def build_portfolio_history(
                 min_value=0.0,
                 observations=0,
             ),
+            benchmark=[],
+            benchmark_summary=None,
+            comparison=None,
         )
 
     total_cost = sum(
@@ -252,33 +262,74 @@ def build_portfolio_history(
 
     histories_by_ticker: dict[str, dict[str, float]] = {}
 
+    benchmark_symbol = "^GSPC"
+    benchmark_name = "S&P 500"
+    benchmark_history: dict[str, float] = {}
+
     # --------------------------------------------------------
-    # Download history for each current position
+    # Download portfolio + benchmark histories in parallel
     # --------------------------------------------------------
 
-    for position in positions:
+    def download_history(symbol: str) -> tuple[str, dict[str, float]]:
         try:
             history = market_service.get_history(
-                symbol=position.ticker,
+                symbol=symbol,
                 period=period,
                 interval=interval,
             )
+
+            ticker_history: dict[str, float] = {}
+
+            for point in history:
+                date = point.get("date")
+                close = point.get("close")
+
+                if date is None or close is None:
+                    continue
+
+                ticker_history[str(date)] = float(close)
+
+            return symbol, ticker_history
+
         except Exception:
-            continue
+            return symbol, {}
 
-        ticker_history: dict[str, float] = {}
+    portfolio_symbols = list(
+        dict.fromkeys(
+            position.ticker
+            for position in positions
+        )
+    )
 
-        for point in history:
-            date = point.get("date")
-            close = point.get("close")
+    requested_symbols = [
+        *portfolio_symbols,
+        benchmark_symbol,
+    ]
 
-            if date is None or close is None:
+    max_workers = min(
+        len(requested_symbols),
+        8,
+    )
+
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [
+            executor.submit(
+                download_history,
+                symbol,
+            )
+            for symbol in requested_symbols
+        ]
+
+        for future in as_completed(futures):
+            symbol, ticker_history = future.result()
+
+            if not ticker_history:
                 continue
 
-            ticker_history[str(date)] = float(close)
-
-        if ticker_history:
-            histories_by_ticker[position.ticker] = ticker_history
+            if symbol == benchmark_symbol:
+                benchmark_history = ticker_history
+            else:
+                histories_by_ticker[symbol] = ticker_history
 
     if not histories_by_ticker:
         return PortfolioHistoryResponse(
@@ -296,15 +347,13 @@ def build_portfolio_history(
                 min_value=0.0,
                 observations=0,
             ),
+            benchmark=[],
+            benchmark_summary=None,
+            comparison=None,
         )
 
     # --------------------------------------------------------
-    # Use common dates
-    # --------------------------------------------------------
-    #
-    # Para evitar comparar días donde solo una parte del
-    # portfolio tiene cotización, usamos la intersección de
-    # fechas disponibles entre los activos recuperados.
+    # Use common dates for all available portfolio assets
     # --------------------------------------------------------
 
     date_sets = [
@@ -313,7 +362,6 @@ def build_portfolio_history(
     ]
 
     common_dates = set.intersection(*date_sets)
-
     sorted_dates = sorted(common_dates)
 
     history_points: list[PortfolioHistoryPoint] = []
@@ -376,11 +424,12 @@ def build_portfolio_history(
                     return_pct,
                     4,
                 ),
+                normalized_value=None,
             )
         )
 
     # --------------------------------------------------------
-    # Summary
+    # Portfolio summary
     # --------------------------------------------------------
 
     if not history_points:
@@ -441,6 +490,162 @@ def build_portfolio_history(
             observations=len(history_points),
         )
 
+    # --------------------------------------------------------
+    # Portfolio vs S&P 500 comparison
+    # --------------------------------------------------------
+
+    benchmark_points: list[PortfolioBenchmarkPoint] = []
+    benchmark_summary = None
+    comparison = None
+
+    if history_points and benchmark_history:
+        portfolio_by_date = {
+            point.date: point
+            for point in history_points
+        }
+
+        comparison_dates = sorted(
+            set(portfolio_by_date.keys())
+            & set(benchmark_history.keys())
+        )
+
+        if comparison_dates:
+            start_date = comparison_dates[0]
+            end_date = comparison_dates[-1]
+
+            portfolio_start_value = (
+                portfolio_by_date[start_date].market_value
+            )
+            portfolio_end_value = (
+                portfolio_by_date[end_date].market_value
+            )
+
+            benchmark_start_value = (
+                benchmark_history[start_date]
+            )
+            benchmark_end_value = (
+                benchmark_history[end_date]
+            )
+
+            # Normalize portfolio to base 100 using only
+            # dates that can be compared directly with the benchmark.
+            if portfolio_start_value > 0:
+                for date in comparison_dates:
+                    point = portfolio_by_date[date]
+
+                    point.normalized_value = round(
+                        (
+                            point.market_value
+                            / portfolio_start_value
+                        )
+                        * 100,
+                        4,
+                    )
+
+            portfolio_period_return = (
+                (
+                    portfolio_end_value
+                    - portfolio_start_value
+                )
+                / portfolio_start_value
+                * 100
+                if portfolio_start_value > 0
+                else 0.0
+            )
+
+            benchmark_period_return = (
+                (
+                    benchmark_end_value
+                    - benchmark_start_value
+                )
+                / benchmark_start_value
+                * 100
+                if benchmark_start_value > 0
+                else 0.0
+            )
+
+            for date in comparison_dates:
+                benchmark_value = benchmark_history[date]
+
+                normalized_value = (
+                    (
+                        benchmark_value
+                        / benchmark_start_value
+                    )
+                    * 100
+                    if benchmark_start_value > 0
+                    else 100.0
+                )
+
+                benchmark_return_pct = (
+                    (
+                        benchmark_value
+                        - benchmark_start_value
+                    )
+                    / benchmark_start_value
+                    * 100
+                    if benchmark_start_value > 0
+                    else 0.0
+                )
+
+                benchmark_points.append(
+                    PortfolioBenchmarkPoint(
+                        date=date,
+                        benchmark_value=round(
+                            benchmark_value,
+                            4,
+                        ),
+                        normalized_value=round(
+                            normalized_value,
+                            4,
+                        ),
+                        return_pct=round(
+                            benchmark_return_pct,
+                            4,
+                        ),
+                    )
+                )
+
+            benchmark_summary = PortfolioBenchmarkSummary(
+                symbol=benchmark_symbol,
+                name=benchmark_name,
+                start_value=round(
+                    benchmark_start_value,
+                    4,
+                ),
+                end_value=round(
+                    benchmark_end_value,
+                    4,
+                ),
+                return_pct=round(
+                    benchmark_period_return,
+                    4,
+                ),
+                observations=len(
+                    benchmark_points
+                ),
+            )
+
+            alpha_pct = (
+                portfolio_period_return
+                - benchmark_period_return
+            )
+
+            comparison = PortfolioComparisonSummary(
+                portfolio_return_pct=round(
+                    portfolio_period_return,
+                    4,
+                ),
+                benchmark_return_pct=round(
+                    benchmark_period_return,
+                    4,
+                ),
+                alpha_pct=round(
+                    alpha_pct,
+                    4,
+                ),
+            )
+
     return PortfolioHistoryResponse(
         period=period,
         interval=interval,
@@ -448,6 +653,9 @@ def build_portfolio_history(
         positions=len(positions),
         history=history_points,
         summary=summary,
+        benchmark=benchmark_points,
+        benchmark_summary=benchmark_summary,
+        comparison=comparison,
     )
 
 
