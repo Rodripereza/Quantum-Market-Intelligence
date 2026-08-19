@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from math import sqrt
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import Session, select
@@ -13,6 +14,7 @@ from app.schemas.portfolio_schema import (
     PortfolioHistoryResponse,
     PortfolioHistorySummary,
     PortfolioPositionSnapshot,
+    PortfolioRiskMetrics,
     PortfolioSectorAllocation,
     PortfolioSnapshot,
 )
@@ -214,6 +216,223 @@ def resolve_portfolio_currency(
 
     return "MULTI"
 
+def _mean(values: list[float]) -> float:
+    return sum(values) / len(values)
+
+
+def _sample_std(values: list[float]) -> float | None:
+    if len(values) < 2:
+        return None
+
+    mean_value = _mean(values)
+
+    variance = sum(
+        (value - mean_value) ** 2
+        for value in values
+    ) / (len(values) - 1)
+
+    return sqrt(variance)
+
+
+def _sample_covariance(
+    values_x: list[float],
+    values_y: list[float],
+) -> float | None:
+    if len(values_x) != len(values_y) or len(values_x) < 2:
+        return None
+
+    mean_x = _mean(values_x)
+    mean_y = _mean(values_y)
+
+    return sum(
+        (x - mean_x) * (y - mean_y)
+        for x, y in zip(values_x, values_y)
+    ) / (len(values_x) - 1)
+
+
+def _max_drawdown(values: list[float]) -> float | None:
+    if not values:
+        return None
+
+    peak = values[0]
+    max_drawdown = 0.0
+
+    for value in values:
+        if value > peak:
+            peak = value
+
+        if peak <= 0:
+            continue
+
+        drawdown = (value / peak) - 1.0
+
+        if drawdown < max_drawdown:
+            max_drawdown = drawdown
+
+    return max_drawdown * 100
+
+
+def build_portfolio_risk_metrics(
+    portfolio_values: list[float],
+    benchmark_values: list[float],
+    risk_free_rate_pct: float = 4.0,
+    annualization_factor: int = 252,
+) -> PortfolioRiskMetrics | None:
+    """
+    Calcula métricas de riesgo y rendimiento relativo usando
+    observaciones diarias alineadas del portfolio y del benchmark.
+
+    La tasa libre de riesgo es configurable y se expresa en %
+    anual. Sprint 005.4 utiliza 4% como valor por defecto.
+    """
+
+    if (
+        len(portfolio_values) != len(benchmark_values)
+        or len(portfolio_values) < 3
+    ):
+        return None
+
+    portfolio_returns: list[float] = []
+    benchmark_returns: list[float] = []
+
+    for index in range(1, len(portfolio_values)):
+        previous_portfolio = portfolio_values[index - 1]
+        current_portfolio = portfolio_values[index]
+
+        previous_benchmark = benchmark_values[index - 1]
+        current_benchmark = benchmark_values[index]
+
+        if previous_portfolio <= 0 or previous_benchmark <= 0:
+            continue
+
+        portfolio_returns.append(
+            (current_portfolio / previous_portfolio) - 1.0
+        )
+
+        benchmark_returns.append(
+            (current_benchmark / previous_benchmark) - 1.0
+        )
+
+    if (
+        len(portfolio_returns) < 2
+        or len(portfolio_returns) != len(benchmark_returns)
+    ):
+        return None
+
+    portfolio_std = _sample_std(portfolio_returns)
+    benchmark_std = _sample_std(benchmark_returns)
+
+    volatility_pct = (
+        portfolio_std
+        * sqrt(annualization_factor)
+        * 100
+        if portfolio_std is not None
+        else None
+    )
+
+    annual_risk_free_rate = risk_free_rate_pct / 100
+    daily_risk_free_rate = (
+        (1 + annual_risk_free_rate)
+        ** (1 / annualization_factor)
+    ) - 1
+
+    sharpe_ratio = None
+
+    if portfolio_std is not None and portfolio_std > 0:
+        excess_returns = [
+            value - daily_risk_free_rate
+            for value in portfolio_returns
+        ]
+
+        sharpe_ratio = (
+            _mean(excess_returns)
+            / portfolio_std
+            * sqrt(annualization_factor)
+        )
+
+    max_drawdown_pct = _max_drawdown(portfolio_values)
+
+    beta = None
+
+    if benchmark_std is not None and benchmark_std > 0:
+        covariance = _sample_covariance(
+            portfolio_returns,
+            benchmark_returns,
+        )
+
+        benchmark_variance = benchmark_std ** 2
+
+        if (
+            covariance is not None
+            and benchmark_variance > 0
+        ):
+            beta = covariance / benchmark_variance
+
+    active_returns = [
+        portfolio_return - benchmark_return
+        for portfolio_return, benchmark_return
+        in zip(portfolio_returns, benchmark_returns)
+    ]
+
+    active_std = _sample_std(active_returns)
+
+    tracking_error_pct = (
+        active_std
+        * sqrt(annualization_factor)
+        * 100
+        if active_std is not None
+        else None
+    )
+
+    information_ratio = None
+
+    if active_std is not None and active_std > 0:
+        information_ratio = (
+            _mean(active_returns)
+            / active_std
+            * sqrt(annualization_factor)
+        )
+
+    return PortfolioRiskMetrics(
+        annualization_factor=annualization_factor,
+        risk_free_rate_pct=round(
+            risk_free_rate_pct,
+            4,
+        ),
+        volatility_pct=(
+            round(volatility_pct, 4)
+            if volatility_pct is not None
+            else None
+        ),
+        sharpe_ratio=(
+            round(sharpe_ratio, 4)
+            if sharpe_ratio is not None
+            else None
+        ),
+        max_drawdown_pct=(
+            round(max_drawdown_pct, 4)
+            if max_drawdown_pct is not None
+            else None
+        ),
+        beta=(
+            round(beta, 4)
+            if beta is not None
+            else None
+        ),
+        tracking_error_pct=(
+            round(tracking_error_pct, 4)
+            if tracking_error_pct is not None
+            else None
+        ),
+        information_ratio=(
+            round(information_ratio, 4)
+            if information_ratio is not None
+            else None
+        ),
+        observations=len(portfolio_returns),
+    )
+
+
 def build_portfolio_history(
     positions: list[PortfolioPosition],
     period: str,
@@ -252,6 +471,7 @@ def build_portfolio_history(
             benchmark=[],
             benchmark_summary=None,
             comparison=None,
+            risk_metrics=None,
         )
 
     total_cost = sum(
@@ -350,6 +570,7 @@ def build_portfolio_history(
             benchmark=[],
             benchmark_summary=None,
             comparison=None,
+            risk_metrics=None,
         )
 
     # --------------------------------------------------------
@@ -497,6 +718,7 @@ def build_portfolio_history(
     benchmark_points: list[PortfolioBenchmarkPoint] = []
     benchmark_summary = None
     comparison = None
+    risk_metrics = None
 
     if history_points and benchmark_history:
         portfolio_by_date = {
@@ -646,6 +868,21 @@ def build_portfolio_history(
                 ),
             )
 
+            aligned_portfolio_values = [
+                portfolio_by_date[date].market_value
+                for date in comparison_dates
+            ]
+
+            aligned_benchmark_values = [
+                benchmark_history[date]
+                for date in comparison_dates
+            ]
+
+            risk_metrics = build_portfolio_risk_metrics(
+                portfolio_values=aligned_portfolio_values,
+                benchmark_values=aligned_benchmark_values,
+            )
+
     return PortfolioHistoryResponse(
         period=period,
         interval=interval,
@@ -656,6 +893,7 @@ def build_portfolio_history(
         benchmark=benchmark_points,
         benchmark_summary=benchmark_summary,
         comparison=comparison,
+        risk_metrics=risk_metrics,
     )
 
 

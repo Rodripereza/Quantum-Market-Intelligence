@@ -21,6 +21,7 @@ from app.core.database import create_db
 from app.models.portfolio import PortfolioPosition
 from app.api.routes.portfolio import router as portfolio_router
 from app.api.routes.auth import router as auth_router
+from app.api.routes.news import router as news_router
 
 setup_logging()
 create_db()
@@ -67,6 +68,7 @@ app.include_router(test_router)
 app.include_router(fundamental_router)
 app.include_router(portfolio_router)
 app.include_router(auth_router)
+app.include_router(news_router)
 
 @app.get("/")
 def root():

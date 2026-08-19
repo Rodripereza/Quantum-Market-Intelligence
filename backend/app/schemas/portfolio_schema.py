@@ -101,6 +101,21 @@ class PortfolioComparisonSummary(BaseModel):
     alpha_pct: float
 
 
+class PortfolioRiskMetrics(BaseModel):
+    annualization_factor: int
+    risk_free_rate_pct: float
+
+    volatility_pct: Optional[float] = None
+    sharpe_ratio: Optional[float] = None
+    max_drawdown_pct: Optional[float] = None
+
+    beta: Optional[float] = None
+    tracking_error_pct: Optional[float] = None
+    information_ratio: Optional[float] = None
+
+    observations: int = 0
+
+
 class PortfolioHistoryResponse(BaseModel):
     period: str
     interval: str
@@ -116,3 +131,4 @@ class PortfolioHistoryResponse(BaseModel):
     benchmark: list[PortfolioBenchmarkPoint] = []
     benchmark_summary: Optional[PortfolioBenchmarkSummary] = None
     comparison: Optional[PortfolioComparisonSummary] = None
+    risk_metrics: Optional[PortfolioRiskMetrics] = None

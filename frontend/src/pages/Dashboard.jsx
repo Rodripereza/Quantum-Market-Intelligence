@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import MetricCard from "../components/ui/MetricCard";
 import "./Dashboard.css";
 
@@ -333,36 +334,40 @@ function normalizeInsights(ai) {
   }));
 }
 
-function normalizeNews(market) {
+function normalizeNews(newsPayload) {
   const news =
-    market?.news ??
-    market?.headlines ??
-    market?.articles ??
+    newsPayload?.articles ??
+    newsPayload?.news ??
+    newsPayload?.headlines ??
     [];
 
   if (!Array.isArray(news)) {
     return [];
   }
 
-  return news.slice(0, 4).map((item) => ({
+  return news.slice(0, 6).map((item) => ({
     source:
       item?.source ??
-      item?.category ??
       item?.publisher ??
+      item?.category ??
       "MARKET",
     time:
-      item?.time ??
+      item?.published_at ??
       item?.published_time ??
       item?.publishedAt ??
+      item?.time ??
       "--",
     title:
       item?.title ??
       item?.headline ??
       item?.summary ??
       "Market update unavailable",
+    url: item?.url ?? null,
+    sentiment: item?.sentiment ?? "neutral",
+    impact: item?.impact ?? "medium",
+    category: item?.category ?? "markets",
   }));
 }
-
 
 function buildHistoryChart(history, benchmark = []) {
   if (!Array.isArray(history) || history.length < 2) {
@@ -589,6 +594,50 @@ function Dashboard({
   market = null,
   ai = null,
 }) {
+  const [newsPayload, setNewsPayload] = useState(null);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsError, setNewsError] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadMarketIntelligence() {
+      setNewsLoading(true);
+      setNewsError(null);
+
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/news?limit=12&query=stock%20market%20OR%20S%26P%20500%20OR%20Federal%20Reserve",
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const payload = await response.json();
+
+        if (!cancelled) {
+          setNewsPayload(payload);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setNewsPayload(null);
+          setNewsError(error instanceof Error ? error.message : "Request failed");
+        }
+      } finally {
+        if (!cancelled) {
+          setNewsLoading(false);
+        }
+      }
+    }
+
+    loadMarketIntelligence();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const summary = portfolio?.summary ?? portfolio ?? {};
 
   const positions = Array.isArray(portfolio?.positions)
@@ -614,6 +663,9 @@ function Dashboard({
   const comparisonSummary =
     portfolioHistory?.comparison ?? {};
 
+  const riskMetrics =
+    portfolioHistory?.risk_metrics ?? {};
+
   const historyChart =
     buildHistoryChart(historicalPoints, benchmarkPoints);
 
@@ -631,6 +683,27 @@ function Dashboard({
 
   const alphaReturn =
     toFiniteNumber(comparisonSummary?.alpha_pct);
+
+  const riskVolatility =
+    toFiniteNumber(riskMetrics?.volatility_pct);
+
+  const riskSharpe =
+    toFiniteNumber(riskMetrics?.sharpe_ratio);
+
+  const riskMaxDrawdown =
+    toFiniteNumber(riskMetrics?.max_drawdown_pct);
+
+  const riskBeta =
+    toFiniteNumber(riskMetrics?.beta);
+
+  const riskTrackingError =
+    toFiniteNumber(riskMetrics?.tracking_error_pct);
+
+  const riskInformationRatio =
+    toFiniteNumber(riskMetrics?.information_ratio);
+
+  const riskObservations =
+    toFiniteNumber(riskMetrics?.observations);
 
   const historicalAbsoluteReturn =
     toFiniteNumber(
@@ -768,7 +841,7 @@ function Dashboard({
     normalizeInsights(ai);
 
   const news =
-    normalizeNews(market);
+    normalizeNews(newsPayload);
 
   const sectorCount =
     Array.isArray(portfolio?.sector_allocation)
@@ -1238,6 +1311,153 @@ function Dashboard({
               </div>
             )}
           </div>
+
+          <div
+            aria-label="Portfolio risk metrics"
+            style={{
+              marginTop: "0.9rem",
+              paddingTop: "0.85rem",
+              borderTop: "1px solid rgba(148, 163, 184, 0.12)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+                marginBottom: "0.55rem",
+              }}
+            >
+              <span
+                style={{
+                  color: "var(--text-muted, #64748b)",
+                  fontSize: "0.64rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                }}
+              >
+                RISK ANALYTICS · {historicalPeriodLabel}
+              </span>
+
+              <span
+                style={{
+                  color: "var(--text-muted, #64748b)",
+                  fontSize: "0.64rem",
+                }}
+              >
+                {riskObservations !== null
+                  ? `${Math.round(riskObservations)} observations`
+                  : "Risk metrics unavailable"}
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(110px, 1fr))",
+                gap: "0.5rem",
+              }}
+            >
+              {[
+                {
+                  label: "Volatility",
+                  value:
+                    riskVolatility !== null
+                      ? percentage(riskVolatility, {
+                          showPositiveSign: false,
+                        })
+                      : "--",
+                },
+                {
+                  label: "Sharpe",
+                  value:
+                    riskSharpe !== null
+                      ? riskSharpe.toLocaleString("es-ES", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : "--",
+                },
+                {
+                  label: "Max drawdown",
+                  value:
+                    riskMaxDrawdown !== null
+                      ? percentage(riskMaxDrawdown, {
+                          showPositiveSign: false,
+                        })
+                      : "--",
+                },
+                {
+                  label: "Beta",
+                  value:
+                    riskBeta !== null
+                      ? riskBeta.toLocaleString("es-ES", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : "--",
+                },
+                {
+                  label: "Tracking error",
+                  value:
+                    riskTrackingError !== null
+                      ? percentage(riskTrackingError, {
+                          showPositiveSign: false,
+                        })
+                      : "--",
+                },
+                {
+                  label: "Information ratio",
+                  value:
+                    riskInformationRatio !== null
+                      ? riskInformationRatio.toLocaleString("es-ES", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : "--",
+                },
+              ].map((metric) => (
+                <div
+                  key={metric.label}
+                  style={{
+                    minWidth: 0,
+                    padding: "0.65rem 0.7rem",
+                    borderRadius: "0.5rem",
+                    border:
+                      "1px solid rgba(148, 163, 184, 0.12)",
+                    background: "rgba(15, 23, 42, 0.22)",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "block",
+                      color: "var(--text-muted, #64748b)",
+                      fontSize: "0.59rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.055em",
+                      textTransform: "uppercase",
+                      marginBottom: "0.28rem",
+                    }}
+                  >
+                    {metric.label}
+                  </span>
+
+                  <strong
+                    style={{
+                      display: "block",
+                      color: "var(--text-primary, #e2e8f0)",
+                      fontSize: "0.9rem",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {metric.value}
+                  </strong>
+                </div>
+              ))}
+            </div>
+          </div>
         </article>
 
         <article className="dashboard-panel dashboard-panel--allocation">
@@ -1489,30 +1709,113 @@ function Dashboard({
           </header>
 
           <div className="news-list">
-            {news.length > 0 ? (
-              news.map((item, index) => (
-                <article
-                  className="news-item"
-                  key={`${item.time}-${item.title}-${index}`}
-                >
-                  <div className="news-item__meta">
-                    <span>{item.source}</span>
-                    <time>{item.time}</time>
-                  </div>
+            {newsLoading ? (
+              <article className="news-item">
+                <div className="news-item__meta">
+                  <span>LIVE FEED</span>
+                  <time>Loading…</time>
+                </div>
+                <h3>Retrieving market intelligence…</h3>
+              </article>
+            ) : news.length > 0 ? (
+              news.map((item, index) => {
+                const publishedDate = item.time && item.time !== "--"
+                  ? new Date(item.time)
+                  : null;
 
-                  <h3>{item.title}</h3>
-                </article>
-              ))
+                const timeLabel =
+                  publishedDate && !Number.isNaN(publishedDate.getTime())
+                    ? publishedDate.toLocaleString("es-ES", {
+                        day: "2-digit",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
+                    : item.time;
+
+                return (
+                  <article
+                    className="news-item"
+                    key={`${item.time}-${item.title}-${index}`}
+                  >
+                    <div className="news-item__meta">
+                      <span>
+                        {item.source} · {String(item.category).toUpperCase()}
+                      </span>
+                      <time>{timeLabel}</time>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: "0.4rem",
+                        flexWrap: "wrap",
+                        margin: "0.35rem 0 0.45rem",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "0.58rem",
+                          fontWeight: 800,
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                          color:
+                            item.sentiment === "positive"
+                              ? "var(--positive, #34d399)"
+                              : item.sentiment === "negative"
+                                ? "var(--negative, #fb7185)"
+                                : "var(--text-muted, #94a3b8)",
+                        }}
+                      >
+                        {item.sentiment}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: "0.58rem",
+                          fontWeight: 800,
+                          letterSpacing: "0.06em",
+                          textTransform: "uppercase",
+                          color:
+                            item.impact === "high"
+                              ? "#f59e0b"
+                              : "var(--text-muted, #94a3b8)",
+                        }}
+                      >
+                        IMPACT {item.impact}
+                      </span>
+                    </div>
+
+                    <h3>
+                      {item.url ? (
+                        <a
+                          href={item.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{
+                            color: "inherit",
+                            textDecoration: "none",
+                          }}
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        item.title
+                      )}
+                    </h3>
+                  </article>
+                );
+              })
             ) : (
               <article className="news-item">
                 <div className="news-item__meta">
-                  <span>STATUS</span>
+                  <span>{newsError ? "FEED ERROR" : "STATUS"}</span>
                   <time>--</time>
                 </div>
 
                 <h3>
-                  Live news feed is not connected to the
-                  Dashboard yet.
+                  {newsError
+                    ? `Market intelligence unavailable: ${newsError}`
+                    : "No market intelligence articles available."}
                 </h3>
               </article>
             )}
