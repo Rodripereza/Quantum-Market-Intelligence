@@ -13,15 +13,27 @@ function buildHeaders(token, customHeaders = {}) {
 }
 
 async function parseResponse(response) {
+  // 204 No Content (por ejemplo DELETE correcto) no tiene cuerpo.
+  // No debemos intentar ejecutar response.json() sobre una respuesta vacía.
+  if (response.status === 204) {
+    return null;
+  }
+
   const contentType = response.headers.get("content-type") || "";
+  const rawText = await response.text();
 
   let data = null;
 
-  if (contentType.includes("application/json")) {
-    data = await response.json();
-  } else {
-    const text = await response.text();
-    data = text || null;
+  if (rawText) {
+    if (contentType.includes("application/json")) {
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        data = rawText;
+      }
+    } else {
+      data = rawText;
+    }
   }
 
   if (!response.ok) {

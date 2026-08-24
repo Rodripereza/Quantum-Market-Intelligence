@@ -6,6 +6,11 @@ from app.api.routes.status import router as status_router
 from app.api.routes.settings import router as settings_router
 from app.api.routes.market import router as market_router
 from app.api.routes.technical import router as technical_router
+from app.api.routes.market_structure import router as market_structure_router
+from app.api.routes.support_resistance import router as support_resistance_router
+from app.api.routes.liquidity import router as liquidity_router
+from app.api.routes.confluence import router as confluence_router
+from app.api.routes.technical_decision import router as technical_decision_router
 from app.exceptions.base_exception import QMIException
 from app.exceptions.handlers import (
     generic_exception_handler,
@@ -22,6 +27,7 @@ from app.models.portfolio import PortfolioPosition
 from app.api.routes.portfolio import router as portfolio_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.news import router as news_router
+from app.api.routes.ai import router as ai_router
 
 setup_logging()
 create_db()
@@ -64,11 +70,16 @@ app.include_router(status_router)
 app.include_router(settings_router)
 app.include_router(market_router)
 app.include_router(technical_router)
-app.include_router(test_router)
+app.include_router(market_structure_router)
+app.include_router(support_resistance_router)
+app.include_router(liquidity_router)
 app.include_router(fundamental_router)
 app.include_router(portfolio_router)
 app.include_router(auth_router)
 app.include_router(news_router)
+app.include_router(ai_router)
+app.include_router(confluence_router)
+app.include_router(technical_decision_router)
 
 @app.get("/")
 def root():

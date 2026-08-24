@@ -1,28 +1,31 @@
 .metric-card {
   isolation: isolate;
+  min-width: 0;
 }
 
 /* =========================================================
-   AMBIENT STATUS GLOW
+   QMI METRIC CARD — TERMINAL DENSITY
+   Sprint 006.8.1
    ========================================================= */
 
 .metric-card::before {
   position: absolute;
   z-index: -1;
-  top: 0;
-  right: 0;
+  top: -2rem;
+  right: -2rem;
 
-  width: 5.625rem;
-  height: 5.625rem;
+  width: 6rem;
+  height: 6rem;
 
   border-radius: 50%;
 
   background: var(--status-neutral-soft);
-  filter: blur(1.75rem);
+  filter: blur(1.8rem);
 
   content: "";
   pointer-events: none;
-  transform: translate(34%, -34%);
+
+  opacity: 0.55;
 }
 
 .metric-card--positive::before {
@@ -38,99 +41,82 @@
 }
 
 .metric-card--neutral::before {
-  background: var(--status-neutral-soft);
+  background: var(--accent-soft);
 }
-
-/* =========================================================
-   HEADER
-   ========================================================= */
 
 .metric-card__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-4);
+  gap: var(--space-3, 0.75rem);
 }
 
 .metric-card__label {
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
 
   font-family: var(--font-family-sans);
-  font-size: var(--font-label);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-wide);
-  line-height: var(--line-height-heading);
+  font-size: 0.62rem;
+  font-weight: 750;
+  letter-spacing: 0.085em;
+  line-height: 1.2;
   text-transform: uppercase;
 }
 
-/* =========================================================
-   ICON
-   ========================================================= */
-
 .metric-card__icon {
   display: grid;
-  width: 2rem;
-  height: 2rem;
-  flex: 0 0 2rem;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex: 0 0 1.85rem;
   place-items: center;
 
   color: var(--accent-primary);
-  background: var(--accent-soft);
-  border: 1px solid var(--border-accent);
-  border-radius: var(--radius-sm, 0.5625rem);
+  background: rgba(91, 140, 255, 0.08);
+
+  border: 1px solid rgba(91, 140, 255, 0.24);
+  border-radius: 0.38rem;
+
+  font-size: 0.78rem;
 
   transition:
-    color var(--transition-normal, 200ms ease),
-    background var(--transition-normal, 200ms ease),
-    border-color var(--transition-normal, 200ms ease),
-    transform var(--transition-normal, 200ms ease);
+    transform var(--transition-fast, 120ms ease),
+    border-color var(--transition-fast, 120ms ease);
 }
 
 .metric-card:hover .metric-card__icon {
   transform: translateY(-1px);
 }
 
-/* =========================================================
-   VALUE
-   ========================================================= */
-
 .metric-card__value {
   min-width: 0;
-  margin-top: var(--space-5);
+  margin-top: 0.72rem;
 
   color: var(--text-primary);
 
-  font-family: var(--font-family-sans);
-  font-size: clamp(
-    var(--font-kpi-sm),
-    2vw,
-    var(--font-kpi-md)
-  );
-  font-weight: var(--font-weight-bold);
-  letter-spacing: var(--letter-spacing-tight);
-  line-height: var(--line-height-tight);
+  font-family: var(--font-family-mono);
+  font-size: clamp(1.45rem, 1.45vw, 1.95rem);
+  font-weight: 720;
+  letter-spacing: -0.035em;
+  line-height: 1;
+
+  font-variant-numeric: tabular-nums;
 
   overflow-wrap: anywhere;
 }
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
 
 .metric-card__footer {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: 0.4rem;
 
-  margin-top: var(--space-3);
+  margin-top: 0.55rem;
 }
 
 .metric-card__change {
   font-family: var(--font-family-mono);
-  font-size: var(--font-body-sm);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-normal);
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .metric-card__change--positive {
@@ -153,42 +139,26 @@
   color: var(--text-muted);
 
   font-family: var(--font-family-sans);
-  font-size: var(--font-caption);
-  line-height: var(--line-height-normal);
+  font-size: 0.58rem;
+  line-height: 1.2;
 }
-
-/* =========================================================
-   STATUS ICONS
-   ========================================================= */
 
 .metric-card--positive .metric-card__icon {
   color: var(--status-positive);
   background: var(--status-positive-soft);
-  border-color: color-mix(
-    in srgb,
-    var(--status-positive) 28%,
-    transparent
-  );
+  border-color: color-mix(in srgb, var(--status-positive) 28%, transparent);
 }
 
 .metric-card--negative .metric-card__icon {
   color: var(--status-negative);
   background: var(--status-negative-soft);
-  border-color: color-mix(
-    in srgb,
-    var(--status-negative) 28%,
-    transparent
-  );
+  border-color: color-mix(in srgb, var(--status-negative) 28%, transparent);
 }
 
 .metric-card--warning .metric-card__icon {
   color: var(--status-warning);
   background: var(--status-warning-soft);
-  border-color: color-mix(
-    in srgb,
-    var(--status-warning) 28%,
-    transparent
-  );
+  border-color: color-mix(in srgb, var(--status-warning) 28%, transparent);
 }
 
 .metric-card--neutral .metric-card__icon {
@@ -197,12 +167,8 @@
   border-color: var(--border-accent);
 }
 
-/* =========================================================
-   LOADING
-   ========================================================= */
-
 .metric-card--loading {
-  min-height: 8rem;
+  min-height: 6rem;
 }
 
 .metric-card__skeleton {
@@ -222,19 +188,19 @@
 
 .metric-card__skeleton--label {
   width: 42%;
-  height: var(--space-3);
+  height: 0.62rem;
 }
 
 .metric-card__skeleton--value {
   width: 68%;
-  height: 1.875rem;
-  margin-top: var(--space-5);
+  height: 1.55rem;
+  margin-top: 0.75rem;
 }
 
 .metric-card__skeleton--footer {
   width: 52%;
-  height: var(--space-3);
-  margin-top: var(--space-5);
+  height: 0.62rem;
+  margin-top: 0.6rem;
 }
 
 @keyframes metric-card-skeleton {
@@ -247,25 +213,17 @@
   }
 }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
 @media (max-width: 640px) {
   .metric-card__value {
-    font-size: var(--font-kpi-sm);
+    font-size: 1.35rem;
   }
 
   .metric-card__icon {
-    width: 1.875rem;
-    height: 1.875rem;
-    flex-basis: 1.875rem;
+    width: 1.7rem;
+    height: 1.7rem;
+    flex-basis: 1.7rem;
   }
 }
-
-/* =========================================================
-   ACCESSIBILITY
-   ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .metric-card__icon,

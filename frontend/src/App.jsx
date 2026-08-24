@@ -28,6 +28,7 @@ import PageShell from "./components/layout/PageShell";
 import Dashboard from "./pages/Dashboard";
 import Portfolio from "./pages/Portfolio";
 import Market from "./pages/Market";
+import Technical from "./pages/Technical";
 import AI from "./pages/AI";
 import RiskPage from "./pages/RiskPage";
 import DataPage from "./pages/DataPage";
@@ -69,6 +70,12 @@ const NAV_SECTIONS = [
         label: "Market",
         icon: LineChart,
         description: "Market intelligence",
+      },
+      {
+        id: "technical",
+        label: "Technical",
+        icon: Activity,
+        description: "Technical decision engine",
       },
       {
         id: "portfolio",
@@ -366,17 +373,18 @@ function App() {
       notes: form.notes || "",
     };
 
-    const data = editingId
-      ? await updatePosition(
-          token,
-          editingId,
-          payload
-        )
-      : await createPosition(token, payload);
-
-    if (data.portfolio) {
-      setPortfolio(data.portfolio);
+    if (editingId) {
+      await updatePosition(
+        token,
+        editingId,
+        payload
+      );
+    } else {
+      await createPosition(token, payload);
     }
+
+    const refreshedPortfolio = await getPortfolio(token);
+    setPortfolio(refreshedPortfolio);
 
     try {
       const refreshedHistory = await getPortfolioHistory(
@@ -422,14 +430,10 @@ function App() {
   }
 
   async function deletePosition(id) {
-    const data = await deletePositionService(token, id);
+    await deletePositionService(token, id);
 
-    if (data.portfolio) {
-      setPortfolio(data.portfolio);
-    } else {
-      await load();
-      return;
-    }
+    const refreshedPortfolio = await getPortfolio(token);
+    setPortfolio(refreshedPortfolio);
 
     try {
       const refreshedHistory = await getPortfolioHistory(
@@ -531,6 +535,10 @@ function App() {
 
           {page === "market" && (
             <Market market={market} />
+          )}
+
+          {page === "technical" && (
+            <Technical token={token} />
           )}
 
           {page === "portfolio" && (

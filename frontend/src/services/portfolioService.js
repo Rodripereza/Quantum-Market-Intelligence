@@ -443,21 +443,12 @@ export async function getPortfolioHistory(
   period = "1y",
   interval = "1d"
 ) {
-  const normalizedPeriod =
-    encodeURIComponent(period);
-
-  const normalizedInterval =
-    encodeURIComponent(interval);
-
-  const response =
-    await apiRequest(
-      `/api/portfolio/history?period=${normalizedPeriod}&interval=${normalizedInterval}`,
-      {
-        token,
-      }
-    );
-
-  return normalizeHistory(response);
+  return apiRequest(
+    `/api/portfolio/history?period=${encodeURIComponent(period)}&interval=${encodeURIComponent(interval)}`,
+    {
+      token
+    }
+  );
 }
 
 
@@ -465,25 +456,12 @@ export async function getPortfolioHistory(
    CREATE
    ========================================================= */
 
-export async function createPosition(
-  token,
-  position
-) {
-  await apiRequest(
-    "/api/portfolio/",
-    {
-      method: "POST",
-      token,
-      body: buildBackendPayload(position),
-    }
-  );
-
-  const portfolio =
-    await getPortfolio(token);
-
-  return {
-    portfolio,
-  };
+export async function createPosition(token, position) {
+  return apiRequest("/api/portfolio/", {
+    method: "POST",
+    token,
+    body: buildBackendPayload(position),
+  });
 }
 
 
@@ -496,7 +474,7 @@ export async function updatePosition(
   positionId,
   position
 ) {
-  await apiRequest(
+  return apiRequest(
     `/api/portfolio/${positionId}`,
     {
       method: "PUT",
@@ -504,36 +482,18 @@ export async function updatePosition(
       body: buildBackendPayload(position),
     }
   );
-
-  const portfolio =
-    await getPortfolio(token);
-
-  return {
-    portfolio,
-  };
 }
-
 
 /* =========================================================
    DELETE
    ========================================================= */
 
-export async function deletePosition(
-  token,
-  positionId
-) {
-  await apiRequest(
+export async function deletePosition(token, positionId) {
+  return apiRequest(
     `/api/portfolio/${positionId}`,
     {
       method: "DELETE",
-      token,
+      token
     }
   );
-
-  const portfolio =
-    await getPortfolio(token);
-
-  return {
-    portfolio,
-  };
 }

@@ -185,3 +185,58 @@ def calculate_macd(
     )
 
     return result
+
+
+def calculate_stochastic(
+    market_data: pd.DataFrame,
+    k_period: int = 14,
+    d_period: int = 3,
+) -> pd.DataFrame:
+    """Calculate Fast %K and smoothed %D Stochastic Oscillator."""
+    if not isinstance(market_data, pd.DataFrame) or market_data.empty:
+        raise ValueError("market_data must be a non-empty pandas DataFrame.")
+    if k_period <= 0 or d_period <= 0:
+        raise ValueError("k_period and d_period must be greater than zero.")
+
+    required = {"High", "Low", "Close"}
+    missing = required.difference(market_data.columns)
+    if missing:
+        raise ValueError(
+            "Stochastic requires columns: " + ", ".join(sorted(missing))
+        )
+
+    high = pd.to_numeric(market_data["High"], errors="coerce")
+    low = pd.to_numeric(market_data["Low"], errors="coerce")
+    close = pd.to_numeric(market_data["Close"], errors="coerce")
+
+    lowest_low = low.rolling(k_period, min_periods=k_period).min()
+    highest_high = high.rolling(k_period, min_periods=k_period).max()
+    price_range = highest_high - lowest_low
+
+    percent_k = 100.0 * (close - lowest_low) / price_range
+    percent_k = percent_k.where(price_range != 0, 50.0)
+    percent_d = percent_k.rolling(d_period, min_periods=d_period).mean()
+
+    return pd.DataFrame(
+        {
+            f"STOCH_K_{k_period}": percent_k,
+            f"STOCH_D_{d_period}": percent_d,
+        },
+        index=market_data.index,
+    )
+
+
+def calculate_roc(
+    market_data: pd.DataFrame,
+    period: int = 20,
+    price_column: str = "Close",
+) -> pd.Series:
+    """Calculate percentage Rate of Change."""
+    prices = _validate_market_data(
+        market_data=market_data,
+        price_column=price_column,
+        period=period + 1,
+    )
+    roc = prices.pct_change(periods=period) * 100.0
+    roc.name = f"ROC_{period}"
+    return roc

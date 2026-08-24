@@ -1,7 +1,38 @@
 import { useEffect, useState } from "react";
-import MetricCard from "../components/ui/MetricCard";
 import "./Dashboard.css";
 
+
+
+function QmiIcon({ name, size = 16 }) {
+  const common = {
+    width: size, height: size, viewBox: "0 0 24 24", fill: "none",
+    stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round",
+    strokeLinejoin: "round", "aria-hidden": "true",
+  };
+
+  const icons = {
+    command: <><path d="M4 17V7"/><path d="M8 17V11"/><path d="M12 17V4"/><path d="M16 17V9"/><path d="M20 17V6"/></>,
+    performance: <><path d="M3 17l5-5 4 3 7-8"/><path d="M15 7h4v4"/></>,
+    risk: <><path d="M12 3l8 4v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7l8-4z"/><path d="M12 8v5"/><path d="M12 17h.01"/></>,
+    decision: <><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M4.9 4.9L7 7M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></>,
+    news: <><path d="M5 4h12a2 2 0 012 2v14H7a2 2 0 01-2-2V4z"/><path d="M8 8h8M8 12h8M8 16h5"/></>,
+    market: <><path d="M4 18V9M10 18V5M16 18v-7M22 18H2"/></>,
+  };
+
+  return <svg {...common}>{icons[name] ?? icons.command}</svg>;
+}
+
+function SectionIdentity({ icon, kicker, title }) {
+  return (
+    <div className="gf-section-identity">
+      <span className="gf-section-icon"><QmiIcon name={icon} size={16} /></span>
+      <div>
+        <span className="gf-kicker">{kicker}</span>
+        <h2>{title}</h2>
+      </div>
+    </div>
+  );
+}
 
 const PORTFOLIO_HISTORY_PERIODS = [
   { label: "1M", value: "1mo" },
@@ -334,6 +365,81 @@ function normalizeInsights(ai) {
   }));
 }
 
+function cleanNewsTitle(title, source) {
+  const rawTitle = String(title || "").trim();
+  const rawSource = String(source || "").trim();
+
+  if (!rawTitle || !rawSource) {
+    return rawTitle;
+  }
+
+  const suffix = ` - ${rawSource}`;
+
+  return rawTitle.toLowerCase().endsWith(suffix.toLowerCase())
+    ? rawTitle.slice(0, -suffix.length).trim()
+    : rawTitle;
+}
+
+function getNewsImpactRank(impact) {
+  const normalized = String(impact || "").toLowerCase();
+
+  if (normalized === "high") {
+    return 3;
+  }
+
+  if (normalized === "medium") {
+    return 2;
+  }
+
+  if (normalized === "low") {
+    return 1;
+  }
+
+  return 0;
+}
+
+function formatNewsTime(value) {
+  if (!value || value === "--") {
+    return "--";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  const elapsedMs = Date.now() - date.getTime();
+  const elapsedMinutes = Math.floor(elapsedMs / 60000);
+
+  if (elapsedMinutes >= 0 && elapsedMinutes < 1) {
+    return "now";
+  }
+
+  if (elapsedMinutes >= 1 && elapsedMinutes < 60) {
+    return `${elapsedMinutes}m ago`;
+  }
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+
+  if (elapsedHours >= 1 && elapsedHours < 24) {
+    return `${elapsedHours}h ago`;
+  }
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+
+  if (elapsedDays >= 1 && elapsedDays < 7) {
+    return `${elapsedDays}d ago`;
+  }
+
+  return date.toLocaleString("es-ES", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 function normalizeNews(newsPayload) {
   const news =
     newsPayload?.articles ??
@@ -345,28 +451,75 @@ function normalizeNews(newsPayload) {
     return [];
   }
 
-  return news.slice(0, 6).map((item) => ({
-    source:
-      item?.source ??
-      item?.publisher ??
-      item?.category ??
-      "MARKET",
-    time:
-      item?.published_at ??
-      item?.published_time ??
-      item?.publishedAt ??
-      item?.time ??
-      "--",
-    title:
-      item?.title ??
-      item?.headline ??
-      item?.summary ??
-      "Market update unavailable",
-    url: item?.url ?? null,
-    sentiment: item?.sentiment ?? "neutral",
-    impact: item?.impact ?? "medium",
-    category: item?.category ?? "markets",
-  }));
+  const normalized = news
+    .map((item) => {
+      const source =
+        item?.source ??
+        item?.publisher ??
+        item?.category ??
+        "MARKET";
+
+      const publishedAt =
+        item?.published_at ??
+        item?.published_time ??
+        item?.publishedAt ??
+        item?.time ??
+        "--";
+
+      const title =
+        item?.title ??
+        item?.headline ??
+        item?.summary ??
+        "Market update unavailable";
+
+      return {
+        source,
+        time: publishedAt,
+        title: cleanNewsTitle(title, source),
+        url: item?.url ?? null,
+        sentiment: String(item?.sentiment ?? "neutral").toLowerCase(),
+        impact: String(item?.impact ?? "medium").toLowerCase(),
+        category: item?.category ?? "markets",
+      };
+    })
+    .filter((item) => item.title);
+
+  const deduplicated = [];
+  const seen = new Set();
+
+  normalized.forEach((item) => {
+    const key = item.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+
+    if (!key || seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    deduplicated.push(item);
+  });
+
+  return deduplicated
+    .sort((a, b) => {
+      const impactDifference =
+        getNewsImpactRank(b.impact) -
+        getNewsImpactRank(a.impact);
+
+      if (impactDifference !== 0) {
+        return impactDifference;
+      }
+
+      const aTime = new Date(a.time).getTime();
+      const bTime = new Date(b.time).getTime();
+
+      const safeATime = Number.isFinite(aTime) ? aTime : 0;
+      const safeBTime = Number.isFinite(bTime) ? bTime : 0;
+
+      return safeBTime - safeATime;
+    })
+    .slice(0, 6);
 }
 
 function buildHistoryChart(history, benchmark = []) {
@@ -539,11 +692,26 @@ function buildHistoryChart(history, benchmark = []) {
     `L${last.x.toFixed(2)},${height} ` +
     `L${first.x.toFixed(2)},${height} Z`;
 
+  const benchmarkCoordinates = hasBenchmark
+    ? buildCoordinates(benchmarkValues)
+    : [];
+
   const benchmarkLinePath = hasBenchmark
-    ? buildPath(
-        buildCoordinates(benchmarkValues),
-      )
+    ? buildPath(benchmarkCoordinates)
     : null;
+
+  const portfolioLastPoint =
+    portfolioCoordinates[portfolioCoordinates.length - 1] ?? null;
+
+  const benchmarkLastPoint =
+    benchmarkCoordinates[benchmarkCoordinates.length - 1] ?? null;
+
+  const baselineY =
+    chartMin <= 100 && chartMax >= 100
+      ? topPadding +
+        chartHeight -
+        ((100 - chartMin) / (chartMax - chartMin)) * chartHeight
+      : null;
 
   const labelIndexes = [
     0,
@@ -576,12 +744,26 @@ function buildHistoryChart(history, benchmark = []) {
     },
   );
 
+  const yTicks = [
+    chartMax,
+    chartMin + (chartMax - chartMin) * 0.75,
+    chartMin + (chartMax - chartMin) * 0.5,
+    chartMin + (chartMax - chartMin) * 0.25,
+    chartMin,
+  ];
+
   return {
     portfolioLinePath,
     portfolioAreaPath,
     benchmarkLinePath,
+    portfolioLastPoint,
+    benchmarkLastPoint,
+    baselineY,
     labels,
     hasBenchmark,
+    chartMin,
+    chartMax,
+    yTicks,
   };
 }
 
@@ -597,6 +779,7 @@ function Dashboard({
   const [newsPayload, setNewsPayload] = useState(null);
   const [newsLoading, setNewsLoading] = useState(true);
   const [newsError, setNewsError] = useState(null);
+  const [newsRefreshKey, setNewsRefreshKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -636,7 +819,7 @@ function Dashboard({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [newsRefreshKey]);
 
   const summary = portfolio?.summary ?? portfolio ?? {};
 
@@ -709,6 +892,46 @@ function Dashboard({
     toFiniteNumber(
       historicalSummary?.absolute_return
     );
+
+  const historicalStartValue =
+    toFiniteNumber(historicalSummary?.start_value);
+
+  const historicalEndValue =
+    toFiniteNumber(historicalSummary?.end_value);
+
+  const historicalMaxValue =
+    toFiniteNumber(historicalSummary?.max_value);
+
+  const historicalMinValue =
+    toFiniteNumber(historicalSummary?.min_value);
+
+  const relativePerformanceLabel =
+    alphaReturn === null
+      ? "--"
+      : alphaReturn > 0
+        ? "OUTPERFORMING"
+        : alphaReturn < 0
+          ? "UNDERPERFORMING"
+          : "IN LINE";
+
+  const relativePerformanceStatus =
+    alphaReturn === null
+      ? "neutral"
+      : getStatusFromValue(alphaReturn);
+
+  const drawdownSeverity =
+    riskMaxDrawdown === null
+      ? "neutral"
+      : Math.abs(riskMaxDrawdown) >= 30
+        ? "negative"
+        : Math.abs(riskMaxDrawdown) >= 15
+          ? "warning"
+          : "positive";
+
+  const drawdownBarWidth =
+    riskMaxDrawdown === null
+      ? 0
+      : Math.min(Math.abs(riskMaxDrawdown), 50) / 50 * 100;
 
   const historicalObservations =
     toFiniteNumber(
@@ -843,6 +1066,15 @@ function Dashboard({
   const news =
     normalizeNews(newsPayload);
 
+  const newsProvider =
+    newsPayload?.provider ?? "Market feed";
+
+  const newsCount =
+    toFiniteNumber(newsPayload?.count);
+
+  const newsGeneratedAt =
+    newsPayload?.generated_at ?? null;
+
   const sectorCount =
     Array.isArray(portfolio?.sector_allocation)
       ? portfolio.sector_allocation.length
@@ -858,834 +1090,760 @@ function Dashboard({
         100
       : null;
 
+  const terminalMarketAssets = watchlist.slice(0, 4);
+
+  const marketUpdatedAt =
+    market?.updated_at ??
+    market?.last_update ??
+    market?.timestamp ??
+    newsGeneratedAt ??
+    null;
+
+  const terminalRiskLabel =
+    concentrationStatus === "negative"
+      ? "HIGH"
+      : concentrationStatus === "warning"
+        ? "MODERATE"
+        : concentrationStatus === "positive"
+          ? "CONTROLLED"
+          : "--";
+
+  const marketRegime =
+    market?.regime ??
+    market?.market_regime ??
+    market?.regime_label ??
+    "--";
+
+  const normalizedAiConfidence =
+    toFiniteNumber(aiConfidence);
+
+  const aiConfidenceDisplay =
+    normalizedAiConfidence !== null
+      ? `${normalizedAiConfidence.toLocaleString("es-ES", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        })}%`
+      : "--";
+
+  const newsSentimentCounts = news.reduce(
+    (accumulator, item) => {
+      const sentiment = ["positive", "negative", "neutral"].includes(
+        item.sentiment,
+      )
+        ? item.sentiment
+        : "neutral";
+
+      accumulator[sentiment] += 1;
+      return accumulator;
+    },
+    { positive: 0, negative: 0, neutral: 0 },
+  );
+
+  const dominantNewsSentiment =
+    news.length === 0
+      ? "--"
+      : Object.entries(newsSentimentCounts).sort(
+          (a, b) => b[1] - a[1],
+        )[0][0].toUpperCase();
+
+  const decisionEngineLabel =
+    String(aiStatus || "").toLowerCase() === "unavailable"
+      ? "AWAITING SIGNAL"
+      : String(aiStatus || "--").toUpperCase();
+
   return (
-    <main className="dashboard">
-      <section className="dashboard__header">
-        <div className="dashboard__heading">
-          <span className="dashboard__eyebrow">
-            QUANTUM MARKET INTELLIGENCE
-          </span>
-
-          <h1 className="dashboard__title">
-            Dashboard Overview
-          </h1>
-
-          <p className="dashboard__description">
-            Institutional market intelligence, portfolio
-            monitoring and AI-assisted decision support from a
-            unified control center.
-          </p>
+    <main className="gf-dashboard">
+      <header className="gf-topline">
+        <div className="gf-topline__identity">
+          <span className="gf-product-mark">Q</span>
+          <div>
+            <span className="gf-kicker">QUANTUM MARKET INTELLIGENCE</span>
+            <h1>Portfolio Command Center</h1>
+          </div>
         </div>
 
-        <div
-          className={`dashboard__status ${
-            marketIsLive
-              ? "dashboard__status--open"
-              : "dashboard__status--closed"
-          }`}
-          aria-label={marketStatusText}
-        >
-          <span
-            className="dashboard__status-dot"
-            aria-hidden="true"
-          />
-
-          {marketStatusText}
+        <div className="gf-topline__status">
+          <div>
+            <span>MARKET</span>
+            <strong className={marketIsLive ? "is-positive" : ""}>
+              {marketStatusText}
+            </strong>
+          </div>
+          <div>
+            <span>PORTFOLIO RISK</span>
+            <strong className={`is-${concentrationStatus}`}>
+              {terminalRiskLabel}
+            </strong>
+          </div>
+          <div>
+            <span>AI ENGINE</span>
+            <strong>{decisionEngineLabel}</strong>
+          </div>
+          <div>
+            <span>UPDATED</span>
+            <strong>
+              {marketUpdatedAt
+                ? formatNewsTime(marketUpdatedAt)
+                : "LIVE"}
+            </strong>
+          </div>
         </div>
+      </header>
+
+      <section className="gf-market-strip" aria-label="Live market strip">
+        <div className="gf-market-strip__portfolio">
+          <span>ACTIVE PORTFOLIO</span>
+          <strong>{portfolioValueDisplay}</strong>
+          <small className={`is-${totalReturnStatus}`}>
+            {totalReturnPercentageDisplay} total return
+          </small>
+        </div>
+
+        {watchlist.slice(0, 6).map((asset) => (
+          <div className="gf-market-tile" key={asset.ticker}>
+            <span>{asset.ticker}</span>
+            <strong>{asset.price}</strong>
+            <small className={`is-${asset.status}`}>
+              {asset.change}
+            </small>
+          </div>
+        ))}
       </section>
 
-      <section
-        className="dashboard__metrics"
-        aria-label="Portfolio and market metrics"
-      >
-        <MetricCard
-          label="Portfolio Value"
-          value={portfolioValueDisplay}
-          change={totalReturnPercentageDisplay}
-          changeLabel="Total return"
-          status={totalReturnStatus}
-          icon="◈"
-        />
-
-        <MetricCard
-          label="Daily P&L"
-          value={dailyProfitLossDisplay}
-          change={dailyPercentageDisplay}
-          changeLabel={
-            coveredPositions > 0
-              ? "vs. previous close"
-              : "market close data unavailable"
-          }
-          status={dailyStatus}
-          icon={dailyStatus === "negative" ? "↘" : "↗"}
-        />
-
-        <MetricCard
-          label="Total Return"
-          value={totalReturnPercentageDisplay}
-          change={totalProfitLossDisplay}
-          changeLabel={`Cost basis ${totalCostDisplay}`}
-          status={totalReturnStatus}
-          icon="◇"
-        />
-
-        <MetricCard
-          label="AI Confidence"
-          value={
-            toFiniteNumber(aiConfidence) !== null
-              ? compactPercentage(aiConfidence)
-              : "--"
-          }
-          change={aiStatus}
-          changeLabel="Decision engine"
-          status={
-            toFiniteNumber(aiConfidence) === null
-              ? "neutral"
-              : Number(aiConfidence) >= 50
-                ? "positive"
-                : "warning"
-          }
-          icon="✦"
-        />
-      </section>
-
-      <section className="dashboard__primary-grid">
-        <article className="dashboard-panel dashboard-panel--portfolio">
-          <header className="dashboard-panel__header">
-            <div>
-              <span className="dashboard-panel__eyebrow">
-                PORTFOLIO INTELLIGENCE
-              </span>
-
-              <h2 className="dashboard-panel__title">
-                Portfolio performance
-              </h2>
-            </div>
-
-            <span
-              className={`dashboard-panel__badge ${
-                totalReturnStatus === "negative"
-                  ? "dashboard-panel__badge--negative"
-                  : ""
-              }`}
-            >
-              {historicalReturn !== null
-                ? `${historicalPeriodLabel} ${percentage(historicalReturn)}`
-                : `RETURN ${totalReturnPercentageDisplay}`}
+      <section className="gf-kpis" aria-label="Executive portfolio metrics">
+        <article className="gf-kpi gf-kpi--primary">
+          <div className="gf-kpi__head">
+            <span>PORTFOLIO VALUE</span>
+            <i>LIVE</i>
+          </div>
+          <strong>{portfolioValueDisplay}</strong>
+          <div className="gf-kpi__footer">
+            <span className={`is-${totalReturnStatus}`}>
+              {totalReturnPercentageDisplay}
             </span>
-          </header>
-
-          <div className="portfolio-summary">
-            <div>
-              <span className="portfolio-summary__label">
-                Current value
-              </span>
-
-              <strong className="portfolio-summary__value">
-                {portfolioValueDisplay}
-              </strong>
-            </div>
-
-            <div
-              className={`portfolio-summary__change portfolio-summary__change--${totalReturnStatus}`}
-            >
-              <span>Unrealized return</span>
-              <strong>{totalProfitLossDisplay}</strong>
-
-              {historicalAbsoluteReturn !== null && (
-                <small
-                  style={{
-                    display: "block",
-                    marginTop: "0.25rem",
-                    color:
-                      "var(--text-muted, #64748b)",
-                    fontSize: "0.65rem",
-                  }}
-                >
-                  {historicalPeriodLabel} history{" "}
-                  {money(
-                    historicalAbsoluteReturn,
-                    portfolioHistory?.currency ||
-                      portfolioCurrency
-                  )}
-                </small>
-              )}
-            </div>
-          </div>
-
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "0.4rem",
-              margin: "0.8rem 0 0.35rem",
-              alignItems: "center",
-            }}
-            aria-label="Portfolio history period selector"
-          >
-            {PORTFOLIO_HISTORY_PERIODS.map(
-              (period) => {
-                const selected =
-                  period.value ===
-                  portfolioHistoryPeriod;
-
-                return (
-                  <button
-                    key={period.value}
-                    type="button"
-                    onClick={() =>
-                      onPortfolioHistoryPeriodChange(
-                        period.value
-                      )
-                    }
-                    disabled={
-                      portfolioHistoryLoading
-                    }
-                    aria-pressed={selected}
-                    style={{
-                      minWidth: "2.8rem",
-                      height: "1.9rem",
-                      padding: "0 0.65rem",
-                      borderRadius: "0.45rem",
-                      border: selected
-                        ? "1px solid rgba(56, 189, 248, 0.55)"
-                        : "1px solid rgba(148, 163, 184, 0.14)",
-                      background: selected
-                        ? "rgba(14, 165, 233, 0.14)"
-                        : "rgba(15, 23, 42, 0.28)",
-                      color: selected
-                        ? "var(--text-primary, #e2e8f0)"
-                        : "var(--text-muted, #64748b)",
-                      fontSize: "0.67rem",
-                      fontWeight: 700,
-                      letterSpacing: "0.04em",
-                      cursor:
-                        portfolioHistoryLoading
-                          ? "wait"
-                          : "pointer",
-                      opacity:
-                        portfolioHistoryLoading &&
-                        !selected
-                          ? 0.55
-                          : 1,
-                    }}
-                  >
-                    {period.label}
-                  </button>
-                );
-              }
-            )}
-
-            {portfolioHistoryLoading && (
-              <span
-                style={{
-                  marginLeft: "0.25rem",
-                  color:
-                    "var(--text-muted, #64748b)",
-                  fontSize: "0.67rem",
-                }}
-              >
-                Loading {historicalPeriodLabel}…
-              </span>
-            )}
-          </div>
-
-          <div
-            className="portfolio-chart"
-            role="img"
-            aria-label={
-              historyChart
-                ? "Portfolio performance compared with S&P 500"
-                : "Portfolio historical performance unavailable"
-            }
-          >
-            <div className="portfolio-chart__grid" />
-
-            {historyChart ? (
-              <>
-                <svg
-                  className="portfolio-chart__line"
-                  viewBox="0 0 700 220"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <linearGradient
-                      id="portfolioHistoricalArea"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="0%"
-                        stopColor="currentColor"
-                        stopOpacity="0.28"
-                      />
-                      <stop
-                        offset="100%"
-                        stopColor="currentColor"
-                        stopOpacity="0"
-                      />
-                    </linearGradient>
-                  </defs>
-
-                  <path
-                    className="portfolio-chart__area"
-                    d={historyChart.portfolioAreaPath}
-                    fill="url(#portfolioHistoricalArea)"
-                  />
-
-                  <path
-                    className="portfolio-chart__stroke"
-                    d={historyChart.portfolioLinePath}
-                  />
-
-                  {historyChart.benchmarkLinePath && (
-                    <path
-                      d={historyChart.benchmarkLinePath}
-                      fill="none"
-                      stroke="#f59e0b"
-                      strokeWidth="2"
-                      strokeDasharray="7 5"
-                      vectorEffect="non-scaling-stroke"
-                    />
-                  )}
-                </svg>
-
-                <div className="portfolio-chart__axis">
-                  {historyChart.labels.map(
-                    (label, index) => (
-                      <span key={`${label}-${index}`}>
-                        {label}
-                      </span>
-                    )
-                  )}
-                </div>
-
-                <div
-                  style={{
-                    position: "absolute",
-                    top: "0.65rem",
-                    right: "0.9rem",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "flex-end",
-                    gap: "0.65rem",
-                    alignItems: "center",
-                    fontSize: "0.68rem",
-                    color: "var(--text-muted, #64748b)",
-                  }}
-                >
-                  <span>
-                    {historicalPeriodLabel} ·{" "}
-                    {historicalObservations ?? historicalPoints.length} sessions
-                  </span>
-
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: "0.32rem",
-                    }}
-                  >
-                    <span
-                      aria-hidden="true"
-                      style={{
-                        width: "0.9rem",
-                        height: "2px",
-                        borderRadius: "999px",
-                        background: "currentColor",
-                        display: "inline-block",
-                      }}
-                    />
-                    Portfolio{" "}
-                    <strong
-                      style={{
-                        color:
-                          getStatusFromValue(historicalReturn) === "negative"
-                            ? "var(--negative, #fb7185)"
-                            : "var(--positive, #34d399)",
-                      }}
-                    >
-                      {historicalReturn !== null
-                        ? percentage(historicalReturn)
-                        : "--"}
-                    </strong>
-                  </span>
-
-                  {historyChart.hasBenchmark && (
-                    <span
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "0.32rem",
-                        color: "#f59e0b",
-                      }}
-                    >
-                      <span
-                        aria-hidden="true"
-                        style={{
-                          width: "0.9rem",
-                          borderTop: "2px dashed #f59e0b",
-                          display: "inline-block",
-                        }}
-                      />
-                      S&P 500{" "}
-                      <strong>
-                        {benchmarkReturn !== null
-                          ? percentage(benchmarkReturn)
-                          : "--"}
-                      </strong>
-                    </span>
-                  )}
-
-                  {alphaReturn !== null && historyChart.hasBenchmark && (
-                    <span
-                      style={{
-                        padding: "0.18rem 0.42rem",
-                        borderRadius: "0.35rem",
-                        border:
-                          getStatusFromValue(alphaReturn) === "negative"
-                            ? "1px solid rgba(251, 113, 133, 0.28)"
-                            : "1px solid rgba(52, 211, 153, 0.28)",
-                        background:
-                          getStatusFromValue(alphaReturn) === "negative"
-                            ? "rgba(251, 113, 133, 0.08)"
-                            : "rgba(52, 211, 153, 0.08)",
-                      }}
-                    >
-                      Alpha{" "}
-                      <strong
-                        style={{
-                          color:
-                            getStatusFromValue(alphaReturn) === "negative"
-                              ? "var(--negative, #fb7185)"
-                              : "var(--positive, #34d399)",
-                        }}
-                      >
-                        {percentage(alphaReturn)} pp
-                      </strong>
-                    </span>
-                  )}
-                </div>
-              </>
-            ) : (
-              <div
-                style={{
-                  position: "absolute",
-                  inset: "0 0 1.75rem",
-                  display: "grid",
-                  placeItems: "center",
-                  padding: "1.5rem",
-                  textAlign: "center",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      color:
-                        "var(--text-secondary, #cbd5e1)",
-                      fontSize: "0.86rem",
-                      fontWeight: 600,
-                      marginBottom: "0.45rem",
-                    }}
-                  >
-                    Historical performance unavailable
-                  </div>
-
-                  <div
-                    style={{
-                      color:
-                        "var(--text-muted, #64748b)",
-                      fontSize: "0.72rem",
-                      lineHeight: 1.55,
-                      maxWidth: "29rem",
-                    }}
-                  >
-                    QMI could not retrieve enough historical
-                    market observations for the current
-                    portfolio.
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div
-            aria-label="Portfolio risk metrics"
-            style={{
-              marginTop: "0.9rem",
-              paddingTop: "0.85rem",
-              borderTop: "1px solid rgba(148, 163, 184, 0.12)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: "1rem",
-                marginBottom: "0.55rem",
-              }}
-            >
-              <span
-                style={{
-                  color: "var(--text-muted, #64748b)",
-                  fontSize: "0.64rem",
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                }}
-              >
-                RISK ANALYTICS · {historicalPeriodLabel}
-              </span>
-
-              <span
-                style={{
-                  color: "var(--text-muted, #64748b)",
-                  fontSize: "0.64rem",
-                }}
-              >
-                {riskObservations !== null
-                  ? `${Math.round(riskObservations)} observations`
-                  : "Risk metrics unavailable"}
-              </span>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(auto-fit, minmax(110px, 1fr))",
-                gap: "0.5rem",
-              }}
-            >
-              {[
-                {
-                  label: "Volatility",
-                  value:
-                    riskVolatility !== null
-                      ? percentage(riskVolatility, {
-                          showPositiveSign: false,
-                        })
-                      : "--",
-                },
-                {
-                  label: "Sharpe",
-                  value:
-                    riskSharpe !== null
-                      ? riskSharpe.toLocaleString("es-ES", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                      : "--",
-                },
-                {
-                  label: "Max drawdown",
-                  value:
-                    riskMaxDrawdown !== null
-                      ? percentage(riskMaxDrawdown, {
-                          showPositiveSign: false,
-                        })
-                      : "--",
-                },
-                {
-                  label: "Beta",
-                  value:
-                    riskBeta !== null
-                      ? riskBeta.toLocaleString("es-ES", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                      : "--",
-                },
-                {
-                  label: "Tracking error",
-                  value:
-                    riskTrackingError !== null
-                      ? percentage(riskTrackingError, {
-                          showPositiveSign: false,
-                        })
-                      : "--",
-                },
-                {
-                  label: "Information ratio",
-                  value:
-                    riskInformationRatio !== null
-                      ? riskInformationRatio.toLocaleString("es-ES", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })
-                      : "--",
-                },
-              ].map((metric) => (
-                <div
-                  key={metric.label}
-                  style={{
-                    minWidth: 0,
-                    padding: "0.65rem 0.7rem",
-                    borderRadius: "0.5rem",
-                    border:
-                      "1px solid rgba(148, 163, 184, 0.12)",
-                    background: "rgba(15, 23, 42, 0.22)",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "block",
-                      color: "var(--text-muted, #64748b)",
-                      fontSize: "0.59rem",
-                      fontWeight: 700,
-                      letterSpacing: "0.055em",
-                      textTransform: "uppercase",
-                      marginBottom: "0.28rem",
-                    }}
-                  >
-                    {metric.label}
-                  </span>
-
-                  <strong
-                    style={{
-                      display: "block",
-                      color: "var(--text-primary, #e2e8f0)",
-                      fontSize: "0.9rem",
-                      lineHeight: 1.2,
-                    }}
-                  >
-                    {metric.value}
-                  </strong>
-                </div>
-              ))}
-            </div>
+            <small>Total return</small>
           </div>
         </article>
 
-        <article className="dashboard-panel dashboard-panel--allocation">
-          <header className="dashboard-panel__header">
-            <div>
-              <span className="dashboard-panel__eyebrow">
-                ASSET ALLOCATION
-              </span>
+        <article className="gf-kpi">
+          <div className="gf-kpi__head">
+            <span>DAILY P&amp;L</span>
+            <i className={`is-${dailyStatus}`}>
+              {dailyStatus === "negative" ? "▼" : dailyStatus === "positive" ? "▲" : "—"}
+            </i>
+          </div>
+          <strong>{dailyProfitLossDisplay}</strong>
+          <div className="gf-kpi__footer">
+            <span className={`is-${dailyStatus}`}>
+              {dailyPercentageDisplay}
+            </span>
+            <small>vs. previous close</small>
+          </div>
+        </article>
 
-              <h2 className="dashboard-panel__title">
-                Exposure profile
-              </h2>
+        <article className="gf-kpi">
+          <div className="gf-kpi__head">
+            <span>TOTAL RETURN</span>
+            <i>YTD</i>
+          </div>
+          <strong>{totalReturnPercentageDisplay}</strong>
+          <div className="gf-kpi__footer">
+            <span className={`is-${totalReturnStatus}`}>
+              {totalProfitLossDisplay}
+            </span>
+            <small>Cost basis {totalCostDisplay}</small>
+          </div>
+        </article>
+
+        <article className="gf-kpi">
+          <div className="gf-kpi__head">
+            <span>ALPHA vs S&amp;P 500</span>
+            <i>{historicalPeriodLabel}</i>
+          </div>
+          <strong className={alphaReturn !== null ? `is-${getStatusFromValue(alphaReturn)}` : ""}>
+            {alphaReturn !== null ? `${percentage(alphaReturn)} pp` : "--"}
+          </strong>
+          <div className="gf-kpi__footer">
+            <span>
+              S&amp;P {benchmarkReturn !== null ? percentage(benchmarkReturn) : "--"}
+            </span>
+            <small>Benchmark relative performance</small>
+          </div>
+        </article>
+      </section>
+
+      <section className="gf-main-grid">
+        <article className="gf-panel gf-performance gf-performance--pro">
+          <header className="gf-panel__header gf-performance__header">
+            <div>
+              <span className="gf-kicker">PORTFOLIO PERFORMANCE PRO</span>
+              <h2>Portfolio vs S&amp;P 500</h2>
+            </div>
+
+            <div className="gf-performance__header-actions">
+              <div className={`gf-relative-badge is-${relativePerformanceStatus}`}>
+                {relativePerformanceLabel}
+              </div>
+
+              <div className="gf-period-control">
+                <span>PERIOD</span>
+                <div
+                  className="gf-periods"
+                  aria-label="Portfolio history period selector"
+                >
+                {PORTFOLIO_HISTORY_PERIODS.map((period) => {
+                  const selected =
+                    period.value === portfolioHistoryPeriod;
+
+                  return (
+                    <button
+                      key={period.value}
+                      type="button"
+                      onClick={() =>
+                        onPortfolioHistoryPeriodChange(period.value)
+                      }
+                      disabled={portfolioHistoryLoading}
+                      className={selected ? "is-active" : ""}
+                    >
+                      {period.label}
+                    </button>
+                  );
+                })}
+                </div>
+              </div>
             </div>
           </header>
 
-          <div className="allocation-score">
-            <div
-              className={`allocation-score__ring allocation-score__ring--${concentrationStatus}`}
-              style={{
-                "--risk-score": `${
-                  Math.min(
-                    Math.max(
-                      toFiniteNumber(
-                        largestPositionWeight,
-                      ) ?? 0,
-                      0,
-                    ),
-                    100,
-                  )
-                }%`,
-              }}
-            >
-              <span>
-                {toFiniteNumber(
-                  largestPositionWeight,
-                ) !== null
-                  ? Math.round(
-                      Number(largestPositionWeight),
-                    )
+          <div className="gf-performance__summary gf-performance__summary--pro gf-performance__summary--clean">
+            <div>
+              <span>{historicalPeriodLabel} PORTFOLIO RETURN</span>
+              <strong
+                className={
+                  historicalReturn !== null
+                    ? `is-${getStatusFromValue(historicalReturn)}`
+                    : ""
+                }
+              >
+                {historicalReturn !== null
+                  ? percentage(historicalReturn)
                   : "--"}
-              </span>
-
-              <small>MAX WT</small>
+              </strong>
+              <small>
+                {historicalAbsoluteReturn !== null
+                  ? `${money(
+                      historicalAbsoluteReturn,
+                      portfolioCurrency,
+                    )} absolute`
+                  : "Absolute return --"}
+              </small>
             </div>
 
             <div>
-              <strong>
-                {getConcentrationLabel(
-                  largestPositionWeight,
-                )}
+              <span>{historicalPeriodLabel} S&amp;P 500</span>
+              <strong
+                className={
+                  benchmarkReturn !== null
+                    ? `is-${getStatusFromValue(benchmarkReturn)}`
+                    : ""
+                }
+              >
+                {benchmarkReturn !== null
+                  ? percentage(benchmarkReturn)
+                  : "--"}
               </strong>
+              <small>Benchmark return</small>
+            </div>
 
+            <div>
+              <span>RELATIVE ALPHA</span>
+              <strong
+                className={
+                  alphaReturn !== null
+                    ? `is-${getStatusFromValue(alphaReturn)}`
+                    : ""
+                }
+              >
+                {alphaReturn !== null
+                  ? `${percentage(alphaReturn)} pp`
+                  : "--"}
+              </strong>
+              <small>{relativePerformanceLabel}</small>
+            </div>
+
+            <div>
+              <span>OBSERVATIONS</span>
+              <strong>
+                {historicalObservations ??
+                  historicalPoints.length ??
+                  "--"}
+              </strong>
+              <small>Trading sessions</small>
+            </div>
+          </div>
+
+          <div className="gf-performance__body">
+            <div className="gf-performance__plot">
+              <div className="gf-chart gf-chart--pro">
+                <div className="gf-chart__grid" />
+
+                {historyChart ? (
+                  <>
+                    <svg
+                      className="gf-chart__svg"
+                      viewBox="0 0 700 220"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
+                      <defs>
+                        <linearGradient
+                          id="gfPortfolioArea"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#5b8cff"
+                            stopOpacity="0.24"
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#5b8cff"
+                            stopOpacity="0"
+                          />
+                        </linearGradient>
+                      </defs>
+
+                      <path
+                        className="gf-chart__area"
+                        d={historyChart.portfolioAreaPath}
+                        fill="url(#gfPortfolioArea)"
+                      />
+
+                      {historyChart.baselineY !== null && (
+                        <line
+                          className="gf-chart__baseline"
+                          x1="0"
+                          x2="700"
+                          y1={historyChart.baselineY}
+                          y2={historyChart.baselineY}
+                        />
+                      )}
+
+                      <path
+                        className="gf-chart__portfolio"
+                        d={historyChart.portfolioLinePath}
+                      />
+
+                      {historyChart.benchmarkLinePath && (
+                        <path
+                          className="gf-chart__benchmark"
+                          d={historyChart.benchmarkLinePath}
+                        />
+                      )}
+
+                      {historyChart.portfolioLastPoint && (
+                        <circle
+                          className="gf-chart__endpoint gf-chart__endpoint--portfolio"
+                          cx={historyChart.portfolioLastPoint.x}
+                          cy={historyChart.portfolioLastPoint.y}
+                          r="3.5"
+                        />
+                      )}
+
+                      {historyChart.benchmarkLastPoint && (
+                        <circle
+                          className="gf-chart__endpoint gf-chart__endpoint--benchmark"
+                          cx={historyChart.benchmarkLastPoint.x}
+                          cy={historyChart.benchmarkLastPoint.y}
+                          r="3"
+                        />
+                      )}
+                    </svg>
+
+                    <div className="gf-chart__legend">
+                      <span>
+                        <i className="portfolio" />
+                        Portfolio
+                      </span>
+                      <span>
+                        <i className="benchmark" />
+                        S&amp;P 500
+                      </span>
+                      <span>
+                        {historicalObservations ??
+                          historicalPoints.length}{" "}
+                        sessions
+                      </span>
+                    </div>
+
+                    <div className="gf-chart__yaxis">
+                      {historyChart.yTicks.map((tick, index) => (
+                        <span key={`${tick}-${index}`}>
+                          {tick.toFixed(0)}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="gf-chart__axis">
+                      {historyChart.labels.map(
+                        (label, index) => (
+                          <span key={`${label}-${index}`}>
+                            {label}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="gf-empty">
+                    Historical performance unavailable
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <aside className="gf-performance__intel">
+              <div className="gf-performance-intel__title">
+                <span>PERFORMANCE INTELLIGENCE</span>
+                <strong>{historicalPeriodLabel}</strong>
+              </div>
+
+              <div className="gf-performance-intel__hero">
+                <span>RELATIVE PERFORMANCE</span>
+                <strong
+                  className={`is-${relativePerformanceStatus}`}
+                >
+                  {relativePerformanceLabel}
+                </strong>
+                <small>
+                  Alpha{" "}
+                  {alphaReturn !== null
+                    ? `${percentage(alphaReturn)} pp`
+                    : "--"}
+                </small>
+              </div>
+
+              <div className="gf-performance-intel__rows">
+                <div>
+                  <span>Start value</span>
+                  <strong>
+                    {historicalStartValue !== null
+                      ? money(
+                          historicalStartValue,
+                          portfolioCurrency,
+                        )
+                      : "--"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>End value</span>
+                  <strong>
+                    {historicalEndValue !== null
+                      ? money(
+                          historicalEndValue,
+                          portfolioCurrency,
+                        )
+                      : portfolioValueDisplay}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Period high</span>
+                  <strong>
+                    {historicalMaxValue !== null
+                      ? money(
+                          historicalMaxValue,
+                          portfolioCurrency,
+                        )
+                      : "--"}
+                  </strong>
+                </div>
+
+                <div>
+                  <span>Period low</span>
+                  <strong>
+                    {historicalMinValue !== null
+                      ? money(
+                          historicalMinValue,
+                          portfolioCurrency,
+                        )
+                      : "--"}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="gf-drawdown">
+                <div className="gf-drawdown__head">
+                  <span>MAX DRAWDOWN</span>
+                  <strong
+                    className={`is-${drawdownSeverity}`}
+                  >
+                    {riskMaxDrawdown !== null
+                      ? percentage(
+                          riskMaxDrawdown,
+                          {
+                            showPositiveSign: false,
+                          },
+                        )
+                      : "--"}
+                  </strong>
+                </div>
+
+                <div className="gf-drawdown__track">
+                  <span
+                    className={`is-${drawdownSeverity}`}
+                    style={{
+                      width: `${drawdownBarWidth}%`,
+                    }}
+                  />
+                </div>
+
+                <small>
+                  0% ────────────── -50%
+                </small>
+              </div>
+
+            </aside>
+          </div>
+
+        </article>
+
+        <article className="gf-panel gf-risk">
+          <header className="gf-panel__header">
+            <SectionIdentity icon="risk" kicker="PORTFOLIO INTELLIGENCE" title="Exposure & Risk" />
+            <span className={`gf-risk__badge is-${concentrationStatus}`}>
+              {terminalRiskLabel}
+            </span>
+          </header>
+
+          <div className="gf-risk__hero">
+            <div
+              className={`gf-risk__ring is-${concentrationStatus}`}
+              style={{
+                "--risk-score": `${Math.min(
+                  Math.max(toFiniteNumber(largestPositionWeight) ?? 0, 0),
+                  100,
+                )}%`,
+              }}
+            >
+              <strong>
+                {toFiniteNumber(largestPositionWeight) !== null
+                  ? `${Math.round(Number(largestPositionWeight))}%`
+                  : "--"}
+              </strong>
+              <span>MAX WEIGHT</span>
+            </div>
+
+            <div>
+              <span>CONCENTRATION</span>
+              <h3>{getConcentrationLabel(largestPositionWeight)}</h3>
               <p>
-                Largest-position weight derived from the current
-                marked-to-market portfolio snapshot.
+                Largest-position weight in the current marked-to-market portfolio.
               </p>
             </div>
           </div>
 
-          <div className="allocation-list">
+          <div className="gf-risk__scale">
+            <div>
+              <span>Largest position</span>
+              <strong>{compactPercentage(largestPositionWeight)}</strong>
+            </div>
+            <div className="gf-risk__track">
+              <span
+                className={`is-${concentrationStatus}`}
+                style={{
+                  width: `${Math.min(
+                    Math.max(toFiniteNumber(largestPositionWeight) ?? 0, 0),
+                    100,
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="gf-risk__metrics">
+            <div>
+              <span>BETA</span>
+              <strong>{riskBeta !== null ? riskBeta.toFixed(2) : "--"}</strong>
+            </div>
+            <div>
+              <span>VOLATILITY</span>
+              <strong>
+                {riskVolatility !== null
+                  ? percentage(riskVolatility, { showPositiveSign: false })
+                  : "--"}
+              </strong>
+            </div>
+            <div>
+              <span>MAX DD</span>
+              <strong className="is-negative">
+                {riskMaxDrawdown !== null
+                  ? percentage(riskMaxDrawdown, { showPositiveSign: false })
+                  : "--"}
+              </strong>
+            </div>
+            <div>
+              <span>SHARPE</span>
+              <strong>{riskSharpe !== null ? riskSharpe.toFixed(2) : "--"}</strong>
+            </div>
+          </div>
+
+          <div className="gf-allocation">
+            <div className="gf-subhead">
+              <span>SECTOR EXPOSURE</span>
+              <small>{sectorCount} groups</small>
+            </div>
+
             {allocation.length > 0 ? (
               allocation.map((item) => {
-                const normalizedValue = Math.min(
-                  Math.max(
-                    toFiniteNumber(item.value) ?? 0,
-                    0,
-                  ),
+                const value = Math.min(
+                  Math.max(toFiniteNumber(item.value) ?? 0, 0),
                   100,
                 );
 
                 return (
-                  <div
-                    className="allocation-item"
-                    key={item.label}
-                  >
-                    <div className="allocation-item__header">
+                  <div className="gf-allocation__row" key={item.label}>
+                    <div>
                       <span>{item.label}</span>
-
-                      <strong>
-                        {normalizedValue.toLocaleString(
-                          "es-ES",
-                          {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 1,
-                          },
-                        )}
-                        %
-                      </strong>
+                      <strong>{value.toFixed(0)}%</strong>
                     </div>
-
-                    <div className="allocation-item__track">
-                      <span
-                        style={{
-                          width: `${normalizedValue}%`,
-                        }}
-                      />
+                    <div>
+                      <span style={{ width: `${value}%` }} />
                     </div>
                   </div>
                 );
               })
             ) : (
-              <div
-                style={{
-                  color:
-                    "var(--text-muted, #64748b)",
-                  fontSize: "0.76rem",
-                  lineHeight: 1.5,
-                }}
-              >
-                No portfolio allocation data available.
+              <div className="gf-empty gf-empty--small">
+                No allocation data available.
               </div>
             )}
           </div>
-        </article>
-      </section>
 
-      <section className="dashboard__secondary-grid">
-        <article className="dashboard-panel">
-          <header className="dashboard-panel__header">
+          <div className="gf-risk__footer">
             <div>
-              <span className="dashboard-panel__eyebrow">
-                LIVE MARKET
-              </span>
-
-              <h2 className="dashboard-panel__title">
-                Watchlist
-              </h2>
+              <span>PRICE COVERAGE</span>
+              <strong>{compactPercentage(priceCoverage)}</strong>
             </div>
-          </header>
-
-          <div className="watchlist">
-            <div className="watchlist__head">
-              <span>Asset</span>
-              <span>Price</span>
-              <span>Change</span>
+            <div>
+              <span>OPEN POSITIONS</span>
+              <strong>{positions.length}</strong>
             </div>
-
-            {watchlist.length > 0 ? (
-              watchlist.map((asset) => (
-                <div
-                  className="watchlist__row"
-                  key={asset.ticker}
-                >
-                  <div className="watchlist__asset">
-                    <strong>{asset.ticker}</strong>
-                    <span>{asset.company}</span>
-                  </div>
-
-                  <span className="watchlist__price">
-                    {asset.price}
-                  </span>
-
-                  <span
-                    className={`watchlist__change watchlist__change--${asset.status}`}
-                  >
-                    {asset.change}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div
-                style={{
-                  padding: "1rem 0",
-                  color:
-                    "var(--text-muted, #64748b)",
-                  fontSize: "0.76rem",
-                }}
-              >
-                Live market data unavailable.
-              </div>
-            )}
           </div>
         </article>
 
-        <article className="dashboard-panel">
-          <header className="dashboard-panel__header">
-            <div>
-              <span className="dashboard-panel__eyebrow">
-                QMI INTELLIGENCE
-              </span>
-
-              <h2 className="dashboard-panel__title">
-                AI insights
-              </h2>
-            </div>
-
-            <span className="dashboard-panel__badge">
-              {insights.length} ACTIVE
-            </span>
+        <article className="gf-panel gf-decision gf-decision--primary">
+          <header className="gf-panel__header">
+            <SectionIdentity icon="decision" kicker="QMI DECISION ENGINE" title="Decision Intelligence" />
+            <span className="gf-panel__counter">{insights.length} MODEL SIGNALS</span>
           </header>
 
-          <div className="insight-list">
+          <div className="gf-decision__overview">
+            <div className="gf-decision__signal">
+              <i className="gf-context-icon"><QmiIcon name="decision" size={15} /></i>
+              <span>GLOBAL SIGNAL</span>
+              <strong>{decisionEngineLabel}</strong>
+              <small>
+                {insights.length > 0
+                  ? "Decision-engine output available"
+                  : "Awaiting model signals"}
+              </small>
+            </div>
+
+            <div>
+              <i className="gf-context-icon"><QmiIcon name="performance" size={15} /></i>
+              <span>CONFIDENCE</span>
+              <strong>{aiConfidenceDisplay}</strong>
+              <small>Model confidence</small>
+            </div>
+
+            <div>
+              <i className="gf-context-icon"><QmiIcon name="market" size={15} /></i>
+              <span>MARKET REGIME</span>
+              <strong>{String(marketRegime).toUpperCase()}</strong>
+              <small>{marketStatusText}</small>
+            </div>
+
+            <div>
+              <i className="gf-context-icon"><QmiIcon name="risk" size={15} /></i>
+              <span>PORTFOLIO RISK</span>
+              <strong className={`is-${concentrationStatus}`}>
+                {terminalRiskLabel}
+              </strong>
+              <small>{getConcentrationLabel(largestPositionWeight)}</small>
+            </div>
+          </div>
+
+          <div className="gf-factor-table">
+            <div className="gf-factor-table__head">
+              <span>FACTOR</span>
+              <span>SIGNAL</span>
+              <span>CONTEXT</span>
+            </div>
+
+            <div>
+              <strong className="gf-factor-name"><i><QmiIcon name="performance" size={14} /></i>Technical</strong>
+              <span>--</span>
+              <small>Awaiting technical signal</small>
+            </div>
+
+            <div>
+              <strong className="gf-factor-name"><i><QmiIcon name="command" size={14} /></i>Fundamental</strong>
+              <span>--</span>
+              <small>Awaiting fundamental score</small>
+            </div>
+
+            <div>
+              <strong className="gf-factor-name"><i><QmiIcon name="market" size={14} /></i>Market</strong>
+              <span>{String(marketRegime).toUpperCase()}</span>
+              <small>{marketStatusText}</small>
+            </div>
+
+            <div>
+              <strong className="gf-factor-name"><i><QmiIcon name="risk" size={14} /></i>Risk</strong>
+              <span className={`is-${concentrationStatus}`}>{terminalRiskLabel}</span>
+              <small>
+                Beta {riskBeta !== null ? riskBeta.toFixed(2) : "--"} · DD{" "}
+                {riskMaxDrawdown !== null
+                  ? percentage(riskMaxDrawdown, {
+                      showPositiveSign: false,
+                      maximumFractionDigits: 1,
+                    })
+                  : "--"}
+              </small>
+            </div>
+
+            <div>
+              <strong className="gf-factor-name"><i><QmiIcon name="news" size={14} /></i>News Sentiment</strong>
+              <span>{dominantNewsSentiment}</span>
+              <small>{news.length} ranked articles</small>
+            </div>
+          </div>
+
+          <div className="gf-decision__live">
             {insights.length > 0 ? (
               insights.map((insight, index) => (
-                <div
-                  className="insight-item"
-                  key={`${insight.title}-${index}`}
-                >
-                  <span
-                    className={`insight-item__indicator insight-item__indicator--${insight.status}`}
-                  />
-
+                <div key={`${insight.title}-${index}`}>
+                  <span className={`gf-signal-dot is-${insight.status}`} />
                   <div>
-                    <span className="insight-item__type">
-                      {insight.type}
-                    </span>
-
+                    <small>{insight.type}</small>
                     <strong>{insight.title}</strong>
                     <p>{insight.description}</p>
                   </div>
                 </div>
               ))
             ) : (
-              <div className="insight-item">
-                <span className="insight-item__indicator insight-item__indicator--neutral" />
-
+              <div>
+                <span className="gf-signal-dot" />
                 <div>
-                  <span className="insight-item__type">
-                    STATUS
-                  </span>
-
-                  <strong>
-                    No live AI insights available
-                  </strong>
-
+                  <strong>Decision engine awaiting model signals</strong>
                   <p>
-                    QMI will display decision-engine insights here
-                    when the AI endpoint provides live signals.
+                    Live market, portfolio, risk and news context is available.
+                    Model-derived recommendations remain blank until the AI endpoint
+                    provides validated signals.
                   </p>
                 </div>
               </div>
@@ -1694,195 +1852,70 @@ function Dashboard({
         </article>
       </section>
 
-      <section className="dashboard__tertiary-grid">
-        <article className="dashboard-panel">
-          <header className="dashboard-panel__header">
-            <div>
-              <span className="dashboard-panel__eyebrow">
-                INFORMATION FLOW
-              </span>
+      <section className="gf-panel gf-news">
+        <header className="gf-panel__header">
+          <SectionIdentity icon="news" kicker="INFORMATION FLOW" title="Market Intelligence" />
 
-              <h2 className="dashboard-panel__title">
-                Market intelligence
-              </h2>
-            </div>
-          </header>
+          <div className="gf-news__actions">
+            <span>{newsCount ?? news.length} ARTICLES</span>
+            <button
+              type="button"
+              onClick={() => setNewsRefreshKey((value) => value + 1)}
+              disabled={newsLoading}
+            >
+              {newsLoading ? "REFRESHING" : "REFRESH"}
+            </button>
+          </div>
+        </header>
 
-          <div className="news-list">
-            {newsLoading ? (
-              <article className="news-item">
-                <div className="news-item__meta">
-                  <span>LIVE FEED</span>
-                  <time>Loading…</time>
+        <div className="gf-news__meta">
+          <span>{newsProvider}</span>
+          <span>
+            {newsGeneratedAt ? `Updated ${formatNewsTime(newsGeneratedAt)}` : "Live market feed"}
+          </span>
+        </div>
+
+        {newsError ? (
+          <div className="gf-empty">
+            Market intelligence unavailable: {newsError}
+          </div>
+        ) : news.length > 0 ? (
+          <div className="gf-news__grid">
+            {news.map((item, index) => (
+              <article className="gf-news-card" key={`${item.title}-${index}`}>
+                <div className="gf-news-card__meta">
+                  <span>{item.source}</span>
+                  <time>{formatNewsTime(item.time)}</time>
                 </div>
-                <h3>Retrieving market intelligence…</h3>
-              </article>
-            ) : news.length > 0 ? (
-              news.map((item, index) => {
-                const publishedDate = item.time && item.time !== "--"
-                  ? new Date(item.time)
-                  : null;
 
-                const timeLabel =
-                  publishedDate && !Number.isNaN(publishedDate.getTime())
-                    ? publishedDate.toLocaleString("es-ES", {
-                        day: "2-digit",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
-                    : item.time;
-
-                return (
-                  <article
-                    className="news-item"
-                    key={`${item.time}-${item.title}-${index}`}
-                  >
-                    <div className="news-item__meta">
-                      <span>
-                        {item.source} · {String(item.category).toUpperCase()}
-                      </span>
-                      <time>{timeLabel}</time>
-                    </div>
-
-                    <div
-                      style={{
-                        display: "flex",
-                        gap: "0.4rem",
-                        flexWrap: "wrap",
-                        margin: "0.35rem 0 0.45rem",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: "0.58rem",
-                          fontWeight: 800,
-                          letterSpacing: "0.06em",
-                          textTransform: "uppercase",
-                          color:
-                            item.sentiment === "positive"
-                              ? "var(--positive, #34d399)"
-                              : item.sentiment === "negative"
-                                ? "var(--negative, #fb7185)"
-                                : "var(--text-muted, #94a3b8)",
-                        }}
-                      >
-                        {item.sentiment}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "0.58rem",
-                          fontWeight: 800,
-                          letterSpacing: "0.06em",
-                          textTransform: "uppercase",
-                          color:
-                            item.impact === "high"
-                              ? "#f59e0b"
-                              : "var(--text-muted, #94a3b8)",
-                        }}
-                      >
-                        IMPACT {item.impact}
-                      </span>
-                    </div>
-
-                    <h3>
-                      {item.url ? (
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={{
-                            color: "inherit",
-                            textDecoration: "none",
-                          }}
-                        >
-                          {item.title}
-                        </a>
-                      ) : (
-                        item.title
-                      )}
-                    </h3>
-                  </article>
-                );
-              })
-            ) : (
-              <article className="news-item">
-                <div className="news-item__meta">
-                  <span>{newsError ? "FEED ERROR" : "STATUS"}</span>
-                  <time>--</time>
+                <div className="gf-news-card__badges">
+                  <span className={`is-${item.sentiment}`}>
+                    {item.sentiment.toUpperCase()}
+                  </span>
+                  <span className={`impact-${item.impact}`}>
+                    {item.impact.toUpperCase()} IMPACT
+                  </span>
                 </div>
 
                 <h3>
-                  {newsError
-                    ? `Market intelligence unavailable: ${newsError}`
-                    : "No market intelligence articles available."}
+                  {item.url ? (
+                    <a href={item.url} target="_blank" rel="noreferrer">
+                      {item.title}
+                    </a>
+                  ) : (
+                    item.title
+                  )}
                 </h3>
               </article>
-            )}
+            ))}
           </div>
-        </article>
-
-        <article className="dashboard-panel dashboard-panel--risk">
-          <header className="dashboard-panel__header">
-            <div>
-              <span className="dashboard-panel__eyebrow">
-                PORTFOLIO CONTROLS
-              </span>
-
-              <h2 className="dashboard-panel__title">
-                Live portfolio diagnostics
-              </h2>
-            </div>
-          </header>
-
-          <div className="risk-grid">
-            <div className="risk-metric">
-              <span>Largest position</span>
-
-              <strong>
-                {compactPercentage(
-                  largestPositionWeight,
-                )}
-              </strong>
-
-              <small>
-                Current concentration
-              </small>
-            </div>
-
-            <div className="risk-metric">
-              <span>Open positions</span>
-
-              <strong>{positions.length}</strong>
-
-              <small>
-                Persisted portfolio records
-              </small>
-            </div>
-
-            <div className="risk-metric">
-              <span>Sector groups</span>
-
-              <strong>{sectorCount}</strong>
-
-              <small>
-                Current sector allocation
-              </small>
-            </div>
-
-            <div className="risk-metric">
-              <span>Price coverage</span>
-
-              <strong>
-                {compactPercentage(priceCoverage)}
-              </strong>
-
-              <small>
-                Positions with live valuation
-              </small>
-            </div>
+        ) : (
+          <div className="gf-empty">
+            {newsLoading
+              ? "Loading market intelligence…"
+              : "No market intelligence articles available."}
           </div>
-        </article>
+        )}
       </section>
     </main>
   );

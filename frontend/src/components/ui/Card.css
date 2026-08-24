@@ -1,17 +1,27 @@
 .qmi-card {
   position: relative;
+  isolation: isolate;
 
   display: flex;
   min-width: 0;
   flex-direction: column;
 
-  background: var(--surface-primary);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.018),
+      transparent 34%
+    ),
+    var(--surface-primary);
+
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
 
   overflow: hidden;
 
-  box-shadow: var(--shadow-card);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.018),
+    var(--shadow-card);
 
   transition:
     background var(--transition-normal),
@@ -22,19 +32,48 @@
 }
 
 /* =========================================================
+   SURFACE DEPTH
+   ========================================================= */
+
+.qmi-card::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+
+  background:
+    radial-gradient(
+      circle at 92% 8%,
+      rgba(91, 140, 255, 0.045),
+      transparent 30%
+    );
+
+  content: "";
+  pointer-events: none;
+}
+
+/* =========================================================
    HOVER
    ========================================================= */
 
 .qmi-card--hoverable:hover {
-  background: var(--surface-secondary);
-  border-color: var(--border-accent);
-  box-shadow: var(--shadow-md);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.025),
+      transparent 36%
+    ),
+    var(--surface-secondary);
+
+  border-color: var(--border-strong);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    var(--shadow-md);
+
   transform: translateY(-2px);
 }
 
 .qmi-card--hoverable::before {
-  content: "";
-
   position: absolute;
   z-index: 2;
   top: 0;
@@ -50,6 +89,7 @@
     transparent
   );
 
+  content: "";
   opacity: 0;
   pointer-events: none;
 
@@ -57,7 +97,7 @@
 }
 
 .qmi-card--hoverable:hover::before {
-  opacity: 1;
+  opacity: 0.88;
 }
 
 /* =========================================================
@@ -65,34 +105,68 @@
    ========================================================= */
 
 .qmi-card--default {
-  background: var(--surface-primary);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.016),
+      transparent 35%
+    ),
+    var(--surface-primary);
 }
 
 .qmi-card--elevated {
-  background: var(--surface-secondary);
-  box-shadow: var(--shadow-md);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.028),
+      transparent 42%
+    ),
+    var(--surface-secondary);
+
+  border-color: var(--border-strong);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    var(--shadow-md);
 }
 
 .qmi-card--hero {
   background:
+    radial-gradient(
+      circle at 88% 16%,
+      rgba(91, 140, 255, 0.12),
+      transparent 32%
+    ),
     linear-gradient(
-      180deg,
-      rgba(91, 140, 255, 0.07),
-      transparent 42%
+      135deg,
+      rgba(91, 140, 255, 0.075),
+      rgba(91, 140, 255, 0.018) 48%,
+      transparent 72%
     ),
     var(--surface-primary);
 
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(
+    in srgb,
+    var(--accent-primary) 30%,
+    var(--border-strong)
+  );
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    var(--shadow-md);
 }
 
 .qmi-card--compact {
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-xs);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.015),
+    var(--shadow-xs);
 }
 
 .qmi-card--flat {
   background: transparent;
+  border-color: transparent;
   box-shadow: none;
 }
 
@@ -121,19 +195,35 @@
    ========================================================= */
 
 .qmi-card--accent-primary {
-  border-top-color: var(--accent-primary);
+  border-top-color: color-mix(
+    in srgb,
+    var(--accent-primary) 68%,
+    var(--border-default)
+  );
 }
 
 .qmi-card--accent-positive {
-  border-top-color: var(--status-positive);
+  border-top-color: color-mix(
+    in srgb,
+    var(--status-positive) 68%,
+    var(--border-default)
+  );
 }
 
 .qmi-card--accent-warning {
-  border-top-color: var(--status-warning);
+  border-top-color: color-mix(
+    in srgb,
+    var(--status-warning) 68%,
+    var(--border-default)
+  );
 }
 
 .qmi-card--accent-negative {
-  border-top-color: var(--status-negative);
+  border-top-color: color-mix(
+    in srgb,
+    var(--status-negative) 68%,
+    var(--border-default)
+  );
 }
 
 .qmi-card--accent-left-primary {
@@ -153,7 +243,7 @@
 }
 
 /* =========================================================
-   HEADER
+   HEADER / BODY / FOOTER
    ========================================================= */
 
 .qmi-card__header {
@@ -165,12 +255,9 @@
 
 .qmi-card__header--divided {
   padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-default);
-}
 
-/* =========================================================
-   BODY
-   ========================================================= */
+  border-bottom: 1px solid var(--border-subtle);
+}
 
 .qmi-card__body {
   position: relative;
@@ -180,10 +267,6 @@
   flex: 1;
 }
 
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
 .qmi-card__footer {
   position: relative;
   z-index: 1;
@@ -191,7 +274,7 @@
   margin-top: var(--card-header-gap);
   padding-top: var(--space-4);
 
-  border-top: 1px solid var(--border-default);
+  border-top: 1px solid var(--border-subtle);
 }
 
 /* =========================================================
@@ -212,7 +295,8 @@
   justify-content: center;
 
   background: var(--background-overlay);
-  backdrop-filter: blur(3px);
+
+  backdrop-filter: blur(4px);
 }
 
 .qmi-card__loading-spinner {
@@ -245,6 +329,18 @@
 /* =========================================================
    ACCESSIBILITY
    ========================================================= */
+
+.qmi-card:focus-within {
+  border-color: color-mix(
+    in srgb,
+    var(--accent-primary) 58%,
+    var(--border-default)
+  );
+
+  box-shadow:
+    var(--shadow-focus),
+    var(--shadow-card);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .qmi-card,

@@ -104,6 +104,188 @@ class NewsService:
 
         return sentiment, impact
 
+    @staticmethod
+    def _normalize_entity(value: str | None) -> str:
+        return " ".join(str(value or "").casefold().split())
+
+    @classmethod
+    def _portfolio_relevance(
+        cls,
+        title: str,
+        positions: list[Any],
+    ) -> tuple[list[str], float]:
+        """
+        Detects which current portfolio positions are referenced by a headline.
+
+        Score:
+        - 1.00: ticker + company match
+        - 0.92: company match
+        - 0.82: ticker match
+        - 0.35: sector match
+        - 0.00: no portfolio relationship
+
+        The method intentionally uses only current PortfolioPosition metadata.
+        """
+        text = cls._normalize_entity(title)
+        related_tickers: list[str] = []
+        best_score = 0.0
+
+        for position in positions:
+            ticker = str(getattr(position, "ticker", "") or "").strip().upper()
+            company = str(getattr(position, "company", "") or "").strip()
+            sector = str(getattr(position, "sector", "") or "").strip()
+
+            ticker_key = cls._normalize_entity(ticker)
+            company_key = cls._normalize_entity(company)
+            sector_key = cls._normalize_entity(sector)
+
+            ticker_match = bool(
+                ticker_key
+                and (
+                    f" {ticker_key} " in f" {text} "
+                    or f"${ticker_key}" in text
+                )
+            )
+            company_match = bool(company_key and company_key in text)
+            sector_match = bool(
+                sector_key
+                and len(sector_key) >= 4
+                and sector_key in text
+            )
+
+            score = 0.0
+            if ticker_match and company_match:
+                score = 1.0
+            elif company_match:
+                score = 0.92
+            elif ticker_match:
+                score = 0.82
+            elif sector_match:
+                score = 0.35
+
+            if score > 0.0:
+                if ticker and ticker not in related_tickers:
+                    related_tickers.append(ticker)
+                best_score = max(best_score, score)
+
+        return related_tickers, round(best_score, 2)
+
+    @staticmethod
+    def _build_portfolio_query(positions: list[Any]) -> str:
+        """
+        Builds a compact Google News query from the current portfolio.
+
+        Example:
+            NIO OR "NIO Inc" OR PLTR OR "Palantir Technologies"
+        """
+        terms: list[str] = []
+        seen: set[str] = set()
+
+        for position in positions:
+            ticker = str(getattr(position, "ticker", "") or "").strip()
+            company = str(getattr(position, "company", "") or "").strip()
+
+            for value, quoted in ((ticker, False), (company, True)):
+                if not value:
+                    continue
+
+                key = value.casefold()
+                if key in seen:
+                    continue
+
+                seen.add(key)
+                terms.append(f'"{value}"' if quoted and " " in value else value)
+
+        return " OR ".join(terms)
+
+    def get_portfolio_intelligence(
+        self,
+        positions: list[Any],
+        limit: int = 12,
+    ) -> dict[str, Any]:
+        """
+        Returns news related to the CURRENT portfolio.
+
+        Sprint 005.6.1 foundation:
+        - generates the search query from PortfolioPosition ticker/company
+        - tags each article with related_tickers
+        - exposes portfolio_relevant and portfolio_relevance
+        - preserves Sprint 005.5 sentiment/impact classification
+        """
+        safe_limit = max(1, min(limit, 30))
+        query = self._build_portfolio_query(positions)
+
+        if not positions or not query:
+            return {
+                "status": "degraded",
+                "provider": "Google News RSS",
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "mode": "portfolio",
+                "query": query,
+                "positions": len(positions),
+                "count": 0,
+                "articles": [],
+            }
+
+        try:
+            raw_items = self._fetch_rss(query)
+        except Exception:
+            raw_items = []
+
+        seen_titles: set[str] = set()
+        articles: list[dict[str, Any]] = []
+
+        for item in raw_items:
+            title = item["title"]
+            normalized_title = title.casefold()
+
+            if normalized_title in seen_titles:
+                continue
+
+            seen_titles.add(normalized_title)
+            sentiment, impact = self._classify(title)
+            related_tickers, relevance = self._portfolio_relevance(
+                title,
+                positions,
+            )
+
+            articles.append(
+                {
+                    **item,
+                    "category": "portfolio" if relevance > 0 else "markets",
+                    "sentiment": sentiment,
+                    "impact": impact,
+                    "related_tickers": related_tickers,
+                    "portfolio_relevant": relevance > 0,
+                    "portfolio_relevance": relevance,
+                }
+            )
+
+        impact_rank = {"high": 2, "medium": 1, "low": 0}
+
+        articles.sort(
+            key=lambda article: (
+                article["portfolio_relevance"],
+                impact_rank.get(article["impact"], 0),
+                article.get("published_at") or "",
+            ),
+            reverse=True,
+        )
+
+        articles = articles[:safe_limit]
+
+        return {
+            "status": "ok" if articles else "degraded",
+            "provider": "Google News RSS",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "mode": "portfolio",
+            "query": query,
+            "positions": len(positions),
+            "count": len(articles),
+            "articles": articles,
+        }
+
+
     def get_market_intelligence(
         self,
         limit: int = 12,

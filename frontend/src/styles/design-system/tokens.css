@@ -24,6 +24,10 @@
     Consolas,
     monospace;
 
+  /* Legacy typography compatibility — remove after full CSS migration */
+  --font-family-primary: var(--font-family-sans);
+  --font-family-code: var(--font-family-mono);
+
   /* =========================================================
      FONT SCALE
      ========================================================= */
@@ -38,6 +42,17 @@
   --font-size-3xl: 2.25rem;
   --font-size-4xl: 2.75rem;
   --font-size-display: 3.5rem;
+
+  /* Legacy font-scale compatibility */
+  --font-2xs: var(--font-size-2xs);
+  --font-xs: var(--font-size-xs);
+  --font-sm: var(--font-size-sm);
+  --font-md: var(--font-size-md);
+  --font-lg: var(--font-size-lg);
+  --font-xl: var(--font-size-xl);
+  --font-2xl: var(--font-size-2xl);
+  --font-3xl: var(--font-size-3xl);
+  --font-4xl: var(--font-size-4xl);
 
   /* Semantic typography */
 
@@ -120,6 +135,9 @@
   --surface-secondary: var(--color-surface-raised);
   --surface-hover: var(--color-surface-hover);
   --surface-active: var(--color-surface-active);
+  --surface-base: var(--color-surface);
+  --surface-raised: var(--color-surface-raised);
+  --surface-interactive: var(--color-surface-hover);
 
   /* =========================================================
      BORDERS
@@ -272,6 +290,15 @@
 
   --dashboard-column-gap: 14px;
   --dashboard-row-gap: 14px;
+
+  /* Semantic layout rhythm */
+  --layout-sidebar-width: var(--sidebar-width);
+  --layout-content-max: var(--content-max-width);
+  --layout-topbar-height: var(--topbar-height);
+  --layout-page-x: var(--page-padding-x);
+  --layout-page-y: var(--page-padding-y);
+  --layout-grid-x: var(--dashboard-column-gap);
+  --layout-grid-y: var(--dashboard-row-gap);
 
   /* =========================================================
      COMPONENT SIZING

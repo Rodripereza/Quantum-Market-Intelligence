@@ -12,12 +12,27 @@ from typing import Any
 import pandas as pd
 
 from app.indicators import (
+    calculate_atr,
     calculate_ema,
     calculate_macd,
     calculate_rsi,
     calculate_sma,
 )
 from app.indicators.trend import IndicatorInputError
+from app.services.technical.scoring import (
+    VolumeScoringError,
+    volume_score_engine,
+    VolatilityScoringError,
+    volatility_score_engine,
+    MomentumScoringError,
+    momentum_score_engine,
+    RegimeScoringError,
+    market_regime_engine,
+    StrengthScoringError,
+    TrendScoringError,
+    strength_score_engine,
+    trend_score_engine,
+)
 
 
 class TechnicalAnalysisError(ValueError):
@@ -106,6 +121,31 @@ class TechnicalService:
                 price_column=price_column,
             )
 
+            atr_14 = calculate_atr(
+                market_data=market_data,
+                period=14,
+            )
+
+            trend_score = trend_score_engine.calculate(market_data)
+            strength_score = strength_score_engine.calculate(
+                market_data=market_data,
+                trend_score=trend_score.score,
+            )
+            regime = market_regime_engine.calculate(
+                trend=trend_score,
+                strength=strength_score,
+            )
+            momentum_score = momentum_score_engine.calculate(
+                market_data=market_data,
+                regime=regime,
+            )
+            volatility_score = volatility_score_engine.calculate(
+                market_data=market_data,
+            )
+            volume_score = volume_score_engine.calculate(
+                market_data=market_data,
+            )
+
             macd = calculate_macd(
                 market_data=market_data,
                 fast_period=macd_fast_period,
@@ -114,7 +154,16 @@ class TechnicalService:
                 price_column=price_column,
             )
 
-        except (IndicatorInputError, ValueError) as exc:
+        except (
+            IndicatorInputError,
+            TrendScoringError,
+            StrengthScoringError,
+            RegimeScoringError,
+            MomentumScoringError,
+            VolatilityScoringError,
+            VolumeScoringError,
+            ValueError,
+        ) as exc:
             raise TechnicalAnalysisError(
                 f"Technical analysis failed for {normalized_symbol}: {exc}"
             ) from exc
@@ -158,6 +207,17 @@ class TechnicalService:
             "observations": len(market_data),
             "trend": trend,
             "momentum": momentum,
+            "volatility": {
+                "atr_14": self._latest_value(atr_14),
+            },
+            "scoring": {
+                "trend": trend_score.to_dict(),
+                "strength": strength_score.to_dict(),
+                "regime": regime.to_dict(),
+                "momentum": momentum_score.to_dict(),
+                "volatility_engine": volatility_score.to_dict(),
+                "volume": volume_score.to_dict(),
+            },
             "signals": self._build_signals(
                 last_price=last_price,
                 trend=trend,
