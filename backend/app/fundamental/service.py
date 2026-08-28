@@ -1,5 +1,5 @@
 """
-Fundamental Analysis Service
+Fundamental Analysis Service — DE-FA-004.0
 
 Orchestrates fundamental data collection and produces
 QMI-level interpretations.
@@ -8,6 +8,7 @@ QMI-level interpretations.
 from app.fundamental.collector import FundamentalCollector
 from app.fundamental.schemas import (
     FundamentalAnalysisResult,
+    FundamentalDecision,
     FundamentalInsight,
 )
 
@@ -34,6 +35,13 @@ class FundamentalService:
         strengths = self._detect_strengths(data)
         weaknesses = self._detect_weaknesses(data)
         warnings = self._detect_warnings(data)
+        decision = self._build_decision(
+            data=data,
+            legacy_score=score,
+            strengths=strengths,
+            weaknesses=weaknesses,
+            warnings=warnings,
+        )
 
         data.fundamental_score = score
 
@@ -44,6 +52,7 @@ class FundamentalService:
             strengths=strengths,
             weaknesses=weaknesses,
             warnings=warnings,
+            decision=decision,
         )
 
     def _calculate_score(
@@ -107,6 +116,32 @@ class FundamentalService:
             elif valuation.forward_pe > 40:
                 score -= 5
 
+        # DE-FA-004.0 — normalized statement-derived confirmation. These adjustments
+        # are deliberately smaller than the snapshot rules to avoid double-counting.
+        trends = data.trends
+
+        if trends.revenue_cagr_3y is not None:
+            if trends.revenue_cagr_3y >= 0.15:
+                score += 4
+            elif trends.revenue_cagr_3y < 0:
+                score -= 4
+
+        if trends.free_cash_flow_margin_ttm is not None:
+            if trends.free_cash_flow_margin_ttm >= 0.10:
+                score += 4
+            elif trends.free_cash_flow_margin_ttm < 0:
+                score -= 4
+
+        if trends.net_cash is not None:
+            if trends.net_cash > 0:
+                score += 3
+            elif trends.net_cash < 0:
+                score -= 3
+
+        # Low provider coverage caps confidence in the numerical score.
+        if data.data_quality.completeness_score < 40:
+            score = min(score, 60.0)
+
         return round(max(0.0, min(score, 100.0)), 2)
 
     @staticmethod
@@ -120,6 +155,132 @@ class FundamentalService:
         if score >= 40:
             return "Weak"
         return "Poor"
+
+
+    @staticmethod
+    def _build_decision(
+        data: FundamentalAnalysisResult,
+        legacy_score: float,
+        strengths: list[str],
+        weaknesses: list[str],
+        warnings: list[str],
+    ) -> FundamentalDecision:
+        """Consolidate quality, regime and legacy score into a fundamental stance."""
+
+        quality = data.quality_intelligence
+        statement = data.statement_intelligence
+
+        quality_score = quality.quality_score
+        regime_score = statement.regime_score
+
+        weighted: list[tuple[float, float]] = []
+
+        if quality_score is not None:
+            weighted.append((quality_score, 0.45))
+
+        if regime_score is not None:
+            weighted.append((regime_score, 0.35))
+
+        weighted.append((legacy_score, 0.20))
+
+        total_weight = sum(weight for _, weight in weighted)
+        decision_score = round(
+            sum(score * weight for score, weight in weighted) / total_weight,
+            1,
+        )
+
+        if decision_score >= 80:
+            stance = "VERY_POSITIVE"
+        elif decision_score >= 68:
+            stance = "POSITIVE"
+        elif decision_score >= 55:
+            stance = "CONSTRUCTIVE"
+        elif decision_score >= 42:
+            stance = "CAUTIOUS"
+        else:
+            stance = "NEGATIVE"
+
+        if (
+            statement.fundamental_regime == "RECOVERY"
+            and stance in {"CAUTIOUS", "CONSTRUCTIVE"}
+            and quality_score is not None
+            and quality_score >= 65
+        ):
+            stance = "CONSTRUCTIVE"
+
+        if (
+            statement.profitability_state == "LOSS_MAKING"
+            and stance == "VERY_POSITIVE"
+        ):
+            stance = "POSITIVE"
+
+        confidence_inputs = [
+            quality.confidence,
+            statement.confidence,
+            data.data_quality.completeness_grade.upper(),
+        ]
+
+        high_votes = sum(
+            item in {"HIGH", "GOOD", "EXCELLENT"}
+            for item in confidence_inputs
+        )
+
+        if high_votes >= 2 and data.data_quality.completeness_score >= 75:
+            conviction = "HIGH"
+        elif data.data_quality.completeness_score >= 60:
+            conviction = "MEDIUM"
+        else:
+            conviction = "LOW"
+
+        thesis: list[str] = []
+        catalysts: list[str] = []
+        risks: list[str] = []
+
+        if statement.revenue_trend == "IMPROVING":
+            thesis.append("Revenue trend is improving")
+
+        if statement.margin_trend == "IMPROVING":
+            thesis.append("Margins are improving")
+
+        if statement.balance_sheet_state == "STRONG":
+            thesis.append("Balance sheet is strong")
+
+        if quality.growth_quality.state == "STRONG":
+            catalysts.append("Growth quality is strong")
+
+        if statement.cash_flow_state == "RECOVERING":
+            catalysts.append("Cash flow is recovering")
+
+        if quality.financial_quality.state in {"GOOD", "STRONG"}:
+            catalysts.append("Financial quality is supportive")
+
+        if statement.profitability_state == "LOSS_MAKING":
+            risks.append("Business remains loss-making")
+
+        if quality.business_quality.state in {"WEAK", "POOR"}:
+            risks.append("Business quality remains weak")
+
+        if quality.valuation_context.state in {"ELEVATED", "EXPENSIVE"}:
+            risks.append("Valuation context is elevated")
+
+        if data.data_quality.currency_mismatch:
+            risks.append("Cross-currency valuation comparability is limited")
+
+        for item in weaknesses:
+            if item not in risks:
+                risks.append(item)
+
+        return FundamentalDecision(
+            stance=stance,
+            decision_score=decision_score,
+            conviction=conviction,
+            quality_score=quality_score,
+            regime_score=regime_score,
+            legacy_score=legacy_score,
+            thesis=thesis,
+            catalysts=catalysts,
+            risks=risks,
+        )
 
     @staticmethod
     def _detect_strengths(
@@ -156,6 +317,21 @@ class FundamentalService:
             and data.financial_health.free_cash_flow > 0
         ):
             strengths.append("Positive free cash flow")
+
+        if (
+            data.trends.revenue_cagr_3y is not None
+            and data.trends.revenue_cagr_3y >= 0.15
+        ):
+            strengths.append("Strong three-year revenue CAGR")
+
+        if (
+            data.trends.free_cash_flow_margin_ttm is not None
+            and data.trends.free_cash_flow_margin_ttm >= 0.10
+        ):
+            strengths.append("Healthy TTM free-cash-flow margin")
+
+        if data.trends.net_cash is not None and data.trends.net_cash > 0:
+            strengths.append("Net cash balance sheet")
 
         return strengths
 
@@ -195,6 +371,21 @@ class FundamentalService:
         ):
             weaknesses.append("High forward valuation")
 
+        if (
+            data.trends.revenue_cagr_3y is not None
+            and data.trends.revenue_cagr_3y < 0
+        ):
+            weaknesses.append("Negative three-year revenue CAGR")
+
+        if (
+            data.trends.free_cash_flow_margin_ttm is not None
+            and data.trends.free_cash_flow_margin_ttm < 0
+        ):
+            weaknesses.append("Negative TTM free-cash-flow margin")
+
+        if data.trends.net_cash is not None and data.trends.net_cash < 0:
+            weaknesses.append("Net debt balance sheet")
+
         return weaknesses
 
     @staticmethod
@@ -225,5 +416,15 @@ class FundamentalService:
 
         if data.financial_health.total_debt is None:
             warnings.append("Total debt data is unavailable")
+
+        if data.data_quality.completeness_score < 60:
+            warnings.append(
+                f"Fundamental dataset coverage is {data.data_quality.completeness_grade.lower()} "
+                f"({data.data_quality.completeness_score:.1f}%)"
+            )
+
+        for warning in data.data_quality.warnings:
+            if warning not in warnings:
+                warnings.append(warning)
 
         return warnings

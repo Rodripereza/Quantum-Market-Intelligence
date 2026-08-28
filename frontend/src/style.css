@@ -6540,3 +6540,129 @@ td {
   }
 }
 
+/* =========================================================
+   QMI — TYPOGRAPHY READABILITY PASS
+   DE-UI-009.1
+   Raises secondary / micro typography one visual step
+   without altering primary titles or KPI hierarchy.
+   ========================================================= */
+
+/* Global secondary text: one readability step up */
+small,
+.caption,
+.helper-text,
+.meta-text,
+.text-muted {
+  font-size: max(var(--font-xs, 11px), 11px);
+  line-height: 1.45;
+}
+
+/* Generic labels used across institutional cards/panels */
+.metric-label,
+.kpi-label,
+.stat-label,
+.card-label {
+  font-size: max(var(--font-sm, 12px), 12px);
+  line-height: 1.35;
+}
+
+/* Secondary descriptions */
+.sub,
+.panel p,
+.row span {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* Card headings */
+.card-title {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* Badges / compact status elements */
+.ok,
+.bad,
+.version-badge {
+  font-size: 11px;
+}
+
+/* Tables and compact data */
+.table-head {
+  font-size: 10px;
+}
+
+.trow,
+.row strong,
+.metric-list strong {
+  font-size: 13px;
+}
+
+.metric-list span {
+  font-size: 12px;
+}
+
+/* Improve muted text visibility without making it dominant */
+small,
+.caption,
+.helper-text,
+.meta-text,
+.text-muted,
+.sub,
+.panel p,
+.row span {
+  color: #8493a8;
+}
+
+/* =========================================================
+   TECHNICAL / DECISION UI — MICROCOPY READABILITY
+   Covers the small institutional labels used by the
+   Technical Confluence, Decision Layer and Scenario Matrix.
+   ========================================================= */
+
+[class*="technical"] small,
+[class*="confluence"] small,
+[class*="decision"] small,
+[class*="scenario"] small,
+[class*="structure"] small {
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+[class*="technical"] [class*="label"],
+[class*="confluence"] [class*="label"],
+[class*="decision"] [class*="label"],
+[class*="scenario"] [class*="label"] {
+  font-size: max(10px, 0.68rem);
+  line-height: 1.35;
+}
+
+[class*="technical"] [class*="meta"],
+[class*="confluence"] [class*="meta"],
+[class*="decision"] [class*="meta"],
+[class*="scenario"] [class*="meta"],
+[class*="technical"] [class*="subtitle"],
+[class*="decision"] [class*="subtitle"],
+[class*="scenario"] [class*="subtitle"] {
+  font-size: max(11px, 0.72rem);
+  line-height: 1.45;
+}
+
+/* Keep compact technical copy readable on large displays */
+@media (min-width: 1400px) {
+  [class*="technical"] small,
+  [class*="confluence"] small,
+  [class*="decision"] small,
+  [class*="scenario"] small,
+  [class*="structure"] small {
+    font-size: 12px;
+  }
+
+  [class*="technical"] [class*="label"],
+  [class*="confluence"] [class*="label"],
+  [class*="decision"] [class*="label"],
+  [class*="scenario"] [class*="label"] {
+    font-size: max(11px, 0.72rem);
+  }
+}
+

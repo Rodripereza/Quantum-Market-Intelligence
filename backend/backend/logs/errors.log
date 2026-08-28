@@ -1,0 +1,35 @@
+2026-08-25 13:05:15,900 | ERROR | yfinance | $IWM: possibly delisted; no price data found  (period=5d)
+2026-08-25 13:05:15,923 | ERROR | yfinance | 
+1 Failed download:
+2026-08-25 13:05:15,923 | ERROR | yfinance | ['IWM']: possibly delisted; no price data found  (period=5d)
+2026-08-27 20:20:13,591 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:20:13,602 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:25:32,889 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:25:32,889 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:26:36,282 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:26:36,286 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:28:07,397 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:28:07,420 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:30:11,976 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:30:12,176 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:38:24,413 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:38:24,497 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:48:05,790 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 20:48:05,823 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 23:53:31,759 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 23:53:32,009 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-27 23:54:56,770 | ERROR | yfinance | HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: XPENG"}}}
+2026-08-28 00:01:00,899 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+2026-08-28 00:19:05,340 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 00:19:05,346 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 00:20:26,533 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+2026-08-28 00:20:44,951 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 00:20:44,966 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 11:39:56,639 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+2026-08-28 11:39:56,719 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+2026-08-28 11:43:32,808 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 11:43:32,825 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 11:51:39,816 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 11:51:39,816 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"Invalid Crumb"}}}
+2026-08-28 12:25:31,868 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}
+2026-08-28 12:25:31,882 | ERROR | yfinance | HTTP Error 401: {"finance":{"result":null,"error":{"code":"Unauthorized","description":"User is unable to access this feature - https://bit.ly/yahoo-finance-api-feedback"}}}

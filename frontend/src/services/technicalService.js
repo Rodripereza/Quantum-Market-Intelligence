@@ -255,3 +255,310 @@ export async function getTechnicalDecision(
     }
   );
 }
+
+export async function getTechnicalActionFramework(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow)
+  });
+
+  return apiRequest(
+    `/api/technical/action-framework/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}
+
+
+export async function getTechnicalRiskExposure(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "")
+    .trim()
+    .toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow)
+  });
+
+  return apiRequest(
+    `/api/technical/risk-exposure/${encodeURIComponent(
+      normalizedSymbol
+    )}?${query.toString()}`,
+    {
+      token,
+      signal
+    }
+  );
+}
+
+
+export async function getTechnicalPositionSizing(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "")
+    .trim()
+    .toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow)
+  });
+
+  return apiRequest(
+    `/api/technical/position-sizing/${encodeURIComponent(
+      normalizedSymbol
+    )}?${query.toString()}`,
+    {
+      token,
+      signal
+    }
+  );
+}
+
+
+export async function getTechnicalExecutionPlan(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "")
+    .trim()
+    .toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow)
+  });
+
+  return apiRequest(
+    `/api/technical/execution-plan/${encodeURIComponent(
+      normalizedSymbol
+    )}?${query.toString()}`,
+    {
+      token,
+      signal
+    }
+  );
+}
+
+
+export async function getTechnicalStateTransition(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow)
+  });
+
+  return apiRequest(
+    `/api/technical/state-transition/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}
+
+export async function getTechnicalStatePersistence(
+  symbol,
+  { limit = 500, token = "", signal } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    limit: String(limit)
+  });
+
+  return apiRequest(
+    `/api/technical/state-transition/persistence/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}
+
+export async function getTechnicalRegimeMaturity(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    historyLimit = 500,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow),
+    history_limit: String(historyLimit)
+  });
+
+  return apiRequest(
+    `/api/technical/state-transition/maturity/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}
+
+export async function getTechnicalTransitionConfirmation(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    historyLimit = 500,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow),
+    history_limit: String(historyLimit)
+  });
+
+  return apiRequest(
+    `/api/technical/state-transition/confirmation/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}
+
+
+export async function getTechnicalDecisionSynthesis(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    historyLimit = 500,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow),
+    history_limit: String(historyLimit)
+  });
+
+  return apiRequest(
+    `/api/technical/decision-synthesis/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}
+
+
+export async function getTechnicalUiSnapshot(
+  symbol,
+  {
+    period = "1y",
+    interval = "1d",
+    pivotWindow = 3,
+    historyLimit = 500,
+    token = "",
+    signal
+  } = {}
+) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+
+  if (!normalizedSymbol) {
+    throw new Error("A ticker symbol is required");
+  }
+
+  const query = new URLSearchParams({
+    period,
+    interval,
+    pivot_window: String(pivotWindow),
+    history_limit: String(historyLimit)
+  });
+
+  return apiRequest(
+    `/api/technical/ui-snapshot/${encodeURIComponent(normalizedSymbol)}?${query.toString()}`,
+    { token, signal }
+  );
+}

@@ -1,6 +1,20 @@
 from datetime import datetime, timezone
+from copy import deepcopy
+from threading import Lock
+from time import monotonic
 
 from app.providers.market.yahoo.yahoo_provider import YahooProvider
+
+
+# ---------------------------------------------------------------------------
+# DE-CORE-001 — Shared Market History Cache
+# ---------------------------------------------------------------------------
+# Short-lived in-process cache shared by every MarketService instance.
+# This prevents repeated Yahoo history downloads while the QMI technical
+# pipeline evaluates the same symbol / period / interval.
+_HISTORY_CACHE_TTL_SECONDS = 30.0
+_HISTORY_CACHE: dict[tuple[str, str, str], tuple[float, list]] = {}
+_HISTORY_CACHE_LOCK = Lock()
 
 
 GLOBAL_MARKET_ASSETS = [
@@ -148,15 +162,50 @@ class MarketService:
         period: str = "1y",
         interval: str = "1d",
     ) -> list:
+        """
+        Return normalized historical market data.
+
+        DE-CORE-001:
+        Reuses a short-lived process-wide cache for identical
+        (symbol, period, interval) requests.
+
+        The cache is shared across MarketService instances because QMI
+        routers instantiate MarketService independently.
+
+        A defensive deepcopy is returned so downstream engines cannot
+        mutate the canonical cached history.
+        """
         normalized_symbol = symbol.strip().upper()
+        normalized_period = str(period or "1y").strip().lower()
+        normalized_interval = str(interval or "1d").strip().lower()
 
         if not normalized_symbol:
             raise ValueError("The symbol cannot be empty.")
 
+        cache_key = (
+            normalized_symbol,
+            normalized_period,
+            normalized_interval,
+        )
+
+        now = monotonic()
+
+        with _HISTORY_CACHE_LOCK:
+            cached = _HISTORY_CACHE.get(cache_key)
+
+            if cached is not None:
+                cached_at, cached_history = cached
+                age = now - cached_at
+
+                if age <= _HISTORY_CACHE_TTL_SECONDS:
+                    return deepcopy(cached_history)
+
+                _HISTORY_CACHE.pop(cache_key, None)
+
         history = self.provider.get_history(
             normalized_symbol,
-            period,
-            interval,
+            normalized_period,
+            normalized_interval,
         )
 
         if len(history) == 0:
@@ -164,4 +213,23 @@ class MarketService:
                 f"No historical data was found for symbol '{normalized_symbol}'."
             )
 
-        return history
+        canonical_history = deepcopy(history)
+
+        with _HISTORY_CACHE_LOCK:
+            _HISTORY_CACHE[cache_key] = (
+                monotonic(),
+                canonical_history,
+            )
+
+            current_time = monotonic()
+            expired_keys = [
+                key
+                for key, (cached_at, _) in _HISTORY_CACHE.items()
+                if current_time - cached_at > _HISTORY_CACHE_TTL_SECONDS
+            ]
+
+            for key in expired_keys:
+                if key != cache_key:
+                    _HISTORY_CACHE.pop(key, None)
+
+        return deepcopy(canonical_history)

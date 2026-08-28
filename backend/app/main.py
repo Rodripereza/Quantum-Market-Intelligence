@@ -11,6 +11,20 @@ from app.api.routes.support_resistance import router as support_resistance_route
 from app.api.routes.liquidity import router as liquidity_router
 from app.api.routes.confluence import router as confluence_router
 from app.api.routes.technical_decision import router as technical_decision_router
+from app.api.routes.technical_scenarios import router as technical_scenarios_router
+from app.api.routes.technical_action import router as technical_action_router
+from app.api.routes.technical_risk_exposure import router as technical_risk_exposure_router
+from app.api.routes.technical_position_sizing import router as technical_position_sizing_router
+from app.api.routes.technical_execution_plan import router as technical_execution_plan_router
+from app.api.routes.technical_state_transition import router as technical_state_transition_router
+from app.api.routes.technical_state_history import router as technical_state_history_router
+from app.api.routes.technical_state_persistence import router as technical_state_persistence_router
+from app.api.routes.technical_regime_maturity import router as technical_regime_maturity_router
+from app.api.routes.technical_transition_confirmation import router as technical_transition_confirmation_router
+from app.api.routes.technical_decision_synthesis import router as technical_decision_synthesis_router
+from app.api.routes.technical_ui_snapshot import router as technical_ui_snapshot_router
+from app.api.routes.technical_setup_engine import router as technical_setup_engine_router
+from app.api.routes.technical_price_plan import router as technical_price_plan_router
 from app.exceptions.base_exception import QMIException
 from app.exceptions.handlers import (
     generic_exception_handler,
@@ -28,6 +42,7 @@ from app.api.routes.portfolio import router as portfolio_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.news import router as news_router
 from app.api.routes.ai import router as ai_router
+from app.api.routes.qmi_decision import router as qmi_decision_router
 
 setup_logging()
 create_db()
@@ -80,6 +95,21 @@ app.include_router(news_router)
 app.include_router(ai_router)
 app.include_router(confluence_router)
 app.include_router(technical_decision_router)
+app.include_router(technical_scenarios_router)
+app.include_router(technical_action_router)
+app.include_router(technical_risk_exposure_router)
+app.include_router(technical_position_sizing_router)
+app.include_router(technical_execution_plan_router)
+app.include_router(technical_state_transition_router)
+app.include_router(technical_state_history_router)
+app.include_router(technical_state_persistence_router)
+app.include_router(technical_regime_maturity_router)
+app.include_router(technical_transition_confirmation_router)
+app.include_router(technical_decision_synthesis_router)
+app.include_router(technical_ui_snapshot_router)
+app.include_router(technical_setup_engine_router)
+app.include_router(technical_price_plan_router)
+app.include_router(qmi_decision_router)
 
 @app.get("/")
 def root():

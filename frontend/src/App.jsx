@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   Activity,
+  BarChart3,
   Bell,
   Brain,
   ChevronRight,
@@ -29,6 +30,7 @@ import Dashboard from "./pages/Dashboard";
 import Portfolio from "./pages/Portfolio";
 import Market from "./pages/Market";
 import Technical from "./pages/Technical";
+import Fundamental from "./pages/Fundamental";
 import AI from "./pages/AI";
 import RiskPage from "./pages/RiskPage";
 import DataPage from "./pages/DataPage";
@@ -76,6 +78,12 @@ const NAV_SECTIONS = [
         label: "Technical",
         icon: Activity,
         description: "Technical decision engine",
+      },
+      {
+        id: "fundamental",
+        label: "Fundamental",
+        icon: BarChart3,
+        description: "Fundamental analysis engine",
       },
       {
         id: "portfolio",
@@ -539,6 +547,10 @@ function App() {
 
           {page === "technical" && (
             <Technical token={token} />
+          )}
+
+          {page === "fundamental" && (
+            <Fundamental token={token} />
           )}
 
           {page === "portfolio" && (
