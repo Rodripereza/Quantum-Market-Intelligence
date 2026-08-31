@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -298,6 +298,59 @@ class FundamentalAnalysisResult(BaseModel):
     engine_version: str = "DE-FA-004.0"
 
 
+class BusinessMomentumComponent(BaseModel):
+    """One adaptively weighted business-momentum driver."""
+
+    label: str
+    available: bool = False
+    score: Optional[float] = Field(default=None, ge=0, le=100)
+    base_weight: float = Field(default=0.0, ge=0)
+    effective_weight: float = Field(default=0.0, ge=0, le=1)
+    source: str
+    value: Optional[Any] = None
+    state: Optional[str] = None
+    confidence: Optional[str] = None
+
+
+class BusinessMomentumFamily(BaseModel):
+    available: bool = False
+    score: Optional[float] = Field(default=None, ge=0, le=100)
+    coverage_pct: float = Field(default=0.0, ge=0, le=100)
+    active_components: int = 0
+    total_components: int = 0
+    components: List[str] = Field(default_factory=list)
+    effective_weight: float = Field(default=0.0, ge=0, le=1)
+
+
+class AdaptiveBusinessMomentum(BaseModel):
+    """DE-FA-BM-001.1 — Adaptive Business Momentum with factor families."""
+
+    engine: str = "Adaptive Business Momentum Engine"
+    engine_id: str = "DE-FA-BM-001.1"
+    version: str = "0.1.1"
+
+    score: Optional[float] = Field(default=None, ge=0, le=100)
+    regime: str = "UNAVAILABLE"
+    trend: str = "UNKNOWN"
+    confidence: str = "LOW"
+
+    coverage_pct: float = Field(default=0.0, ge=0, le=100)
+    active_components: int = 0
+    total_components: int = 0
+
+    adaptive_weighting: bool = True
+    factor_family_architecture: bool = True
+    operating_driver_cap_pct: float = Field(default=20.0, ge=0, le=100)
+
+    family_effective_weights: Dict[str, float] = Field(default_factory=dict)
+    families: Dict[str, BusinessMomentumFamily] = Field(default_factory=dict)
+
+    excluded_components: List[str] = Field(default_factory=list)
+    components: Dict[str, BusinessMomentumComponent] = Field(default_factory=dict)
+    evidence: List[str] = Field(default_factory=list)
+    risks: List[str] = Field(default_factory=list)
+
+
 class FundamentalDecision(BaseModel):
     """DE-FA-004.0 — consolidated fundamental decision layer."""
 
@@ -330,3 +383,4 @@ class FundamentalInsight(BaseModel):
     weaknesses: List[str] = Field(default_factory=list)
     warnings: List[str] = Field(default_factory=list)
     decision: FundamentalDecision = Field(default_factory=FundamentalDecision)
+    business_momentum: AdaptiveBusinessMomentum = Field(default_factory=AdaptiveBusinessMomentum)

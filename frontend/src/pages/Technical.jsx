@@ -240,9 +240,14 @@ function ConfluenceContribution({ item }) {
 }
 
 
-export default function Technical({ token = "" }) {
-  const [symbol, setSymbol] = useState("NIO");
-  const [submittedSymbol, setSubmittedSymbol] = useState("NIO");
+export default function Technical({
+  token = "",
+  activeTicker = "NIO",
+  onTickerChange = () => {},
+}) {
+  const initialTicker = String(activeTicker || "NIO").trim().toUpperCase();
+  const [symbol, setSymbol] = useState(initialTicker);
+  const [submittedSymbol, setSubmittedSymbol] = useState(initialTicker);
   const [period, setPeriod] = useState("1y");
   const [interval, setInterval] = useState("1d");
   const [technical, setTechnical] = useState(null);
@@ -289,6 +294,18 @@ export default function Technical({ token = "" }) {
   const [executionPlanError, setExecutionPlanError] = useState("");
   const [stateMonitorError, setStateMonitorError] = useState("");
   const [decisionSynthesisError, setDecisionSynthesisError] = useState("");
+
+  useEffect(() => {
+    const normalized = String(activeTicker || "NIO").trim().toUpperCase();
+
+    if (!normalized || normalized === submittedSymbol) {
+      return;
+    }
+
+    setSymbol(normalized);
+    setSubmittedSymbol(normalized);
+  }, [activeTicker, submittedSymbol]);
+
 
   useEffect(() => {
     const controller = new AbortController();
@@ -1213,6 +1230,7 @@ export default function Technical({ token = "" }) {
 
     setSymbol(normalized);
     setSubmittedSymbol(normalized);
+    onTickerChange(normalized);
   }
 
   return (

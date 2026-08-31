@@ -10,7 +10,8 @@ export default function Sidebar({
   navigate,
   open,
   close,
-  navSections
+  navSections,
+  activeTicker = "NIO"
 }) {
   return (
     <>
@@ -71,7 +72,13 @@ export default function Sidebar({
               </div>
 
               <div className="nav-items">
-                {section.items.map((item) => {
+                {section.items
+                  .filter(
+                    (item) =>
+                      item.id !== "deliveries" ||
+                      String(activeTicker).toUpperCase() === "NIO"
+                  )
+                  .map((item) => {
                   const Icon = item.icon;
                   const isActive = page === item.id;
 

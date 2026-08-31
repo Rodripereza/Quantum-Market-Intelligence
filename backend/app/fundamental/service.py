@@ -6,6 +6,7 @@ QMI-level interpretations.
 """
 
 from app.fundamental.collector import FundamentalCollector
+from app.fundamental.business_momentum import AdaptiveBusinessMomentumEngine
 from app.fundamental.schemas import (
     FundamentalAnalysisResult,
     FundamentalDecision,
@@ -21,6 +22,42 @@ class FundamentalService:
         collector: FundamentalCollector | None = None,
     ) -> None:
         self.collector = collector or FundamentalCollector()
+        self.business_momentum_engine = AdaptiveBusinessMomentumEngine()
+
+    @staticmethod
+    def _get_company_specific_momentum(symbol: str) -> dict:
+        """
+        Load optional company-specific business drivers.
+
+        Missing or unavailable company intelligence never raises a hard failure
+        in the universal Fundamental Engine. The adaptive engine simply excludes
+        those drivers and renormalizes the remaining weights.
+        """
+        normalized = symbol.strip().upper()
+
+        if normalized != "NIO":
+            return {}
+
+        try:
+            from app.company_intelligence.nio.service import NioDeliveryService
+
+            nio_response = NioDeliveryService().analyze()
+            payload = (
+                nio_response.model_dump()
+                if hasattr(nio_response, "model_dump")
+                else nio_response
+            )
+
+            momentum = (payload or {}).get("delivery_momentum")
+            if not momentum:
+                return {}
+
+            return {"nio_delivery_momentum": momentum}
+
+        except Exception:
+            # Company-specific enrichment is optional by design.
+            # Fundamental analysis must remain operational for every ticker.
+            return {}
 
     def analyze(self, symbol: str) -> FundamentalInsight:
         """
@@ -28,6 +65,12 @@ class FundamentalService:
         """
 
         data = self.collector.get_fundamentals(symbol)
+
+        company_specific = self._get_company_specific_momentum(symbol)
+        business_momentum_payload = self.business_momentum_engine.analyze(
+            data=data,
+            company_specific=company_specific,
+        )
 
         score = self._calculate_score(data)
         rating = self._get_rating(score)
@@ -53,6 +96,7 @@ class FundamentalService:
             weaknesses=weaknesses,
             warnings=warnings,
             decision=decision,
+            business_momentum=business_momentum_payload,
         )
 
     def _calculate_score(

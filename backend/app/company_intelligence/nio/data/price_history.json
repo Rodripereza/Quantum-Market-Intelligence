@@ -1,0 +1,273 @@
+{
+  "engine_id": "DE-NIO-ASP-001.0",
+  "version": "0.2.0",
+  "currency": "CNY",
+  "methodology_note": "Versioned China starting-MSRP anchors used as model-price proxies. BaaS prices are stored separately and are not blended into model-mix ASP. Reported quarterly ASP calibrates the MSRP-weighted mix into an estimated effective ASP. Official NIO sources are preferred; CnEVPost is used only where an official price page was not located during this build.",
+  "default_calibration_factor": 1.0,
+  "prices": [
+    {
+      "brand": "NIO",
+      "model": "ES8",
+      "generation": "2nd-generation / pre-All-New ES8",
+      "valid_from": "2025-01-01",
+      "valid_to": "2025-09-20",
+      "msrp_rmb": 498000,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO 2024 Annual Report / China starting MSRP"
+    },
+    {
+      "brand": "NIO",
+      "model": "ES8",
+      "generation": "All-New ES8",
+      "valid_from": "2025-09-21",
+      "valid_to": null,
+      "msrp_rmb": 406800,
+      "baas_price_rmb": 298800,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO Day 2025 official launch"
+    },
+    {
+      "brand": "NIO",
+      "model": "ES7",
+      "generation": "2025 baseline",
+      "valid_from": "2025-01-01",
+      "valid_to": null,
+      "msrp_rmb": 438000,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO 2024 Annual Report / China starting MSRP"
+    },
+    {
+      "brand": "NIO",
+      "model": "EC7",
+      "generation": "2025 baseline",
+      "valid_from": "2025-01-01",
+      "valid_to": null,
+      "msrp_rmb": 458000,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO 2024 Annual Report / China starting MSRP"
+    },
+    {
+      "brand": "NIO",
+      "model": "ES6",
+      "generation": "2025 baseline / New ES6",
+      "valid_from": "2025-01-01",
+      "valid_to": null,
+      "msrp_rmb": 338000,
+      "baas_price_rmb": 268000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official New ES6 launch, May 2025"
+    },
+    {
+      "brand": "NIO",
+      "model": "EC6",
+      "generation": "2025 baseline / New EC6",
+      "valid_from": "2025-01-01",
+      "valid_to": null,
+      "msrp_rmb": 358000,
+      "baas_price_rmb": 288000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official New EC6 launch, May 2025"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET9",
+      "generation": "Launch",
+      "valid_from": "2025-03-01",
+      "valid_to": "2025-09-19",
+      "msrp_rmb": 788000,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO Day 2024 official launch"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET9",
+      "generation": "ET9 / Horizon-era proxy",
+      "valid_from": "2025-09-20",
+      "valid_to": null,
+      "msrp_rmb": 818000,
+      "baas_price_rmb": 710000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "MEDIUM",
+      "source": "NIO Day 2025 Horizon Edition starting price; used as post-Sep-2025 ET9 proxy"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET7",
+      "generation": "2024 Executive Edition",
+      "valid_from": "2024-04-30",
+      "valid_to": null,
+      "msrp_rmb": 428000,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO Auto China 2024 official launch"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET5",
+      "generation": "New ET5",
+      "valid_from": "2025-05-25",
+      "valid_to": null,
+      "msrp_rmb": 298000,
+      "baas_price_rmb": 228000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official New ET5 launch, May 2025"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET5",
+      "generation": "2025 pre-refresh proxy",
+      "valid_from": "2025-01-01",
+      "valid_to": "2025-05-24",
+      "msrp_rmb": 298000,
+      "baas_price_rmb": 228000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "MEDIUM",
+      "source": "NIO ET5/ET5T price continuity proxy"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET5 Touring",
+      "aliases": [
+        "ET5T"
+      ],
+      "generation": "New ET5 Touring",
+      "valid_from": "2025-05-25",
+      "valid_to": null,
+      "msrp_rmb": 298000,
+      "baas_price_rmb": 228000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official New ET5T launch, May 2025"
+    },
+    {
+      "brand": "NIO",
+      "model": "ET5 Touring",
+      "aliases": [
+        "ET5T"
+      ],
+      "generation": "2023-2025 pre-refresh",
+      "valid_from": "2023-06-16",
+      "valid_to": "2025-05-24",
+      "msrp_rmb": 298000,
+      "baas_price_rmb": 228000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official ET5T launch"
+    },
+    {
+      "brand": "NIO",
+      "model": "ES9",
+      "generation": "Launch",
+      "valid_from": "2026-05-28",
+      "valid_to": null,
+      "msrp_rmb": 498000,
+      "baas_price_rmb": 390000,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official ES9 launch, May 2026"
+    },
+    {
+      "brand": "ONVO",
+      "model": "L60",
+      "generation": "Original L60",
+      "valid_from": "2024-09-28",
+      "valid_to": "2026-06-11",
+      "msrp_rmb": 206900,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO 2024 Annual Report / official launch MSRP"
+    },
+    {
+      "brand": "ONVO",
+      "model": "L60",
+      "generation": "2026 New L60",
+      "valid_from": "2026-06-12",
+      "valid_to": null,
+      "msrp_rmb": 192800,
+      "baas_price_rmb": 135800,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "MEDIUM",
+      "source": "CnEVPost launch report citing ONVO, Jun 2026"
+    },
+    {
+      "brand": "ONVO",
+      "model": "L90",
+      "generation": "Launch / 2026 proxy",
+      "valid_from": "2025-08-01",
+      "valid_to": null,
+      "msrp_rmb": 265800,
+      "baas_price_rmb": 179800,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "HIGH",
+      "source": "NIO official ONVO L90 launch, Jul 2025"
+    },
+    {
+      "brand": "ONVO",
+      "model": "L80",
+      "generation": "Launch",
+      "valid_from": "2026-05-16",
+      "valid_to": null,
+      "msrp_rmb": 242800,
+      "baas_price_rmb": 156800,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "MEDIUM",
+      "source": "CnEVPost launch report citing ONVO, May 2026"
+    },
+    {
+      "brand": "FIREFLY",
+      "model": "Firefly",
+      "aliases": [
+        "FIREFLY"
+      ],
+      "generation": "Launch",
+      "valid_from": "2025-04-29",
+      "valid_to": null,
+      "msrp_rmb": 119800,
+      "baas_price_rmb": null,
+      "estimated_transaction_price_rmb": null,
+      "confidence": "MEDIUM",
+      "source": "CnEVPost launch report citing firefly, Apr 2025; NIO annual report corroborates 2025 MSRP floor"
+    }
+  ],
+  "reported_asp": [
+    {
+      "quarter": "2025-Q1",
+      "reported_asp_rmb": 236122.0,
+      "source": "NIO vehicle sales / quarterly deliveries"
+    },
+    {
+      "quarter": "2025-Q2",
+      "reported_asp_rmb": 223938.0,
+      "source": "NIO vehicle sales / quarterly deliveries"
+    },
+    {
+      "quarter": "2025-Q3",
+      "reported_asp_rmb": 220536.0,
+      "source": "NIO vehicle sales / quarterly deliveries"
+    },
+    {
+      "quarter": "2025-Q4",
+      "reported_asp_rmb": 253241.0,
+      "source": "NIO vehicle sales / quarterly deliveries"
+    },
+    {
+      "quarter": "2026-Q1",
+      "reported_asp_rmb": 272973.0,
+      "source": "NIO vehicle sales / quarterly deliveries"
+    }
+  ]
+}

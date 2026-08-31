@@ -1,0 +1,3610 @@
+{
+  "dataset": "NIO Deliveries",
+  "source_file": "Deliveries(2).xlsx",
+  "source_type": "user_dataset_revised",
+  "notes": [
+    "Monthly total rows in the Deliveries sheet are treated as authoritative when present.",
+    "Model splits for 2024-2026 are refreshed from the workbook sheet 'Web Model Split 2024-26'.",
+    "Blank cells remain unavailable and are not converted to zero.",
+    "Derived spreadsheet rows such as YoY, Monthly/Quarterly and category totals are excluded as raw inputs."
+  ],
+  "records": [
+    {
+      "period": "2019-01",
+      "year": 2019,
+      "month": 1,
+      "total": 1805,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1805
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 1805,
+      "mom_pct": null,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-02",
+      "year": 2019,
+      "month": 2,
+      "total": 811,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 811
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 2616,
+      "mom_pct": -55.1,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-03",
+      "year": 2019,
+      "month": 3,
+      "total": 1373,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1373
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 3989,
+      "mom_pct": 69.3,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-04",
+      "year": 2019,
+      "month": 4,
+      "total": 1124,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1124
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 5113,
+      "mom_pct": -18.1,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-05",
+      "year": 2019,
+      "month": 5,
+      "total": 1089,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1089
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 6202,
+      "mom_pct": -3.1,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-06",
+      "year": 2019,
+      "month": 6,
+      "total": 1340,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 927
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 413
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 7542,
+      "mom_pct": 23.0,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-07",
+      "year": 2019,
+      "month": 7,
+      "total": 837,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 164
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 673
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 8379,
+      "mom_pct": -37.5,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-08",
+      "year": 2019,
+      "month": 8,
+      "total": 2796,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 460
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2336
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 11175,
+      "mom_pct": 234.1,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-09",
+      "year": 2019,
+      "month": 9,
+      "total": 2019,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 293
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1726
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 13194,
+      "mom_pct": -27.8,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-10",
+      "year": 2019,
+      "month": 10,
+      "total": 2526,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 306
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2220
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 15720,
+      "mom_pct": 25.1,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-11",
+      "year": 2019,
+      "month": 11,
+      "total": 2528,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 461
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2067
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 18248,
+      "mom_pct": 0.1,
+      "yoy_pct": null
+    },
+    {
+      "period": "2019-12",
+      "year": 2019,
+      "month": 12,
+      "total": 3170,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 633
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2537
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 21418,
+      "mom_pct": 25.4,
+      "yoy_pct": null
+    },
+    {
+      "period": "2020-01",
+      "year": 2020,
+      "month": 1,
+      "total": 1598,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 105
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1493
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 1598,
+      "mom_pct": -49.6,
+      "yoy_pct": -11.5
+    },
+    {
+      "period": "2020-02",
+      "year": 2020,
+      "month": 2,
+      "total": 707,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 36
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 671
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 2305,
+      "mom_pct": -55.8,
+      "yoy_pct": -12.8
+    },
+    {
+      "period": "2020-03",
+      "year": 2020,
+      "month": 3,
+      "total": 1533,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 54
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1479
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 3838,
+      "mom_pct": 116.8,
+      "yoy_pct": 11.7
+    },
+    {
+      "period": "2020-04",
+      "year": 2020,
+      "month": 4,
+      "total": 3155,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 248
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2907
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 6993,
+      "mom_pct": 105.8,
+      "yoy_pct": 180.7
+    },
+    {
+      "period": "2020-05",
+      "year": 2020,
+      "month": 5,
+      "total": 3436,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 751
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2685
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 10429,
+      "mom_pct": 8.9,
+      "yoy_pct": 215.5
+    },
+    {
+      "period": "2020-06",
+      "year": 2020,
+      "month": 6,
+      "total": 3740,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1264
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2476
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 14169,
+      "mom_pct": 8.8,
+      "yoy_pct": 179.1
+    },
+    {
+      "period": "2020-07",
+      "year": 2020,
+      "month": 7,
+      "total": 3533,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 923
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2610
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 17702,
+      "mom_pct": -5.5,
+      "yoy_pct": 322.1
+    },
+    {
+      "period": "2020-08",
+      "year": 2020,
+      "month": 8,
+      "total": 3965,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1125
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2840
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 21667,
+      "mom_pct": 12.2,
+      "yoy_pct": 41.8
+    },
+    {
+      "period": "2020-09",
+      "year": 2020,
+      "month": 9,
+      "total": 4708,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1482
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3210
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 16
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 26375,
+      "mom_pct": 18.7,
+      "yoy_pct": 133.2
+    },
+    {
+      "period": "2020-10",
+      "year": 2020,
+      "month": 10,
+      "total": 5055,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1477
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2695
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 883
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 31430,
+      "mom_pct": 7.4,
+      "yoy_pct": 100.1
+    },
+    {
+      "period": "2020-11",
+      "year": 2020,
+      "month": 11,
+      "total": 5291,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1387
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2386
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1518
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 36721,
+      "mom_pct": 4.7,
+      "yoy_pct": 109.3
+    },
+    {
+      "period": "2020-12",
+      "year": 2020,
+      "month": 12,
+      "total": 7007,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2009
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2493
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2505
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 43728,
+      "mom_pct": 32.4,
+      "yoy_pct": 121.0
+    },
+    {
+      "period": "2021-01",
+      "year": 2021,
+      "month": 1,
+      "total": 7225,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1660
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2720
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2845
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 7225,
+      "mom_pct": 3.1,
+      "yoy_pct": 352.1
+    },
+    {
+      "period": "2021-02",
+      "year": 2021,
+      "month": 2,
+      "total": 5578,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1327
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2216
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2035
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 12803,
+      "mom_pct": -22.8,
+      "yoy_pct": 689.0
+    },
+    {
+      "period": "2021-03",
+      "year": 2021,
+      "month": 3,
+      "total": 7257,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1529
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3152
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2576
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 20060,
+      "mom_pct": 30.1,
+      "yoy_pct": 373.4
+    },
+    {
+      "period": "2021-04",
+      "year": 2021,
+      "month": 4,
+      "total": 7102,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1523
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3163
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2416
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 27162,
+      "mom_pct": -2.1,
+      "yoy_pct": 125.1
+    },
+    {
+      "period": "2021-05",
+      "year": 2021,
+      "month": 5,
+      "total": 6711,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1412
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3017
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2282
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 33873,
+      "mom_pct": -5.5,
+      "yoy_pct": 95.3
+    },
+    {
+      "period": "2021-06",
+      "year": 2021,
+      "month": 6,
+      "total": 8083,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1498
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3755
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2830
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 41956,
+      "mom_pct": 20.4,
+      "yoy_pct": 116.1
+    },
+    {
+      "period": "2021-07",
+      "year": 2021,
+      "month": 7,
+      "total": 7931,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1702
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3669
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2560
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 49887,
+      "mom_pct": -1.9,
+      "yoy_pct": 124.5
+    },
+    {
+      "period": "2021-08",
+      "year": 2021,
+      "month": 8,
+      "total": 5880,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1738
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2342
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1800
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 55767,
+      "mom_pct": -25.9,
+      "yoy_pct": 48.3
+    },
+    {
+      "period": "2021-09",
+      "year": 2021,
+      "month": 9,
+      "total": 10628,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1978
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5260
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 3390
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 66395,
+      "mom_pct": 80.7,
+      "yoy_pct": 125.7
+    },
+    {
+      "period": "2021-10",
+      "year": 2021,
+      "month": 10,
+      "total": 3667,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 218
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2528
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 921
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 70062,
+      "mom_pct": -65.5,
+      "yoy_pct": -27.5
+    },
+    {
+      "period": "2021-11",
+      "year": 2021,
+      "month": 11,
+      "total": 10878,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2683
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 4713
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 3482
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 80940,
+      "mom_pct": 196.6,
+      "yoy_pct": 105.6
+    },
+    {
+      "period": "2021-12",
+      "year": 2021,
+      "month": 12,
+      "total": 10489,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2782
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 4939
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2768
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 91429,
+      "mom_pct": -3.6,
+      "yoy_pct": 49.7
+    },
+    {
+      "period": "2022-01",
+      "year": 2022,
+      "month": 1,
+      "total": 9652,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1531
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5247
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2874
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 9652,
+      "mom_pct": -8.0,
+      "yoy_pct": 33.6
+    },
+    {
+      "period": "2022-02",
+      "year": 2022,
+      "month": 2,
+      "total": 6131,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1084
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3309
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1738
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 15783,
+      "mom_pct": -36.5,
+      "yoy_pct": 9.9
+    },
+    {
+      "period": "2022-03",
+      "year": 2022,
+      "month": 3,
+      "total": 9985,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1726
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5064
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 3032
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 163
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 25768,
+      "mom_pct": 62.9,
+      "yoy_pct": 37.6
+    },
+    {
+      "period": "2022-04",
+      "year": 2022,
+      "month": 4,
+      "total": 5074,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1251
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1878
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1252
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 693
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 30842,
+      "mom_pct": -49.2,
+      "yoy_pct": -28.6
+    },
+    {
+      "period": "2022-05",
+      "year": 2022,
+      "month": 5,
+      "total": 7024,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 746
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2936
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1635
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 1707
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 37866,
+      "mom_pct": 38.4,
+      "yoy_pct": 4.7
+    },
+    {
+      "period": "2022-06",
+      "year": 2022,
+      "month": 6,
+      "total": 12961,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1684
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5100
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1828
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 4349
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 50827,
+      "mom_pct": 84.5,
+      "yoy_pct": 60.3
+    },
+    {
+      "period": "2022-07",
+      "year": 2022,
+      "month": 7,
+      "total": 10052,
+      "brands": {},
+      "models": {
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 2473
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 60879,
+      "mom_pct": -22.4,
+      "yoy_pct": 26.7
+    },
+    {
+      "period": "2022-08",
+      "year": 2022,
+      "month": 8,
+      "total": 10677,
+      "brands": {},
+      "models": {
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 398
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 3126
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 71556,
+      "mom_pct": 6.2,
+      "yoy_pct": 81.6
+    },
+    {
+      "period": "2022-09",
+      "year": 2022,
+      "month": 9,
+      "total": 10878,
+      "brands": {},
+      "models": {
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 1895
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 2928
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 221
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 82434,
+      "mom_pct": 1.9,
+      "yoy_pct": 2.4
+    },
+    {
+      "period": "2022-10",
+      "year": 2022,
+      "month": 10,
+      "total": 10059,
+      "brands": {},
+      "models": {
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 2814
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 3050
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1030
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 92493,
+      "mom_pct": -7.5,
+      "yoy_pct": 174.3
+    },
+    {
+      "period": "2022-11",
+      "year": 2022,
+      "month": 11,
+      "total": 14178,
+      "brands": {},
+      "models": {
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 4897
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 3207
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2968
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 106671,
+      "mom_pct": 40.9,
+      "yoy_pct": 30.3
+    },
+    {
+      "period": "2022-12",
+      "year": 2022,
+      "month": 12,
+      "total": 15815,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 538
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 4154
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1731
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 1379
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 7594
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 122486,
+      "mom_pct": 11.5,
+      "yoy_pct": 50.8
+    },
+    {
+      "period": "2023-01",
+      "year": 2023,
+      "month": 1,
+      "total": 8506,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 178
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 961
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 872
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 179
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 521
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 5795
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 8506,
+      "mom_pct": -46.2,
+      "yoy_pct": -11.9
+    },
+    {
+      "period": "2023-02",
+      "year": 2023,
+      "month": 2,
+      "total": 12157,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 395
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 942
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2848
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 852
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 649
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 6471
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 20663,
+      "mom_pct": 42.9,
+      "yoy_pct": 98.3
+    },
+    {
+      "period": "2023-03",
+      "year": 2023,
+      "month": 3,
+      "total": 10375,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 346
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 1267
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 853
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 734
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 738
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 6437
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 31038,
+      "mom_pct": -14.7,
+      "yoy_pct": 3.9
+    },
+    {
+      "period": "2023-04",
+      "year": 2023,
+      "month": 4,
+      "total": 6658,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 439
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 809
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 197
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 174
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 94
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 652
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 4293
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 37696,
+      "mom_pct": -35.8,
+      "yoy_pct": 31.2
+    },
+    {
+      "period": "2023-05",
+      "year": 2023,
+      "month": 5,
+      "total": 6155,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 274
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 521
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 569
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1016
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 16
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 535
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 3224
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 43851,
+      "mom_pct": -7.6,
+      "yoy_pct": -12.4
+    },
+    {
+      "period": "2023-06",
+      "year": 2023,
+      "month": 6,
+      "total": 10707,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 588
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 340
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 756
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 4677
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 22
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 506
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2479
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1339
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 54558,
+      "mom_pct": 74.0,
+      "yoy_pct": -17.4
+    },
+    {
+      "period": "2023-07",
+      "year": 2023,
+      "month": 7,
+      "total": 20462,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1917
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 520
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 493
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 11118
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 18
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 397
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2337
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 3662
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 75020,
+      "mom_pct": 91.1,
+      "yoy_pct": 103.6
+    },
+    {
+      "period": "2023-08",
+      "year": 2023,
+      "month": 8,
+      "total": 19329,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2369
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 325
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 492
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 8601
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 228
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 349
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2882
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4083
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 94349,
+      "mom_pct": -5.5,
+      "yoy_pct": 81.0
+    },
+    {
+      "period": "2023-09",
+      "year": 2023,
+      "month": 9,
+      "total": 15641,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2139
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 234
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 229
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 7896
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1006
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 245
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1299
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2593
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 109990,
+      "mom_pct": -19.1,
+      "yoy_pct": 43.8
+    },
+    {
+      "period": "2023-10",
+      "year": 2023,
+      "month": 10,
+      "total": 16074,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2251
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 207
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 204
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5875
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2549
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 332
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1551
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 3105
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 126064,
+      "mom_pct": 2.8,
+      "yoy_pct": 59.8
+    },
+    {
+      "period": "2023-11",
+      "year": 2023,
+      "month": 11,
+      "total": 15959,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1658
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 132
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 350
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5666
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2739
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 253
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1913
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 3248
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 142023,
+      "mom_pct": -0.7,
+      "yoy_pct": 12.6
+    },
+    {
+      "period": "2023-12",
+      "year": 2023,
+      "month": 12,
+      "total": 18012,
+      "brands": {},
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1584
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 266
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 368
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 6943
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2887
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 466
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2167
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 3331
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 160035,
+      "mom_pct": 12.9,
+      "yoy_pct": 13.9
+    },
+    {
+      "period": "2024-01",
+      "year": 2024,
+      "month": 1,
+      "total": 10055,
+      "brands": {
+        "NIO": 10055
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 615
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 77
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 143
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3944
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1528
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 210
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1330
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2208
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 10055,
+      "mom_pct": -44.2,
+      "yoy_pct": 18.2
+    },
+    {
+      "period": "2024-02",
+      "year": 2024,
+      "month": 2,
+      "total": 8132,
+      "brands": {
+        "NIO": 8132
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 414
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 64
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 119
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2959
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1209
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 135
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1249
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1983
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 18187,
+      "mom_pct": -19.1,
+      "yoy_pct": -33.1
+    },
+    {
+      "period": "2024-03",
+      "year": 2024,
+      "month": 3,
+      "total": 11866,
+      "brands": {
+        "NIO": 11866
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 802
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 372
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 349
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3729
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1485
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 713
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2214
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2202
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 30053,
+      "mom_pct": 45.9,
+      "yoy_pct": 14.4
+    },
+    {
+      "period": "2024-04",
+      "year": 2024,
+      "month": 4,
+      "total": 15620,
+      "brands": {
+        "NIO": 15620
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 773
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 48
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 203
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5527
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2266
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 93
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2283
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4427
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 45673,
+      "mom_pct": 31.6,
+      "yoy_pct": 134.6
+    },
+    {
+      "period": "2024-05",
+      "year": 2024,
+      "month": 5,
+      "total": 20544,
+      "brands": {
+        "NIO": 20544
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 937
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 103
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 298
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 8094
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2732
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 1098
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2497
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4785
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 66217,
+      "mom_pct": 31.5,
+      "yoy_pct": 233.8
+    },
+    {
+      "period": "2024-06",
+      "year": 2024,
+      "month": 6,
+      "total": 21209,
+      "brands": {
+        "NIO": 21209
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 882
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 245
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 319
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 7654
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2481
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 1071
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2979
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 5578
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 87426,
+      "mom_pct": 3.2,
+      "yoy_pct": 98.1
+    },
+    {
+      "period": "2024-07",
+      "year": 2024,
+      "month": 7,
+      "total": 20498,
+      "brands": {
+        "NIO": 20498
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 822
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 149
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 262
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 8112
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2619
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 749
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2672
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 5113
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 107924,
+      "mom_pct": -3.4,
+      "yoy_pct": 0.2
+    },
+    {
+      "period": "2024-08",
+      "year": 2024,
+      "month": 8,
+      "total": 20176,
+      "brands": {
+        "NIO": 20176
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 857
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 620
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 253
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 7694
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2499
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 793
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2705
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4755
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 128100,
+      "mom_pct": -1.6,
+      "yoy_pct": 4.4
+    },
+    {
+      "period": "2024-09",
+      "year": 2024,
+      "month": 9,
+      "total": 21181,
+      "brands": {
+        "NIO": 20349,
+        "ONVO": 832
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 766
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 157
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 237
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 7901
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2669
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 651
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2378
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 5590
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 832
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 149281,
+      "mom_pct": 5.0,
+      "yoy_pct": 35.4
+    },
+    {
+      "period": "2024-10",
+      "year": 2024,
+      "month": 10,
+      "total": 20976,
+      "brands": {
+        "NIO": 16657,
+        "ONVO": 4319
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 747
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 12
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 200
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 6471
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2397
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 482
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2042
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4306
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4319
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 170257,
+      "mom_pct": -1.0,
+      "yoy_pct": 30.5
+    },
+    {
+      "period": "2024-11",
+      "year": 2024,
+      "month": 11,
+      "total": 20575,
+      "brands": {
+        "NIO": 15493,
+        "ONVO": 5082
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 572
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 10
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 187
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5942
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2354
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 411
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1875
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4142
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5082
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 190832,
+      "mom_pct": -1.9,
+      "yoy_pct": 28.9
+    },
+    {
+      "period": "2024-12",
+      "year": 2024,
+      "month": 12,
+      "total": 31138,
+      "brands": {
+        "NIO": 20610,
+        "ONVO": 10528
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1001
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 17
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 295
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 7406
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2987
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 838
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2286
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 5780
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 10528
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 221970,
+      "mom_pct": 51.3,
+      "yoy_pct": 72.9
+    },
+    {
+      "period": "2025-01",
+      "year": 2025,
+      "month": 1,
+      "total": 13863,
+      "brands": {
+        "NIO": 7951,
+        "ONVO": 5912,
+        "FIREFLY": 0
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 446
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 330
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 110
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2676
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1302
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 239
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 889
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1959
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5912
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 13863,
+      "mom_pct": -55.5,
+      "yoy_pct": 37.9
+    },
+    {
+      "period": "2025-02",
+      "year": 2025,
+      "month": 2,
+      "total": 13471,
+      "brands": {
+        "NIO": 9422,
+        "ONVO": 4049,
+        "FIREFLY": 0
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 479
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 4
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 126
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3214
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1478
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 261
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1055
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2526
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4049
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 27334,
+      "mom_pct": -2.8,
+      "yoy_pct": 65.7
+    },
+    {
+      "period": "2025-03",
+      "year": 2025,
+      "month": 3,
+      "total": 15039,
+      "brands": {
+        "NIO": 10219,
+        "ONVO": 4820,
+        "FIREFLY": 0
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 514
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 1
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 169
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3260
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1546
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 89
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 347
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1325
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2968
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4820
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 42373,
+      "mom_pct": 11.6,
+      "yoy_pct": 26.7
+    },
+    {
+      "period": "2025-04",
+      "year": 2025,
+      "month": 4,
+      "total": 23900,
+      "brands": {
+        "NIO": 19269,
+        "ONVO": 4400,
+        "FIREFLY": 231
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 539
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 1
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 164
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 6866
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2437
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 810
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 422
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 2015
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 6015
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4400
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 231
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 66273,
+      "mom_pct": 58.9,
+      "yoy_pct": 53.0
+    },
+    {
+      "period": "2025-05",
+      "year": 2025,
+      "month": 5,
+      "total": 23231,
+      "brands": {
+        "NIO": 13270,
+        "ONVO": 6281,
+        "FIREFLY": 3680
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 292
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 3
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 94
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 5479
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 2026
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 682
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 207
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1564
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2923
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 6281
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 3680
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 89504,
+      "mom_pct": -2.8,
+      "yoy_pct": 13.1
+    },
+    {
+      "period": "2025-06",
+      "year": 2025,
+      "month": 6,
+      "total": 24925,
+      "brands": {
+        "NIO": 14593,
+        "ONVO": 6400,
+        "FIREFLY": 3932
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 839
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 84
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 4415
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1932
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 307
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 271
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1642
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 5103
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 6400
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 3932
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 114429,
+      "mom_pct": 7.3,
+      "yoy_pct": 17.5
+    },
+    {
+      "period": "2025-07",
+      "year": 2025,
+      "month": 7,
+      "total": 21017,
+      "brands": {
+        "NIO": 12675,
+        "ONVO": 5976,
+        "FIREFLY": 2366
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 1090
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 254
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 3359
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1425
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 85
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 564
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1480
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4418
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5976
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 2366
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 135446,
+      "mom_pct": -15.7,
+      "yoy_pct": 2.5
+    },
+    {
+      "period": "2025-08",
+      "year": 2025,
+      "month": 8,
+      "total": 31469,
+      "brands": {
+        "NIO": 10689,
+        "ONVO": 16434,
+        "FIREFLY": 4346
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 87
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 154
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 161
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2877
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1147
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 92
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 391
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1301
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4315
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 10575
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5859
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 4346
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 166915,
+      "mom_pct": 49.7,
+      "yoy_pct": 56.0
+    },
+    {
+      "period": "2025-09",
+      "year": 2025,
+      "month": 9,
+      "total": 34919,
+      "brands": {
+        "NIO": 13898,
+        "ONVO": 15246,
+        "FIREFLY": 5775
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 2812
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 161
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 25
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2930
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1084
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 90
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 137
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1441
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 5048
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 10997
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4249
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 5775
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 201834,
+      "mom_pct": 11.0,
+      "yoy_pct": 64.9
+    },
+    {
+      "period": "2025-10",
+      "year": 2025,
+      "month": 10,
+      "total": 40655,
+      "brands": {
+        "NIO": 17401,
+        "ONVO": 17342,
+        "FIREFLY": 5912
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 6716
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 245
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 16
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2976
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1045
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 127
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 72
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1420
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 4526
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 11722
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5620
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 5912
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 242489,
+      "mom_pct": 16.4,
+      "yoy_pct": 93.8
+    },
+    {
+      "period": "2025-11",
+      "year": 2025,
+      "month": 11,
+      "total": 36494,
+      "brands": {
+        "NIO": 18612,
+        "ONVO": 11794,
+        "FIREFLY": 6088
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 10705
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 191
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 10
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2268
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 855
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 118
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 57
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 984
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 3205
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 5971
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5823
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 6088
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 278983,
+      "mom_pct": -10.2,
+      "yoy_pct": 77.4
+    },
+    {
+      "period": "2025-12",
+      "year": 2025,
+      "month": 12,
+      "total": 48517,
+      "brands": {
+        "NIO": 32279,
+        "ONVO": 9154,
+        "FIREFLY": 7084
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 22276
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 207
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 9
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2922
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 1041
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 198
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 78
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 1295
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 3871
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 4120
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 5034
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 7084
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 327500,
+      "mom_pct": 32.9,
+      "yoy_pct": 55.8
+    },
+    {
+      "period": "2026-01",
+      "year": 2026,
+      "month": 1,
+      "total": 27182,
+      "brands": {
+        "NIO": 20894,
+        "ONVO": 3481,
+        "FIREFLY": 2807
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 17658
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 4
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1005
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 358
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 59
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 15
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 450
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1345
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 1502
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 1979
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 2807
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 27182,
+      "mom_pct": -44.0,
+      "yoy_pct": 96.1
+    },
+    {
+      "period": "2026-02",
+      "year": 2026,
+      "month": 2,
+      "total": 20797,
+      "brands": {
+        "NIO": 15159,
+        "ONVO": 2981,
+        "FIREFLY": 2657
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 11271
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 8
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 7
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1189
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 448
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 64
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 20
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 480
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1672
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 1317
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 1664
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 2657
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 47979,
+      "mom_pct": -23.5,
+      "yoy_pct": 54.4
+    },
+    {
+      "period": "2026-03",
+      "year": 2026,
+      "month": 3,
+      "total": 35486,
+      "brands": {
+        "NIO": 22490,
+        "ONVO": 6877,
+        "FIREFLY": 6119
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 16255
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 1
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 9
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1877
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 657
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 72
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 18
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 978
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2623
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 3360
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 3517
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 6119
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 83465,
+      "mom_pct": 70.6,
+      "yoy_pct": 136.0
+    },
+    {
+      "period": "2026-04",
+      "year": 2026,
+      "month": 4,
+      "total": 29356,
+      "brands": {
+        "NIO": 19024,
+        "ONVO": 5352,
+        "FIREFLY": 4980
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 13028
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 3
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 2004
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 613
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 128
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 22
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 810
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2416
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 2068
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 3284
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 4980
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 112821,
+      "mom_pct": -17.3,
+      "yoy_pct": 22.8
+    },
+    {
+      "period": "2026-05",
+      "year": 2026,
+      "month": 5,
+      "total": 37705,
+      "brands": {
+        "NIO": 20013,
+        "ONVO": 12029,
+        "FIREFLY": 5663
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 11475
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 4
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1732
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 570
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 155
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 11
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 702
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 2256
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 4054
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 2026
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 5663
+        },
+        "ES9": {
+          "brand": "NIO",
+          "deliveries": 3108
+        },
+        "L80": {
+          "brand": "ONVO",
+          "deliveries": 5949
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 150526,
+      "mom_pct": 28.4,
+      "yoy_pct": 62.3
+    },
+    {
+      "period": "2026-06",
+      "year": 2026,
+      "month": 6,
+      "total": 40597,
+      "brands": {
+        "NIO": 21908,
+        "ONVO": 11743,
+        "FIREFLY": 6946
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 8969
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 1219
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 549
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 125
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 11
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 618
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1822
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 3461
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4196
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 6946
+        },
+        "ES9": {
+          "brand": "NIO",
+          "deliveries": 8595
+        },
+        "L80": {
+          "brand": "ONVO",
+          "deliveries": 4086
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 191123,
+      "mom_pct": 7.7,
+      "yoy_pct": 62.9
+    },
+    {
+      "period": "2026-07",
+      "year": 2026,
+      "month": 7,
+      "total": 35934,
+      "brands": {
+        "NIO": 20008,
+        "ONVO": 10155,
+        "FIREFLY": 5771
+      },
+      "models": {
+        "ES8": {
+          "brand": "NIO",
+          "deliveries": 10288
+        },
+        "ES7": {
+          "brand": "NIO",
+          "deliveries": 0
+        },
+        "EC7": {
+          "brand": "NIO",
+          "deliveries": 2
+        },
+        "ES6": {
+          "brand": "NIO",
+          "deliveries": 875
+        },
+        "EC6": {
+          "brand": "NIO",
+          "deliveries": 356
+        },
+        "ET9": {
+          "brand": "NIO",
+          "deliveries": 98
+        },
+        "ET7": {
+          "brand": "NIO",
+          "deliveries": 5
+        },
+        "ET5": {
+          "brand": "NIO",
+          "deliveries": 508
+        },
+        "ET5 Touring": {
+          "brand": "NIO",
+          "deliveries": 1561
+        },
+        "L90": {
+          "brand": "ONVO",
+          "deliveries": 1974
+        },
+        "L60": {
+          "brand": "ONVO",
+          "deliveries": 4949
+        },
+        "Firefly": {
+          "brand": "FIREFLY",
+          "deliveries": 5771
+        },
+        "ES9": {
+          "brand": "NIO",
+          "deliveries": 6315
+        },
+        "L80": {
+          "brand": "ONVO",
+          "deliveries": 3232
+        }
+      },
+      "source": "Deliveries(2).xlsx",
+      "source_type": "user_dataset_revised",
+      "verified": false,
+      "ytd": 227057,
+      "mom_pct": -11.5,
+      "yoy_pct": 71.0
+    }
+  ]
+}

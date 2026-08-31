@@ -5,7 +5,7 @@ from typing import Any
 
 class QMIDecisionService:
     """
-    DE-CORE-004.0 — Cross-Engine Decision Fusion
+    DE-CORE-004.1 — Cross-Engine Decision Fusion + Business Momentum
 
     Combines the already-finalized Technical Decision Synthesis
     (DE-TA-015.0) with the Fundamental Decision Engine (DE-FA-004.0).
@@ -23,9 +23,9 @@ class QMIDecisionService:
     - issue an autonomous BUY/HOLD/SELL instruction
     """
 
-    ENGINE_ID = "DE-CORE-004.0"
+    ENGINE_ID = "DE-CORE-004.1"
     ENGINE = "QMI Cross-Engine Decision Fusion"
-    VERSION = "0.1.0"
+    VERSION = "0.1.1"
 
     TECHNICAL_POSTURE_SCORES = {
         "ENTER": 90.0,
@@ -54,11 +54,19 @@ class QMIDecisionService:
 
         fundamental = self._to_dict(fundamental_response)
         fundamental_decision = fundamental.get("decision") or {}
+        business_momentum = fundamental.get("business_momentum") or {}
 
         technical_available = bool(technical.get("available", False))
         fundamental_available = bool(fundamental_decision)
+        business_momentum_available = (
+            self._number_or_none(business_momentum.get("score")) is not None
+        )
 
-        if not technical_available and not fundamental_available:
+        if (
+            not technical_available
+            and not fundamental_available
+            and not business_momentum_available
+        ):
             return self._insufficient(symbol)
 
         technical_posture = str(
@@ -84,9 +92,27 @@ class QMIDecisionService:
             fundamental_decision.get("conviction") or "LOW"
         ).upper()
 
+        business_momentum_score = self._number_or_none(
+            business_momentum.get("score")
+        )
+        business_momentum_regime = str(
+            business_momentum.get("regime") or "UNKNOWN"
+        ).upper()
+        business_momentum_trend = str(
+            business_momentum.get("trend") or "UNKNOWN"
+        ).upper()
+        business_momentum_confidence = str(
+            business_momentum.get("confidence") or "LOW"
+        ).upper()
+
         combined_score = self._combined_score(
             technical_score=technical_score if technical_available else None,
             fundamental_score=fundamental_score if fundamental_available else None,
+            business_momentum_score=(
+                business_momentum_score
+                if business_momentum_available
+                else None
+            ),
         )
 
         alignment_score = self._alignment_score(
@@ -95,6 +121,15 @@ class QMIDecisionService:
         )
 
         alignment = self._alignment_state(alignment_score)
+
+        business_divergence = self._business_divergence(
+            technical_score=technical_score if technical_available else None,
+            business_momentum_score=(
+                business_momentum_score
+                if business_momentum_available
+                else None
+            ),
+        )
 
         timing_gate = self._timing_gate(
             technical_posture=technical_posture,
@@ -113,18 +148,22 @@ class QMIDecisionService:
             fundamental_conviction=fundamental_conviction,
             technical_available=technical_available,
             fundamental_available=fundamental_available,
+            business_momentum_confidence=business_momentum_confidence,
+            business_momentum_available=business_momentum_available,
             alignment_score=alignment_score,
         )
 
         supporting_evidence = self._supporting_evidence(
             technical=technical,
             fundamental_decision=fundamental_decision,
+            business_momentum=business_momentum,
         )
         conflicts = self._conflicts(
             technical_posture=technical_posture,
             fundamental_stance=fundamental_stance,
             technical=technical,
             fundamental_decision=fundamental_decision,
+            business_divergence=business_divergence,
         )
 
         thesis = self._thesis(
@@ -133,6 +172,9 @@ class QMIDecisionService:
             fundamental_stance=fundamental_stance,
             timing_gate=timing_gate,
             alignment=alignment,
+            business_momentum_regime=business_momentum_regime,
+            business_momentum_available=business_momentum_available,
+            business_divergence=business_divergence,
         )
 
         return {
@@ -171,20 +213,43 @@ class QMIDecisionService:
                     "regime_score": fundamental_decision.get("regime_score"),
                     "legacy_score": fundamental_decision.get("legacy_score"),
                 },
+                "business_momentum": {
+                    "available": business_momentum_available,
+                    "score": (
+                        round(business_momentum_score, 1)
+                        if business_momentum_score is not None
+                        else None
+                    ),
+                    "regime": business_momentum_regime,
+                    "trend": business_momentum_trend,
+                    "confidence": business_momentum_confidence,
+                    "coverage_pct": business_momentum.get("coverage_pct"),
+                    "operating_driver_cap_pct": business_momentum.get(
+                        "operating_driver_cap_pct"
+                    ),
+                },
+                "business_divergence": business_divergence,
+                "fusion_weights": self._effective_fusion_weights(
+                    technical_available=technical_available,
+                    fundamental_available=fundamental_available,
+                    business_momentum_available=business_momentum_available,
+                ),
                 "thesis": thesis,
                 "supporting_evidence": supporting_evidence,
                 "conflicts": conflicts,
                 "scope": {
                     "technical": True,
                     "fundamental": True,
+                    "business_momentum": True,
                     "portfolio": False,
                     "macro": False,
                     "news_sentiment": False,
                     "automatic_execution": False,
                     "buy_hold_sell_signal": False,
                     "note": (
-                        "DE-CORE-004.0 fuses technical timing with fundamental "
-                        "quality/direction. Portfolio, macro and news context "
+                        "DE-CORE-004.1 fuses technical timing, fundamental "
+                        "quality/direction and adaptive business momentum. "
+                        "Portfolio, macro and news context "
                         "are intentionally outside this version."
                     ),
                 },
@@ -209,20 +274,93 @@ class QMIDecisionService:
         *,
         technical_score: float | None,
         fundamental_score: float | None,
+        business_momentum_score: float | None,
     ) -> float:
         weighted: list[tuple[float, float]] = []
 
+        # DE-CORE-004.1 target architecture:
+        # Technical timing 45%, Fundamental quality/direction 35%,
+        # Adaptive Business Momentum 20%.
         if technical_score is not None:
             weighted.append((technical_score, 0.45))
 
         if fundamental_score is not None:
-            weighted.append((fundamental_score, 0.55))
+            weighted.append((fundamental_score, 0.35))
+
+        if business_momentum_score is not None:
+            weighted.append((business_momentum_score, 0.20))
 
         if not weighted:
             return 50.0
 
         total_weight = sum(weight for _, weight in weighted)
         return sum(score * weight for score, weight in weighted) / total_weight
+
+    @staticmethod
+    def _effective_fusion_weights(
+        *,
+        technical_available: bool,
+        fundamental_available: bool,
+        business_momentum_available: bool,
+    ) -> dict[str, float]:
+        base = {
+            "technical": 0.45 if technical_available else 0.0,
+            "fundamental": 0.35 if fundamental_available else 0.0,
+            "business_momentum": 0.20 if business_momentum_available else 0.0,
+        }
+        total = sum(base.values())
+
+        if total <= 0:
+            return {
+                "technical": 0.0,
+                "fundamental": 0.0,
+                "business_momentum": 0.0,
+            }
+
+        return {
+            key: round(value / total, 4)
+            for key, value in base.items()
+        }
+
+    @staticmethod
+    def _business_divergence(
+        *,
+        technical_score: float | None,
+        business_momentum_score: float | None,
+    ) -> dict[str, Any]:
+        if technical_score is None or business_momentum_score is None:
+            return {
+                "available": False,
+                "state": "UNAVAILABLE",
+                "spread": None,
+                "severity": "NONE",
+            }
+
+        spread = business_momentum_score - technical_score
+        magnitude = abs(spread)
+
+        if magnitude < 15:
+            state = "ALIGNED"
+            severity = "LOW"
+        elif spread >= 30:
+            state = "POSITIVE_BUSINESS_DIVERGENCE"
+            severity = "HIGH"
+        elif spread >= 15:
+            state = "POSITIVE_BUSINESS_DIVERGENCE"
+            severity = "MEDIUM"
+        elif spread <= -30:
+            state = "NEGATIVE_BUSINESS_DIVERGENCE"
+            severity = "HIGH"
+        else:
+            state = "NEGATIVE_BUSINESS_DIVERGENCE"
+            severity = "MEDIUM"
+
+        return {
+            "available": True,
+            "state": state,
+            "spread": round(spread, 1),
+            "severity": severity,
+        }
 
     @staticmethod
     def _alignment_score(
@@ -310,6 +448,8 @@ class QMIDecisionService:
         fundamental_conviction: str,
         technical_available: bool,
         fundamental_available: bool,
+        business_momentum_confidence: str,
+        business_momentum_available: bool,
         alignment_score: float,
     ) -> str:
         fundamental_map = {
@@ -325,6 +465,11 @@ class QMIDecisionService:
 
         if fundamental_available:
             scores.append(fundamental_map.get(fundamental_conviction, 40.0))
+
+        if business_momentum_available:
+            scores.append(
+                fundamental_map.get(business_momentum_confidence, 40.0)
+            )
 
         if not scores:
             return "LOW"
@@ -347,6 +492,7 @@ class QMIDecisionService:
         *,
         technical: dict[str, Any],
         fundamental_decision: dict[str, Any],
+        business_momentum: dict[str, Any],
     ) -> list[str]:
         evidence: list[str] = []
 
@@ -362,7 +508,11 @@ class QMIDecisionService:
             if item not in evidence:
                 evidence.append(str(item))
 
-        return evidence[:10]
+        for item in business_momentum.get("evidence") or []:
+            if item not in evidence:
+                evidence.append(str(item))
+
+        return evidence[:12]
 
     @staticmethod
     def _conflicts(
@@ -371,6 +521,7 @@ class QMIDecisionService:
         fundamental_stance: str,
         technical: dict[str, Any],
         fundamental_decision: dict[str, Any],
+        business_divergence: dict[str, Any],
     ) -> list[str]:
         conflicts: list[str] = []
 
@@ -404,6 +555,21 @@ class QMIDecisionService:
         for item in fundamental_decision.get("risks") or []:
             conflicts.append(str(item))
 
+        divergence_state = str(
+            business_divergence.get("state") or ""
+        ).upper()
+
+        if divergence_state == "POSITIVE_BUSINESS_DIVERGENCE":
+            conflicts.append(
+                "Business momentum materially exceeds current technical strength; "
+                "fundamentals/operations may be improving ahead of price confirmation."
+            )
+        elif divergence_state == "NEGATIVE_BUSINESS_DIVERGENCE":
+            conflicts.append(
+                "Technical strength materially exceeds business momentum; "
+                "price action may be running ahead of operating fundamentals."
+            )
+
         # Ordered deduplication.
         return list(dict.fromkeys(conflicts))[:12]
 
@@ -415,13 +581,34 @@ class QMIDecisionService:
         fundamental_stance: str,
         timing_gate: str,
         alignment: str,
+        business_momentum_regime: str,
+        business_momentum_available: bool,
+        business_divergence: dict[str, Any],
     ) -> str:
+        business_clause = (
+            f" Business momentum regime is "
+            f"{business_momentum_regime.replace('_', ' ')}."
+            if business_momentum_available
+            else ""
+        )
+
+        divergence_state = str(
+            business_divergence.get("state") or "UNAVAILABLE"
+        ).replace("_", " ")
+
+        divergence_clause = (
+            f" Business/technical relationship: {divergence_state}."
+            if business_divergence.get("available")
+            else ""
+        )
+
         return (
             f"QMI cross-engine posture is {integrated_posture.replace('_', ' ')}. "
             f"Technical posture is {technical_posture}, fundamental stance is "
             f"{fundamental_stance.replace('_', ' ')}, and cross-engine alignment "
             f"is {alignment.replace('_', ' ')}. Timing gate: "
             f"{timing_gate.replace('_', ' ')}."
+            f"{business_clause}{divergence_clause}"
         )
 
     @staticmethod
@@ -444,6 +631,15 @@ class QMIDecisionService:
             return float(value)
         except (TypeError, ValueError):
             return float(default)
+
+    @staticmethod
+    def _number_or_none(value: Any) -> float | None:
+        try:
+            if value is None:
+                return None
+            return float(value)
+        except (TypeError, ValueError):
+            return None
 
     @staticmethod
     def _clamp(value: float) -> float:

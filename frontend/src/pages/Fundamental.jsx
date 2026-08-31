@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 import { getFundamental } from "../services/fundamentalService";
-import { getQMIDecision } from "../services/qmiDecisionService";
+import { getQMIDecisionSnapshot } from "../services/qmiDecisionSnapshotService";
 
 function n(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -127,6 +127,56 @@ function integratedDecisionTone(posture) {
   return "neutral";
 }
 
+
+function businessMomentumTone(value) {
+  const number = n(value);
+  if (number === null) return "neutral";
+  if (number >= 75) return "positive";
+  if (number >= 60) return "constructive";
+  if (number >= 45) return "warning";
+  return "negative";
+}
+
+function familyLabel(key) {
+  return {
+    growth: "Growth",
+    profitability: "Profitability",
+    cash_quality: "Cash & Quality",
+    operating_drivers: "Operating Drivers",
+  }[key] || prettyState(key);
+}
+
+function BusinessMomentumFamilyCard({ familyKey, block }) {
+  const score = n(block?.score);
+  const weight = n(block?.effective_weight);
+  const coverage = n(block?.coverage_pct);
+  const tone = businessMomentumTone(score);
+
+  return (
+    <div className={`qmi-fa-bm-family is-${tone}`}>
+      <div className="qmi-fa-bm-family-head">
+        <div>
+          <span>{familyLabel(familyKey)}</span>
+          <small>{block?.active_components ?? 0}/{block?.total_components ?? 0} active</small>
+        </div>
+        <strong>{score === null ? "--" : score.toFixed(1)}</strong>
+      </div>
+
+      <div className="qmi-fa-bm-family-track">
+        <div
+          className="qmi-fa-bm-family-fill"
+          style={{ width: `${Math.max(0, Math.min(100, score ?? 0))}%` }}
+        />
+      </div>
+
+      <div className="qmi-fa-bm-family-meta">
+        <span>Weight {weight === null ? "--" : `${(weight * 100).toFixed(1)}%`}</span>
+        <span>Coverage {coverage === null ? "--" : `${coverage.toFixed(0)}%`}</span>
+      </div>
+    </div>
+  );
+}
+
 function IntelligenceCard({ label, block }) {
   const state = block?.state || "UNKNOWN";
   const tone = stateTone(state);
@@ -198,20 +248,41 @@ function ListPanel({ title, icon: Icon, items = [], tone = "neutral", empty }) {
   );
 }
 
-export default function Fundamental({ token }) {
-  const [symbol, setSymbol] = useState("NIO");
-  const [submittedSymbol, setSubmittedSymbol] = useState("NIO");
+export default function Fundamental({
+  token,
+  activeTicker = "NIO",
+  onTickerChange = () => {},
+}) {
+  const initialTicker = String(activeTicker || "NIO").trim().toUpperCase();
+  const [symbol, setSymbol] = useState(initialTicker);
+  const [submittedSymbol, setSubmittedSymbol] = useState(initialTicker);
   const [fundamental, setFundamental] = useState(null);
   const [qmiDecisionResponse, setQmiDecisionResponse] = useState(null);
+  const [qmiActionPolicyResponse, setQmiActionPolicyResponse] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [qmiDecisionLoading, setQmiDecisionLoading] = useState(false);
   const [qmiDecisionError, setQmiDecisionError] = useState("");
+  const [qmiActionPolicyLoading, setQmiActionPolicyLoading] = useState(false);
+  const [qmiActionPolicyError, setQmiActionPolicyError] = useState("");
+
+  useEffect(() => {
+    const normalized = String(activeTicker || "NIO").trim().toUpperCase();
+
+    if (!normalized || normalized === submittedSymbol) {
+      return;
+    }
+
+    setSymbol(normalized);
+    setSubmittedSymbol(normalized);
+    onTickerChange(normalized);
+  }, [activeTicker, submittedSymbol]);
+
 
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadFundamental() {
+    async function loadFundamentalAnalysis() {
       setLoading(true);
       setError("");
 
@@ -220,15 +291,13 @@ export default function Fundamental({ token }) {
           token,
           signal: controller.signal,
         });
-
         setFundamental(result);
       } catch (requestError) {
         if (requestError?.name !== "AbortError") {
-          console.error("Unable to load fundamental analysis:", requestError);
+          console.error("Unable to load Fundamental analysis:", requestError);
           setFundamental(null);
           setError(
-            requestError?.message ||
-              "Unable to load QMI Fundamental Engine"
+            requestError?.message || "Unable to load Fundamental analysis"
           );
         }
       } finally {
@@ -238,7 +307,7 @@ export default function Fundamental({ token }) {
       }
     }
 
-    loadFundamental();
+    loadFundamentalAnalysis();
 
     return () => controller.abort();
   }, [submittedSymbol, token]);
@@ -246,12 +315,14 @@ export default function Fundamental({ token }) {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadQMIDecision() {
+    async function loadSharedDecisionContext() {
       setQmiDecisionLoading(true);
+      setQmiActionPolicyLoading(true);
       setQmiDecisionError("");
+      setQmiActionPolicyError("");
 
       try {
-        const result = await getQMIDecision(submittedSymbol, {
+        const result = await getQMIDecisionSnapshot(submittedSymbol, {
           period: "1y",
           interval: "1d",
           pivotWindow: 3,
@@ -260,27 +331,34 @@ export default function Fundamental({ token }) {
           signal: controller.signal,
         });
 
-        setQmiDecisionResponse(result);
+        setQmiDecisionResponse(result?.qmi_decision_response || null);
+        setQmiActionPolicyResponse(result?.action_policy_response || null);
       } catch (requestError) {
         if (requestError?.name !== "AbortError") {
-          console.error("Unable to load QMI cross-engine decision:", requestError);
-          setQmiDecisionResponse(null);
-          setQmiDecisionError(
+          console.error("Unable to load QMI decision context:", requestError);
+
+          const message =
             requestError?.message ||
-              "Unable to load QMI Cross-Engine Decision Fusion"
-          );
+            "Unable to load QMI decision context";
+
+          setQmiDecisionResponse(null);
+          setQmiActionPolicyResponse(null);
+          setQmiDecisionError(message);
+          setQmiActionPolicyError(message);
         }
       } finally {
         if (!controller.signal.aborted) {
           setQmiDecisionLoading(false);
+          setQmiActionPolicyLoading(false);
         }
       }
     }
 
-    loadQMIDecision();
+    loadSharedDecisionContext();
 
     return () => controller.abort();
   }, [submittedSymbol, token]);
+
 
   const data = fundamental?.data || {};
   const profile = data?.profile || {};
@@ -294,9 +372,21 @@ export default function Fundamental({ token }) {
   const statementIntelligence = data?.statement_intelligence || {};
   const qualityIntelligence = data?.quality_intelligence || {};
   const decision = fundamental?.decision || {};
+  const businessMomentum = fundamental?.business_momentum || {};
+  const businessMomentumFamilies = businessMomentum?.families || {};
+  const businessMomentumScore = n(businessMomentum?.score);
+  const businessMomentumEvidence = Array.isArray(businessMomentum?.evidence)
+    ? businessMomentum.evidence
+    : [];
+  const businessMomentumRisks = Array.isArray(businessMomentum?.risks)
+    ? businessMomentum.risks
+    : [];
   const qmiDecision = qmiDecisionResponse?.qmi_decision || {};
   const qmiTechnical = qmiDecision?.technical || {};
   const qmiFundamental = qmiDecision?.fundamental || {};
+  const qmiBusinessMomentum = qmiDecision?.business_momentum || {};
+  const qmiBusinessDivergence = qmiDecision?.business_divergence || {};
+  const qmiFusionWeights = qmiDecision?.fusion_weights || {};
   const qmiAlignment = qmiDecision?.alignment || {};
   const qmiSupportingEvidence = Array.isArray(qmiDecision?.supporting_evidence)
     ? qmiDecision.supporting_evidence
@@ -304,6 +394,27 @@ export default function Fundamental({ token }) {
   const qmiConflicts = Array.isArray(qmiDecision?.conflicts)
     ? qmiDecision.conflicts
     : [];
+
+  const actionPolicy = qmiActionPolicyResponse?.action_policy || {};
+  const actionSource = actionPolicy?.source || {};
+  const actionBusinessContext = actionPolicy?.business_context || {};
+  const actionStrategicBias = actionPolicy?.strategic_bias || "NEUTRAL";
+  const invalidationConditions = Array.isArray(actionPolicy?.invalidation_conditions)
+    ? actionPolicy.invalidation_conditions
+    : [];
+  const upgradeConditions = Array.isArray(actionPolicy?.upgrade_conditions)
+    ? actionPolicy.upgrade_conditions
+    : [];
+  const downgradeConditions = Array.isArray(actionPolicy?.downgrade_conditions)
+    ? actionPolicy.downgrade_conditions
+    : [];
+  const reevaluationTriggers = Array.isArray(actionPolicy?.reevaluation_triggers)
+    ? actionPolicy.reevaluation_triggers
+    : [];
+  const actionConstraints = Array.isArray(actionPolicy?.constraints)
+    ? actionPolicy.constraints
+    : [];
+
 
   const marketCurrency =
     profile?.market_currency || profile?.currency || "USD";
@@ -499,6 +610,203 @@ export default function Fundamental({ token }) {
           color: #fecaca;
           font-size: 12px;
           font-weight: 750;
+        }
+
+
+        .qmi-fa-bm-panel {
+          padding: 18px;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(59,130,246,.08), transparent 34%),
+            linear-gradient(180deg, rgba(15,23,42,.88), rgba(8,15,28,.94));
+        }
+
+        .qmi-fa-bm-head {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+        }
+
+        .qmi-fa-bm-title {
+          display: flex;
+          align-items: center;
+          gap: 11px;
+        }
+
+        .qmi-fa-bm-title-icon {
+          display: grid;
+          width: 38px;
+          height: 38px;
+          place-items: center;
+          border: 1px solid rgba(96,165,250,.22);
+          border-radius: 10px;
+          color: #60a5fa;
+          background: rgba(37,99,235,.10);
+        }
+
+        .qmi-fa-bm-title span,
+        .qmi-fa-bm-score span,
+        .qmi-fa-bm-kpi span {
+          display: block;
+          color: #8190a5;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-bm-title h2 {
+          margin: 3px 0 0;
+          color: #f8fafc;
+          font-size: 18px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-bm-badge {
+          padding: 7px 10px;
+          border: 1px solid rgba(74,222,128,.18);
+          border-radius: 999px;
+          color: #86efac;
+          background: rgba(34,197,94,.07);
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-bm-hero {
+          display: grid;
+          grid-template-columns: 1.25fr repeat(4, minmax(0, .85fr));
+          gap: 9px;
+          margin-top: 14px;
+        }
+
+        .qmi-fa-bm-score,
+        .qmi-fa-bm-kpi,
+        .qmi-fa-bm-family,
+        .qmi-fa-bm-list {
+          min-width: 0;
+          padding: 13px;
+          border: 1px solid rgba(148,163,184,.09);
+          border-radius: 11px;
+          background: rgba(2,6,23,.16);
+        }
+
+        .qmi-fa-bm-score strong {
+          display: block;
+          margin-top: 8px;
+          color: #4ade80;
+          font-size: 30px;
+          line-height: 1;
+          font-weight: 950;
+        }
+
+        .qmi-fa-bm-kpi strong {
+          display: block;
+          margin-top: 8px;
+          color: #e2e8f0;
+          font-size: 15px;
+          font-weight: 950;
+          overflow-wrap: anywhere;
+        }
+
+        .qmi-fa-bm-score small,
+        .qmi-fa-bm-kpi small {
+          display: block;
+          margin-top: 7px;
+          color: #738197;
+          font-size: 9px;
+          line-height: 1.35;
+        }
+
+        .qmi-fa-bm-family-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 9px;
+          margin-top: 10px;
+        }
+
+        .qmi-fa-bm-family-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+        }
+
+        .qmi-fa-bm-family-head span {
+          color: #cbd5e1;
+          font-size: 10px;
+          font-weight: 900;
+        }
+
+        .qmi-fa-bm-family-head small {
+          display: block;
+          margin-top: 4px;
+          color: #64748b;
+          font-size: 8px;
+        }
+
+        .qmi-fa-bm-family-head strong {
+          color: #f8fafc;
+          font-size: 17px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-bm-family.is-positive .qmi-fa-bm-family-head strong { color: #4ade80; }
+        .qmi-fa-bm-family.is-constructive .qmi-fa-bm-family-head strong { color: #67e8f9; }
+        .qmi-fa-bm-family.is-warning .qmi-fa-bm-family-head strong { color: #fbbf24; }
+        .qmi-fa-bm-family.is-negative .qmi-fa-bm-family-head strong { color: #fb7185; }
+
+        .qmi-fa-bm-family-track {
+          height: 5px;
+          margin-top: 11px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: rgba(100,116,139,.16);
+        }
+
+        .qmi-fa-bm-family-fill {
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, #ef4444 0%, #f59e0b 28%, #84cc16 62%, #22c55e 82%, #67e8f9 100%);
+        }
+
+        .qmi-fa-bm-family-meta {
+          display: flex;
+          justify-content: space-between;
+          gap: 8px;
+          margin-top: 8px;
+          color: #64748b;
+          font-size: 8px;
+          font-weight: 800;
+        }
+
+        .qmi-fa-bm-intel {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 9px;
+          margin-top: 10px;
+        }
+
+        .qmi-fa-bm-list > span {
+          color: #8190a5;
+          font-size: 8px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-bm-list ul {
+          margin: 8px 0 0;
+          padding-left: 16px;
+          color: #aab6c7;
+          font-size: 9px;
+          line-height: 1.55;
+        }
+
+        @media (max-width: 1100px) {
+          .qmi-fa-bm-hero,
+          .qmi-fa-bm-family-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
         }
 
         .qmi-fa-hero {
@@ -1279,7 +1587,7 @@ export default function Fundamental({ token }) {
 
         .qmi-fa-core-grid {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           gap: 10px;
           margin-bottom: 10px;
         }
@@ -1311,9 +1619,183 @@ export default function Fundamental({ token }) {
 
         .qmi-fa-core-compare {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 10px;
           margin-bottom: 10px;
+        }
+
+        .qmi-fa-core-divergence {
+          display: grid;
+          grid-template-columns: 1fr .62fr;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-core-divergence-main,
+        .qmi-fa-core-weights {
+          padding: 16px;
+          border: 1px solid rgba(148, 163, 184, .10);
+          border-radius: 11px;
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-core-divergence-main {
+          position: relative;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(34,197,94,.09), transparent 38%),
+            rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-core-divergence-main.is-negative {
+          background:
+            radial-gradient(circle at 100% 0%, rgba(244,63,94,.10), transparent 38%),
+            rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-core-divergence-main.is-aligned {
+          background:
+            radial-gradient(circle at 100% 0%, rgba(96,165,250,.09), transparent 38%),
+            rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-core-divergence-head {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .qmi-fa-core-divergence-head span,
+        .qmi-fa-core-weights > span {
+          display: block;
+          color: #8190a5;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-core-divergence-head strong {
+          display: block;
+          margin-top: 7px;
+          color: #f8fafc;
+          font-size: 21px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-core-divergence-head b {
+          color: #4ade80;
+          font-size: 32px;
+          line-height: 1;
+          font-weight: 950;
+        }
+
+        .qmi-fa-core-divergence-main.is-negative .qmi-fa-core-divergence-head b {
+          color: #fb7185;
+        }
+
+        .qmi-fa-core-divergence-main.is-aligned .qmi-fa-core-divergence-head b {
+          color: #60a5fa;
+        }
+
+        .qmi-fa-core-divergence-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          margin-top: 12px;
+          color: #94a3b8;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .qmi-fa-core-divergence-track {
+          position: relative;
+          height: 7px;
+          margin-top: 12px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: rgba(100,116,139,.16);
+        }
+
+        .qmi-fa-core-divergence-center {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 50%;
+          width: 1px;
+          background: rgba(226,232,240,.35);
+          z-index: 2;
+        }
+
+        .qmi-fa-core-divergence-marker {
+          position: absolute;
+          top: 50%;
+          width: 11px;
+          height: 11px;
+          border: 2px solid #0f172a;
+          border-radius: 50%;
+          background: #4ade80;
+          transform: translate(-50%, -50%);
+          box-shadow: 0 0 0 3px rgba(74,222,128,.10);
+          z-index: 3;
+        }
+
+        .qmi-fa-core-divergence-main.is-negative .qmi-fa-core-divergence-marker {
+          background: #fb7185;
+          box-shadow: 0 0 0 3px rgba(251,113,133,.10);
+        }
+
+        .qmi-fa-core-divergence-main.is-aligned .qmi-fa-core-divergence-marker {
+          background: #60a5fa;
+          box-shadow: 0 0 0 3px rgba(96,165,250,.10);
+        }
+
+        .qmi-fa-core-weights-grid {
+          display: grid;
+          gap: 8px;
+          margin-top: 11px;
+        }
+
+        .qmi-fa-core-weight-row {
+          display: grid;
+          grid-template-columns: 1fr auto;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .qmi-fa-core-weight-row div {
+          min-width: 0;
+        }
+
+        .qmi-fa-core-weight-row small {
+          display: block;
+          margin-bottom: 5px;
+          color: #94a3b8;
+          font-size: 9px;
+          font-weight: 850;
+        }
+
+        .qmi-fa-core-weight-bar {
+          height: 5px;
+          overflow: hidden;
+          border-radius: 999px;
+          background: rgba(100,116,139,.16);
+        }
+
+        .qmi-fa-core-weight-fill {
+          height: 100%;
+          border-radius: inherit;
+          background: linear-gradient(90deg, rgba(59,130,246,.8), rgba(103,232,249,.9));
+        }
+
+        .qmi-fa-core-weight-row b {
+          min-width: 42px;
+          text-align: right;
+          color: #e2e8f0;
+          font-size: 11px;
+          font-weight: 950;
         }
 
         .qmi-fa-core-engine {
@@ -1416,6 +1898,417 @@ export default function Fundamental({ token }) {
           font-weight: 800;
         }
 
+
+        .qmi-fa-policy-hero {
+          display: grid;
+          grid-template-columns: 1.15fr .85fr;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-policy-main,
+        .qmi-fa-policy-state {
+          min-height: 160px;
+          padding: 18px;
+          border: 1px solid rgba(96, 165, 250, .18);
+          border-radius: 12px;
+          background: rgba(59, 130, 246, .05);
+        }
+
+        .qmi-fa-policy-main span,
+        .qmi-fa-policy-state span,
+        .qmi-fa-policy-card span,
+        .qmi-fa-policy-list span {
+          display: block;
+          color: #8190a5;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-policy-main strong {
+          display: block;
+          margin-top: 8px;
+          font-size: 36px;
+          line-height: 1;
+          font-weight: 950;
+          color: #fbbf24;
+        }
+
+        .qmi-fa-policy-main b {
+          display: inline-block;
+          margin-top: 12px;
+          padding: 5px 9px;
+          border-radius: 999px;
+          border: 1px solid rgba(251, 191, 36, .22);
+          color: #fbbf24;
+          background: rgba(251, 191, 36, .06);
+          font-size: 10px;
+          font-weight: 950;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-policy-main small {
+          display: block;
+          margin-top: 10px;
+          color: #94a3b8;
+          font-size: 11px;
+          font-weight: 800;
+          line-height: 1.5;
+        }
+
+        .qmi-fa-policy-state {
+          display: grid;
+          place-items: center;
+          text-align: center;
+          border-color: rgba(148, 163, 184, .10);
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-policy-state strong {
+          display: block;
+          margin: 8px 0;
+          color: #fb7185;
+          font-size: 26px;
+          line-height: 1.1;
+          font-weight: 950;
+        }
+
+        .qmi-fa-policy-state small {
+          color: #cbd5e1;
+          font-size: 11px;
+          font-weight: 800;
+        }
+
+
+        .qmi-fa-policy-bias {
+          display: grid;
+          grid-template-columns: 1.25fr repeat(3, minmax(0, .75fr));
+          gap: 10px;
+          margin: 10px 0;
+        }
+
+        .qmi-fa-policy-bias-main,
+        .qmi-fa-policy-bias-card {
+          padding: 15px;
+          border: 1px solid rgba(148,163,184,.10);
+          border-radius: 11px;
+          background: rgba(2,6,23,.16);
+        }
+
+        .qmi-fa-policy-bias-main {
+          position: relative;
+          overflow: hidden;
+          background:
+            radial-gradient(circle at 100% 0%, rgba(34,197,94,.10), transparent 40%),
+            rgba(2,6,23,.16);
+        }
+
+        .qmi-fa-policy-bias-main.is-caution {
+          background:
+            radial-gradient(circle at 100% 0%, rgba(251,191,36,.10), transparent 40%),
+            rgba(2,6,23,.16);
+        }
+
+        .qmi-fa-policy-bias-main.is-risk {
+          background:
+            radial-gradient(circle at 100% 0%, rgba(244,63,94,.10), transparent 40%),
+            rgba(2,6,23,.16);
+        }
+
+        .qmi-fa-policy-bias-main span,
+        .qmi-fa-policy-bias-card span {
+          display: block;
+          color: #8190a5;
+          font-size: 9px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-policy-bias-main strong {
+          display: block;
+          margin-top: 7px;
+          color: #4ade80;
+          font-size: 22px;
+          font-weight: 950;
+          letter-spacing: -.025em;
+        }
+
+        .qmi-fa-policy-bias-main.is-caution strong { color: #fbbf24; }
+        .qmi-fa-policy-bias-main.is-risk strong { color: #fb7185; }
+
+        .qmi-fa-policy-bias-main small {
+          display: block;
+          margin-top: 7px;
+          color: #94a3b8;
+          font-size: 9px;
+          line-height: 1.45;
+          font-weight: 700;
+        }
+
+        .qmi-fa-policy-bias-card strong {
+          display: block;
+          margin-top: 8px;
+          color: #e2e8f0;
+          font-size: 17px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-policy-bias-card small {
+          display: block;
+          margin-top: 6px;
+          color: #738197;
+          font-size: 8.5px;
+          line-height: 1.35;
+        }
+
+        .qmi-fa-policy-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-policy-card {
+          padding: 14px 15px;
+          min-height: 106px;
+          border: 1px solid rgba(148, 163, 184, .10);
+          border-radius: 11px;
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-policy-card strong {
+          display: block;
+          margin-top: 8px;
+          color: #f8fafc;
+          font-size: 18px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-policy-card small {
+          display: block;
+          margin-top: 8px;
+          color: #94a3b8;
+          font-size: 10px;
+          font-weight: 800;
+          line-height: 1.45;
+        }
+
+        .qmi-fa-policy-lists {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .qmi-fa-policy-list {
+          min-height: 130px;
+          padding: 15px;
+          border: 1px solid rgba(148, 163, 184, .10);
+          border-radius: 11px;
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-policy-list ul {
+          margin: 10px 0 0;
+          padding-left: 18px;
+          color: #cbd5e1;
+          font-size: 11px;
+          line-height: 1.55;
+        }
+
+        .qmi-fa-policy-list.is-invalidation span { color: #fb7185; }
+        .qmi-fa-policy-list.is-upgrade span { color: #4ade80; }
+        .qmi-fa-policy-list.is-downgrade span { color: #fbbf24; }
+        .qmi-fa-policy-list.is-reeval span { color: #60a5fa; }
+        .qmi-fa-policy-list.is-constraints span { color: #c084fc; }
+
+
+        .qmi-fa-nio-hero {
+          display: grid;
+          grid-template-columns: 1.15fr .85fr;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-nio-main,
+        .qmi-fa-nio-score {
+          min-height: 164px;
+          padding: 18px;
+          border: 1px solid rgba(96, 165, 250, .18);
+          border-radius: 12px;
+          background: rgba(59, 130, 246, .05);
+        }
+
+        .qmi-fa-nio-main span,
+        .qmi-fa-nio-score span,
+        .qmi-fa-nio-card span,
+        .qmi-fa-nio-brand span,
+        .qmi-fa-nio-list span,
+        .qmi-fa-nio-monthly span {
+          display: block;
+          color: #8190a5;
+          font-size: 10px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-nio-main strong {
+          display: block;
+          margin-top: 8px;
+          color: #60a5fa;
+          font-size: 36px;
+          line-height: 1;
+          font-weight: 950;
+        }
+
+        .qmi-fa-nio-main b {
+          display: inline-block;
+          margin-top: 12px;
+          padding: 5px 9px;
+          border: 1px solid rgba(74, 222, 128, .20);
+          border-radius: 999px;
+          color: #4ade80;
+          background: rgba(74, 222, 128, .05);
+          font-size: 10px;
+          font-weight: 950;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-nio-main small,
+        .qmi-fa-nio-score small {
+          display: block;
+          margin-top: 9px;
+          color: #94a3b8;
+          font-size: 11px;
+          font-weight: 800;
+          line-height: 1.45;
+        }
+
+        .qmi-fa-nio-score {
+          display: grid;
+          place-items: center;
+          text-align: center;
+          border-color: rgba(148, 163, 184, .10);
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-nio-score strong {
+          display: block;
+          margin: 8px 0;
+          color: #4ade80;
+          font-size: 46px;
+          line-height: 1;
+          font-weight: 950;
+        }
+
+        .qmi-fa-nio-grid {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-nio-card,
+        .qmi-fa-nio-brand {
+          padding: 14px 15px;
+          border: 1px solid rgba(148, 163, 184, .10);
+          border-radius: 11px;
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-nio-card strong,
+        .qmi-fa-nio-brand strong {
+          display: block;
+          margin-top: 8px;
+          color: #f8fafc;
+          font-size: 20px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-nio-card small,
+        .qmi-fa-nio-brand small {
+          display: block;
+          margin-top: 7px;
+          color: #94a3b8;
+          font-size: 10px;
+          font-weight: 800;
+        }
+
+        .qmi-fa-nio-brand-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-nio-lists {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+
+        .qmi-fa-nio-list {
+          min-height: 118px;
+          padding: 15px;
+          border: 1px solid rgba(148, 163, 184, .10);
+          border-radius: 11px;
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-nio-list.is-evidence span { color: #4ade80; }
+        .qmi-fa-nio-list.is-risks span { color: #fbbf24; }
+
+        .qmi-fa-nio-list ul {
+          margin: 10px 0 0;
+          padding-left: 18px;
+          color: #cbd5e1;
+          font-size: 11px;
+          line-height: 1.55;
+        }
+
+        .qmi-fa-nio-monthly {
+          overflow-x: auto;
+          border: 1px solid rgba(148, 163, 184, .10);
+          border-radius: 11px;
+          background: rgba(148, 163, 184, .025);
+        }
+
+        .qmi-fa-nio-monthly table {
+          width: 100%;
+          border-collapse: collapse;
+          min-width: 720px;
+        }
+
+        .qmi-fa-nio-monthly th,
+        .qmi-fa-nio-monthly td {
+          padding: 10px 12px;
+          border-bottom: 1px solid rgba(148, 163, 184, .08);
+          text-align: right;
+          color: #cbd5e1;
+          font-size: 11px;
+        }
+
+        .qmi-fa-nio-monthly th:first-child,
+        .qmi-fa-nio-monthly td:first-child {
+          text-align: left;
+        }
+
+        .qmi-fa-nio-monthly th {
+          color: #8190a5;
+          font-size: 9px;
+          font-weight: 900;
+          text-transform: uppercase;
+          letter-spacing: .05em;
+        }
+
+        .qmi-fa-nio-monthly tbody tr:last-child td {
+          border-bottom: 0;
+        }
+
         @media (max-width: 1150px) {
           .qmi-fa-hero { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .qmi-fa-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1425,6 +2318,8 @@ export default function Fundamental({ token }) {
           .qmi-fa-decision-hero { grid-template-columns: 1fr; }
           .qmi-fa-core-hero { grid-template-columns: 1fr; }
           .qmi-fa-core-compare { grid-template-columns: 1fr; }
+          .qmi-fa-policy-hero { grid-template-columns: 1fr; }
+          .qmi-fa-nio-hero { grid-template-columns: 1fr; }
           .qmi-fa-decision-lists { grid-template-columns: 1fr; }
           .qmi-fa-quality-intel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .qmi-fa-state-matrix { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1455,7 +2350,13 @@ export default function Fundamental({ token }) {
           .qmi-fa-decision-breakdown,
           .qmi-fa-decision-lists,
           .qmi-fa-core-grid,
-          .qmi-fa-core-lists {
+          .qmi-fa-core-lists,
+          .qmi-fa-policy-bias,
+          .qmi-fa-policy-grid,
+          .qmi-fa-policy-lists,
+          .qmi-fa-nio-grid,
+          .qmi-fa-nio-brand-grid,
+          .qmi-fa-nio-lists {
             grid-template-columns: 1fr;
           }
         }
@@ -1518,6 +2419,116 @@ export default function Fundamental({ token }) {
           <div className="qmi-fa-alert" style={{ marginTop: 14 }}>
             {error}
           </div>
+        ) : null}
+
+        {fundamental ? (
+          <section className="qmi-fa-panel qmi-fa-bm-panel" style={{ marginTop: 14 }}>
+            <div className="qmi-fa-bm-head">
+              <div className="qmi-fa-bm-title">
+                <div className="qmi-fa-bm-title-icon">
+                  <TrendingUp size={18} />
+                </div>
+                <div>
+                  <span>DE-FA-BM-001.1 · ADAPTIVE BUSINESS MOMENTUM</span>
+                  <h2>Business Momentum Intelligence</h2>
+                </div>
+              </div>
+
+              <div className="qmi-fa-bm-badge">
+                {businessMomentum?.factor_family_architecture
+                  ? "Factor Families Active"
+                  : "Adaptive Weighting"}
+              </div>
+            </div>
+
+            <div className="qmi-fa-bm-hero">
+              <div className="qmi-fa-bm-score">
+                <span>Business Momentum</span>
+                <strong>
+                  {businessMomentumScore === null ? "--" : businessMomentumScore.toFixed(1)}
+                </strong>
+                <small>
+                  {prettyState(businessMomentum?.regime)} ·{" "}
+                  {businessMomentum?.confidence || "LOW"} confidence
+                </small>
+              </div>
+
+              <div className="qmi-fa-bm-kpi">
+                <span>Trend</span>
+                <strong>{prettyState(businessMomentum?.trend)}</strong>
+                <small>Directional business state</small>
+              </div>
+
+              <div className="qmi-fa-bm-kpi">
+                <span>Coverage</span>
+                <strong>
+                  {n(businessMomentum?.coverage_pct) === null
+                    ? "--"
+                    : `${n(businessMomentum?.coverage_pct).toFixed(0)}%`}
+                </strong>
+                <small>
+                  {businessMomentum?.active_components ?? 0}/
+                  {businessMomentum?.total_components ?? 0} active components
+                </small>
+              </div>
+
+              <div className="qmi-fa-bm-kpi">
+                <span>Operating Driver Cap</span>
+                <strong>
+                  {n(businessMomentum?.operating_driver_cap_pct) === null
+                    ? "--"
+                    : `${n(businessMomentum?.operating_driver_cap_pct).toFixed(0)}%`}
+                </strong>
+                <small>Maximum company-specific contribution</small>
+              </div>
+
+              <div className="qmi-fa-bm-kpi">
+                <span>Weighting</span>
+                <strong>{businessMomentum?.adaptive_weighting ? "Adaptive" : "Static"}</strong>
+                <small>Missing metrics are excluded, never scored as zero</small>
+              </div>
+            </div>
+
+            <div className="qmi-fa-bm-family-grid">
+              {["growth", "profitability", "cash_quality", "operating_drivers"].map(
+                (familyKey) => (
+                  <BusinessMomentumFamilyCard
+                    key={familyKey}
+                    familyKey={familyKey}
+                    block={businessMomentumFamilies?.[familyKey] || {}}
+                  />
+                )
+              )}
+            </div>
+
+            {(businessMomentumEvidence.length > 0 || businessMomentumRisks.length > 0) && (
+              <div className="qmi-fa-bm-intel">
+                <div className="qmi-fa-bm-list">
+                  <span>Supporting Evidence</span>
+                  <ul>
+                    {(businessMomentumEvidence.length
+                      ? businessMomentumEvidence
+                      : ["No positive family-level evidence available."]
+                    ).map((item, index) => (
+                      <li key={`bm-evidence-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="qmi-fa-bm-list">
+                  <span>Momentum Risks</span>
+                  <ul>
+                    {(businessMomentumRisks.length
+                      ? businessMomentumRisks
+                      : ["No material business-momentum risks detected."]
+                    ).map((item, index) => (
+                      <li key={`bm-risk-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </section>
         ) : null}
 
         {fundamental ? (
@@ -1982,7 +2993,7 @@ export default function Fundamental({ token }) {
                   <GitMerge size={17} />
                 </div>
                 <div>
-                  <span className="qmi-fa-kicker">DE-CORE-004.0 · CROSS-ENGINE DECISION FUSION</span>
+                  <span className="qmi-fa-kicker">DE-CORE-004.1 · CROSS-ENGINE DECISION FUSION</span>
                   <h2>QMI Integrated Decision</h2>
                 </div>
               </div>
@@ -1990,7 +3001,7 @@ export default function Fundamental({ token }) {
               {qmiDecisionLoading ? (
                 <div className="qmi-fa-core-status">
                   <RefreshCw className="qmi-fa-spin" size={14} />
-                  Fusing Technical + Fundamental
+                  Fusing Technical + Fundamental + Business
                 </div>
               ) : qmiDecisionError ? (
                 <div className="qmi-fa-core-status" style={{ color: "#fb7185" }}>
@@ -2022,7 +3033,7 @@ export default function Fundamental({ token }) {
                 <b>{qmiDecision?.confidence || "LOW"} confidence</b>
                 <small>
                   {qmiDecision?.thesis ||
-                    "Technical timing and fundamental direction fused under preserved risk gates."}
+                    "Technical timing, fundamental direction and business momentum fused under preserved risk gates."}
                 </small>
               </div>
 
@@ -2072,6 +3083,104 @@ export default function Fundamental({ token }) {
                 <span>Fundamental Stance</span>
                 <strong>{prettyState(qmiFundamental?.stance)}</strong>
                 <small>{qmiFundamental?.conviction || "LOW"} conviction</small>
+              </div>
+
+              <div className="qmi-fa-core-card">
+                <span>Business Momentum</span>
+                <strong>
+                  {n(qmiBusinessMomentum?.score) === null
+                    ? "--"
+                    : n(qmiBusinessMomentum?.score).toFixed(1)}
+                </strong>
+                <small>
+                  {prettyState(qmiBusinessMomentum?.regime)} ·{" "}
+                  {qmiBusinessMomentum?.confidence || "LOW"} confidence
+                </small>
+              </div>
+            </div>
+
+            <div className="qmi-fa-core-divergence">
+              <div
+                className={`qmi-fa-core-divergence-main ${
+                  String(qmiBusinessDivergence?.state || "").includes("NEGATIVE")
+                    ? "is-negative"
+                    : String(qmiBusinessDivergence?.state || "") === "ALIGNED"
+                      ? "is-aligned"
+                      : ""
+                }`}
+              >
+                <div className="qmi-fa-core-divergence-head">
+                  <div>
+                    <span>Business / Price Divergence</span>
+                    <strong>{prettyState(qmiBusinessDivergence?.state)}</strong>
+                  </div>
+                  <b>
+                    {n(qmiBusinessDivergence?.spread) === null
+                      ? "--"
+                      : `${n(qmiBusinessDivergence?.spread) > 0 ? "+" : ""}${n(
+                          qmiBusinessDivergence?.spread
+                        ).toFixed(1)}`}
+                  </b>
+                </div>
+
+                <div className="qmi-fa-core-divergence-meta">
+                  <span>
+                    Business {n(qmiBusinessMomentum?.score) === null
+                      ? "--"
+                      : n(qmiBusinessMomentum?.score).toFixed(1)}
+                  </span>
+                  <span>{qmiBusinessDivergence?.severity || "NONE"} severity</span>
+                  <span>
+                    Technical {n(qmiTechnical?.score) === null
+                      ? "--"
+                      : n(qmiTechnical?.score).toFixed(1)}
+                  </span>
+                </div>
+
+                <div className="qmi-fa-core-divergence-track">
+                  <div className="qmi-fa-core-divergence-center" />
+                  <div
+                    className="qmi-fa-core-divergence-marker"
+                    style={{
+                      left: `${Math.max(
+                        2,
+                        Math.min(
+                          98,
+                          50 + (n(qmiBusinessDivergence?.spread) ?? 0) * 0.8
+                        )
+                      )}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="qmi-fa-core-weights">
+                <span>Fusion Weights</span>
+                <div className="qmi-fa-core-weights-grid">
+                  {[
+                    ["Technical", qmiFusionWeights?.technical],
+                    ["Fundamental", qmiFusionWeights?.fundamental],
+                    ["Business", qmiFusionWeights?.business_momentum],
+                  ].map(([label, weight]) => {
+                    const value = n(weight);
+                    const pctValue = value === null ? 0 : value * 100;
+
+                    return (
+                      <div className="qmi-fa-core-weight-row" key={label}>
+                        <div>
+                          <small>{label}</small>
+                          <div className="qmi-fa-core-weight-bar">
+                            <div
+                              className="qmi-fa-core-weight-fill"
+                              style={{ width: `${Math.max(0, Math.min(100, pctValue))}%` }}
+                            />
+                          </div>
+                        </div>
+                        <b>{value === null ? "--" : `${pctValue.toFixed(0)}%`}</b>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -2145,6 +3254,43 @@ export default function Fundamental({ token }) {
                   </div>
                 </div>
               </div>
+
+              <div className="qmi-fa-core-engine">
+                <div className="qmi-fa-core-engine-head">
+                  <div>
+                    <span>Business Momentum · DE-FA-BM-001.1</span>
+                    <strong>{prettyState(qmiBusinessMomentum?.regime)}</strong>
+                  </div>
+                  <b>
+                    {n(qmiBusinessMomentum?.score) === null
+                      ? "--"
+                      : n(qmiBusinessMomentum?.score).toFixed(1)}
+                  </b>
+                </div>
+
+                <div className="qmi-fa-core-engine-meta">
+                  <div>
+                    <span>Trend</span>
+                    <strong>{prettyState(qmiBusinessMomentum?.trend)}</strong>
+                  </div>
+                  <div>
+                    <span>Coverage</span>
+                    <strong>
+                      {n(qmiBusinessMomentum?.coverage_pct) === null
+                        ? "--"
+                        : `${n(qmiBusinessMomentum?.coverage_pct).toFixed(0)}%`}
+                    </strong>
+                  </div>
+                  <div>
+                    <span>Driver Cap</span>
+                    <strong>
+                      {n(qmiBusinessMomentum?.operating_driver_cap_pct) === null
+                        ? "--"
+                        : `${n(qmiBusinessMomentum?.operating_driver_cap_pct).toFixed(0)}%`}
+                    </strong>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="qmi-fa-core-lists">
@@ -2179,6 +3325,222 @@ export default function Fundamental({ token }) {
               </div>
             </div>
           </section>
+
+          <section className="qmi-fa-panel qmi-fa-section">
+            <div className="qmi-fa-section-head">
+              <div className="qmi-fa-section-title">
+                <div className="qmi-fa-icon-box">
+                  <Target size={17} />
+                </div>
+                <div>
+                  <span className="qmi-fa-kicker">DE-CORE-005.2 · BUSINESS-AWARE DECISION POLICY</span>
+                  <h2>QMI Action Policy</h2>
+                </div>
+              </div>
+
+              {qmiActionPolicyLoading ? (
+                <div className="qmi-fa-core-status">
+                  <RefreshCw className="qmi-fa-spin" size={14} />
+                  Building policy
+                </div>
+              ) : qmiActionPolicyError ? (
+                <div className="qmi-fa-core-status" style={{ color: "#fb7185" }}>
+                  <AlertTriangle size={14} />
+                  Policy unavailable
+                </div>
+              ) : (
+                <div className="qmi-fa-core-status" style={{ color: "#4ade80" }}>
+                  <CheckCircle2 size={14} />
+                  Policy operational
+                </div>
+              )}
+            </div>
+
+            {qmiActionPolicyError ? (
+              <div className="qmi-fa-alert" style={{ marginBottom: 10 }}>
+                {qmiActionPolicyError}
+              </div>
+            ) : null}
+
+            <div className="qmi-fa-policy-hero">
+              <div className="qmi-fa-policy-main">
+                <span>Action</span>
+                <strong>{prettyState(actionPolicy?.action)}</strong>
+                <b>{actionPolicy?.intensity || "LOW"} intensity</b>
+                <small>
+                  {actionPolicy?.rationale ||
+                    "Deterministic policy derived from the cross-engine QMI decision."}
+                </small>
+              </div>
+
+              <div className="qmi-fa-policy-state">
+                <div>
+                  <span>Policy State</span>
+                  <strong>{prettyState(actionPolicy?.policy_state)}</strong>
+                  <small>{actionPolicy?.confidence || "LOW"} confidence</small>
+                </div>
+              </div>
+            </div>
+
+            <div className="qmi-fa-policy-bias">
+              <div
+                className={`qmi-fa-policy-bias-main ${
+                  actionStrategicBias === "BUSINESS_CAUTION"
+                    ? "is-caution"
+                    : actionStrategicBias === "RISK_FIRST"
+                      ? "is-risk"
+                      : ""
+                }`}
+              >
+                <span>Strategic Bias</span>
+                <strong>{prettyState(actionStrategicBias)}</strong>
+                <small>
+                  {actionStrategicBias === "REENTRY_WATCH"
+                    ? "Strong business momentum is preserved as a future re-entry watch, but the current technical protection gate remains dominant."
+                    : actionStrategicBias === "BUSINESS_CAUTION"
+                      ? "Price action is stronger than the business backdrop; escalation requires business confirmation."
+                      : actionStrategicBias === "RISK_FIRST"
+                        ? "Critical technical risk dominates the current policy."
+                        : "No material strategic bias beyond the active policy state."}
+                </small>
+              </div>
+
+              <div className="qmi-fa-policy-bias-card">
+                <span>Business Momentum</span>
+                <strong>
+                  {n(actionBusinessContext?.score) === null
+                    ? "--"
+                    : n(actionBusinessContext?.score).toFixed(1)}
+                </strong>
+                <small>
+                  {prettyState(actionBusinessContext?.regime)}
+                </small>
+              </div>
+
+              <div className="qmi-fa-policy-bias-card">
+                <span>Business Trend</span>
+                <strong>{prettyState(actionBusinessContext?.trend)}</strong>
+                <small>
+                  {actionBusinessContext?.confidence || "LOW"} confidence
+                </small>
+              </div>
+
+              <div className="qmi-fa-policy-bias-card">
+                <span>Business Divergence</span>
+                <strong>
+                  {n(actionBusinessContext?.divergence_spread) === null
+                    ? "--"
+                    : `${n(actionBusinessContext?.divergence_spread) > 0 ? "+" : ""}${n(
+                        actionBusinessContext?.divergence_spread
+                      ).toFixed(1)}`}
+                </strong>
+                <small>
+                  {prettyState(actionBusinessContext?.divergence_state)} ·{" "}
+                  {actionBusinessContext?.divergence_severity || "NONE"}
+                </small>
+              </div>
+            </div>
+
+            <div className="qmi-fa-policy-grid">
+              <div className="qmi-fa-policy-card">
+                <span>Combined Score</span>
+                <strong>
+                  {n(actionPolicy?.combined_score) === null
+                    ? "--"
+                    : n(actionPolicy?.combined_score).toFixed(1)}
+                </strong>
+                <small>Cross-engine policy input</small>
+              </div>
+
+              <div className="qmi-fa-policy-card">
+                <span>Integrated Posture</span>
+                <strong>{prettyState(actionPolicy?.integrated_posture)}</strong>
+                <small>Source: DE-CORE-004.1</small>
+              </div>
+
+              <div className="qmi-fa-policy-card">
+                <span>Timing Gate</span>
+                <strong>{prettyState(actionPolicy?.timing_gate)}</strong>
+                <small>Technical protection gate preserved</small>
+              </div>
+
+              <div className="qmi-fa-policy-card">
+                <span>Technical Risk</span>
+                <strong>{prettyState(actionSource?.technical_risk)}</strong>
+                <small>
+                  Technical posture: {prettyState(actionSource?.technical_posture)}
+                </small>
+              </div>
+            </div>
+
+            <div className="qmi-fa-policy-lists">
+              <div className="qmi-fa-policy-list is-invalidation">
+                <span>Invalidation Conditions</span>
+                {invalidationConditions.length ? (
+                  <ul>
+                    {invalidationConditions.map((item, index) => (
+                      <li key={`policy-invalidation-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="qmi-fa-decision-empty">No invalidation conditions.</div>
+                )}
+              </div>
+
+              <div className="qmi-fa-policy-list is-upgrade">
+                <span>Upgrade Conditions</span>
+                {upgradeConditions.length ? (
+                  <ul>
+                    {upgradeConditions.map((item, index) => (
+                      <li key={`policy-upgrade-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="qmi-fa-decision-empty">No upgrade conditions.</div>
+                )}
+              </div>
+
+              <div className="qmi-fa-policy-list is-downgrade">
+                <span>Downgrade Conditions</span>
+                {downgradeConditions.length ? (
+                  <ul>
+                    {downgradeConditions.map((item, index) => (
+                      <li key={`policy-downgrade-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="qmi-fa-decision-empty">No downgrade conditions.</div>
+                )}
+              </div>
+
+              <div className="qmi-fa-policy-list is-reeval">
+                <span>Re-evaluation Triggers</span>
+                {reevaluationTriggers.length ? (
+                  <ul>
+                    {reevaluationTriggers.map((item, index) => (
+                      <li key={`policy-reeval-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="qmi-fa-decision-empty">No re-evaluation triggers.</div>
+                )}
+              </div>
+
+              <div className="qmi-fa-policy-list is-constraints">
+                <span>Constraints</span>
+                {actionConstraints.length ? (
+                  <ul>
+                    {actionConstraints.map((item, index) => (
+                      <li key={`policy-constraint-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="qmi-fa-decision-empty">No active constraints.</div>
+                )}
+              </div>
+            </div>
+          </section>
+
 
           <section className="qmi-fa-panel qmi-fa-section">
             <div className="qmi-fa-section-head">

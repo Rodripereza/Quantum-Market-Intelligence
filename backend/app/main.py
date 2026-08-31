@@ -43,6 +43,9 @@ from app.api.routes.auth import router as auth_router
 from app.api.routes.news import router as news_router
 from app.api.routes.ai import router as ai_router
 from app.api.routes.qmi_decision import router as qmi_decision_router
+from app.api.routes.qmi_action_policy import router as qmi_action_policy_router
+from app.api.routes.qmi_decision_snapshot import router as qmi_decision_snapshot_router
+from app.api.routes.nio_deliveries import router as nio_deliveries_router
 
 setup_logging()
 create_db()
@@ -110,6 +113,9 @@ app.include_router(technical_ui_snapshot_router)
 app.include_router(technical_setup_engine_router)
 app.include_router(technical_price_plan_router)
 app.include_router(qmi_decision_router)
+app.include_router(qmi_action_policy_router)
+app.include_router(qmi_decision_snapshot_router)
+app.include_router(nio_deliveries_router)
 
 @app.get("/")
 def root():
