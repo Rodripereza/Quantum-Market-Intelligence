@@ -25,6 +25,7 @@ from app.api.routes.technical_decision_synthesis import router as technical_deci
 from app.api.routes.technical_ui_snapshot import router as technical_ui_snapshot_router
 from app.api.routes.technical_setup_engine import router as technical_setup_engine_router
 from app.api.routes.technical_price_plan import router as technical_price_plan_router
+from app.api.routes.qmi_decision_history import router as qmi_decision_history_router
 from app.exceptions.base_exception import QMIException
 from app.exceptions.handlers import (
     generic_exception_handler,
@@ -116,6 +117,7 @@ app.include_router(qmi_decision_router)
 app.include_router(qmi_action_policy_router)
 app.include_router(qmi_decision_snapshot_router)
 app.include_router(nio_deliveries_router)
+app.include_router(qmi_decision_history_router)
 
 @app.get("/")
 def root():
