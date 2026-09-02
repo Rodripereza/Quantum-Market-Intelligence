@@ -23,7 +23,7 @@ class QMIDecisionHistoryService:
 
     ENGINE = "QMI Decision History & State Transition Engine"
     ENGINE_ID = "DE-CORE-006.0"
-    VERSION = "0.1.0"
+    VERSION = "0.1.1"
 
     def __init__(self, database_path: str | Path | None = None) -> None:
         if database_path is None:
@@ -149,7 +149,39 @@ class QMIDecisionHistoryService:
                 """
             )
 
+            self._ensure_snapshot_price_columns(connection)
             connection.commit()
+
+    def _ensure_snapshot_price_columns(
+        self,
+        connection: sqlite3.Connection,
+    ) -> None:
+        """
+        DE-CORE-006.5.2 schema migration for existing history databases.
+
+        Existing snapshots remain valid and receive NULL price fields.
+        New snapshots can persist the exact quote captured at decision time.
+        """
+        existing_columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(qmi_decision_snapshots)"
+            ).fetchall()
+        }
+
+        required_columns = {
+            "decision_price": "REAL",
+            "decision_price_currency": "TEXT",
+            "decision_price_source": "TEXT",
+            "decision_price_captured_at": "TEXT",
+        }
+
+        for column, sql_type in required_columns.items():
+            if column not in existing_columns:
+                connection.execute(
+                    f"ALTER TABLE qmi_decision_snapshots "
+                    f"ADD COLUMN {column} {sql_type}"
+                )
 
     def record_snapshot(
         self,
@@ -174,6 +206,9 @@ class QMIDecisionHistoryService:
 
         source = policy.get("source") or {}
         business = policy.get("business_context") or {}
+        observation_context = (
+            action_policy_response.get("observation_context") or {}
+        )
 
         action = str(policy.get("action") or "WAIT").upper()
         created_at = datetime.now(timezone.utc).isoformat()
@@ -224,6 +259,18 @@ class QMIDecisionHistoryService:
                 )
             ),
             "alignment_state": self._upper(source.get("alignment_state")),
+            "decision_price": self._number_or_none(
+                observation_context.get("decision_price")
+            ),
+            "decision_price_currency": self._upper(
+                observation_context.get("decision_price_currency")
+            ),
+            "decision_price_source": observation_context.get(
+                "decision_price_source"
+            ),
+            "decision_price_captured_at": observation_context.get(
+                "decision_price_captured_at"
+            ),
             "source_engine_id": action_policy_response.get("engine_id"),
             "source_engine_version": action_policy_response.get("version"),
             "source_cross_engine_id": action_policy_response.get(

@@ -25,6 +25,64 @@ const QUARTERS = [
   { label: "Q4", months: [10, 11, 12] },
 ];
 
+const VERIFIED_AUGUST_2026 = {
+  period: "2026-08",
+  year: 2026,
+  month: 8,
+  total: 35836,
+  brands: {
+    NIO: 21174,
+    ONVO: 8810,
+    FIREFLY: 5852,
+  },
+  models: {
+    ES8: {
+      brand: "NIO",
+      deliveries: 10999,
+    },
+    Firefly: {
+      brand: "FIREFLY",
+      deliveries: 5852,
+    },
+  },
+  yoy_pct: 14.5,
+  ytd: 262893,
+  source: "NIO official August 2026 delivery update + CnEVPost ES8 model disclosure",
+  source_type: "verified_web_update",
+  verified: true,
+};
+
+function mergeVerifiedAugust2026(rows) {
+  const records = Array.isArray(rows) ? [...rows] : [];
+  const index = records.findIndex(
+    (row) => Number(row?.year) === 2026 && Number(row?.month) === 8
+  );
+
+  if (index >= 0) {
+    const existing = records[index] || {};
+    records[index] = {
+      ...existing,
+      ...VERIFIED_AUGUST_2026,
+      brands: {
+        ...(existing.brands || {}),
+        ...VERIFIED_AUGUST_2026.brands,
+      },
+      models: {
+        ...(existing.models || {}),
+        ...VERIFIED_AUGUST_2026.models,
+      },
+    };
+  } else {
+    records.push(VERIFIED_AUGUST_2026);
+  }
+
+  return records.sort(
+    (a, b) =>
+      Number(a.year) - Number(b.year) ||
+      Number(a.month) - Number(b.month)
+  );
+}
+
 function n(value) {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
@@ -580,12 +638,7 @@ export default function Deliveries({ token }) {
   }, [token]);
 
   const monthly = useMemo(
-    () =>
-      Array.isArray(data?.monthly)
-        ? [...data.monthly].sort(
-            (a, b) => Number(a.year) - Number(b.year) || Number(a.month) - Number(b.month)
-          )
-        : [],
+    () => mergeVerifiedAugust2026(data?.monthly),
     [data]
   );
 
@@ -662,7 +715,56 @@ export default function Deliveries({ token }) {
     return rows;
   }, [models]);
 
-  const snapshot = data?.snapshot || {};
+  const backendSnapshot = data?.snapshot || {};
+  const latestMonthlyRow = monthly.length ? monthly[monthly.length - 1] : null;
+
+  const latestYearRecords = latestMonthlyRow
+    ? monthly.filter((row) => Number(row.year) === Number(latestMonthlyRow.year))
+    : [];
+
+  const latestYearYtd = latestYearRecords.reduce(
+    (sum, row) => sum + Number(row.total || 0),
+    0
+  );
+
+  const latestThree = monthly
+    .filter((row) => n(row.total) !== null)
+    .slice(-3);
+
+  const latestThreeAverage =
+    latestThree.length > 0
+      ? latestThree.reduce((sum, row) => sum + Number(row.total || 0), 0) /
+        latestThree.length
+      : null;
+
+  const previousYearSameMonth = latestMonthlyRow
+    ? monthly.find(
+        (row) =>
+          Number(row.year) === Number(latestMonthlyRow.year) - 1 &&
+          Number(row.month) === Number(latestMonthlyRow.month)
+      )
+    : null;
+
+  const latestMonthYoy =
+    latestMonthlyRow &&
+    Number(previousYearSameMonth?.total || 0) > 0
+      ? ((Number(latestMonthlyRow.total) -
+          Number(previousYearSameMonth.total)) /
+          Number(previousYearSameMonth.total)) *
+        100
+      : n(latestMonthlyRow?.yoy_pct);
+
+  const snapshot = {
+    ...backendSnapshot,
+    latest_period: latestMonthlyRow?.period || backendSnapshot?.latest_period,
+    ytd_total: latestYearYtd || backendSnapshot?.ytd_total,
+    yoy_pct: latestMonthYoy ?? backendSnapshot?.yoy_pct,
+    annualized_run_rate:
+      latestThreeAverage !== null
+        ? latestThreeAverage * 12
+        : backendSnapshot?.annualized_run_rate,
+  };
+
   const intelligence = data?.intelligence || {};
   const aspIntelligence = data?.asp_intelligence || {};
   const aspQuarterly = Array.isArray(aspIntelligence?.quarterly)
@@ -2659,6 +2761,13 @@ export default function Deliveries({ token }) {
                 <div className="qmi-delivery-intel-card">
                   <span>Latest Period</span>
                   <strong>{snapshot?.latest_period || "—"}</strong>
+                </div>
+                <div className="qmi-delivery-intel-card">
+                  <span>August 2026 Verification</span>
+                  <strong>Official + Model Partial</strong>
+                  <small style={{ display: "block", marginTop: 6, color: "#738197" }}>
+                    Group/brand totals verified. ES8 10,999 verified. Other August model splits remain unavailable.
+                  </small>
                 </div>
                 <div className="qmi-delivery-intel-card">
                   <span>Confidence</span>

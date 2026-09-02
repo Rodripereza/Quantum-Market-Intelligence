@@ -47,6 +47,24 @@ from app.api.routes.qmi_decision import router as qmi_decision_router
 from app.api.routes.qmi_action_policy import router as qmi_action_policy_router
 from app.api.routes.qmi_decision_snapshot import router as qmi_decision_snapshot_router
 from app.api.routes.nio_deliveries import router as nio_deliveries_router
+from app.api.routes.qmi_historical_reconstruction import (
+    router as qmi_historical_reconstruction_router,
+)
+from app.api.routes.qmi_scheduled_observation import (
+    router as qmi_scheduled_observation_router,
+)
+from app.api.routes.qmi_outcomes import (
+    router as qmi_outcomes_router,
+)
+from app.api.routes.qmi_decision_performance import (
+    router as qmi_decision_performance_router,
+)
+from app.api.routes.qmi_calibration_learning import (
+    router as qmi_calibration_learning_router,
+)
+from app.services.qmi_scheduled_observation_service import (
+    scheduled_observation_service,
+)
 
 setup_logging()
 create_db()
@@ -118,6 +136,23 @@ app.include_router(qmi_action_policy_router)
 app.include_router(qmi_decision_snapshot_router)
 app.include_router(nio_deliveries_router)
 app.include_router(qmi_decision_history_router)
+app.include_router(qmi_historical_reconstruction_router)
+app.include_router(qmi_scheduled_observation_router)
+app.include_router(qmi_outcomes_router)
+app.include_router(qmi_decision_performance_router)
+app.include_router(qmi_calibration_learning_router)
+
+
+@app.on_event("startup")
+async def start_qmi_scheduled_observation():
+    """DE-CORE-006.4 — Start background observation scheduler."""
+    await scheduled_observation_service.start()
+
+
+@app.on_event("shutdown")
+async def stop_qmi_scheduled_observation():
+    """DE-CORE-006.4 — Stop background observation scheduler cleanly."""
+    await scheduled_observation_service.stop()
 
 @app.get("/")
 def root():

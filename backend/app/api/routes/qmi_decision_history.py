@@ -3,6 +3,9 @@ from fastapi import APIRouter, HTTPException, Query
 from app.api.routes.qmi_action_policy import get_qmi_action_policy
 from app.services.qmi_decision_history_service import QMIDecisionHistoryService
 from app.services.qmi_snapshot_policy_service import QMISnapshotPolicyService
+from app.services.qmi_decision_price_capture_service import (
+    QMIDecisionPriceCaptureService,
+)
 
 
 router = APIRouter(
@@ -12,6 +15,18 @@ router = APIRouter(
 
 history_service = QMIDecisionHistoryService()
 snapshot_policy_service = QMISnapshotPolicyService()
+price_capture_service = QMIDecisionPriceCaptureService()
+
+
+def _capture_price(
+    symbol: str,
+    policy_response: dict,
+):
+    return price_capture_service.enrich(
+        symbol=symbol,
+        action_policy_response=policy_response,
+        fail_open=True,
+    )
 
 
 def _build_policy_response(
@@ -60,6 +75,11 @@ def record_qmi_decision_snapshot(
             history_limit=history_limit,
         )
 
+        policy_response, price_capture = _capture_price(
+            normalized_symbol,
+            policy_response,
+        )
+
         persistence = history_service.record_snapshot(
             symbol=normalized_symbol,
             period=period,
@@ -75,6 +95,7 @@ def record_qmi_decision_snapshot(
             "status": "operational",
             "mode": "MANUAL_UNCONDITIONAL",
             "source_policy_engine_id": policy_response.get("engine_id"),
+            "decision_price_capture": price_capture,
             "persistence": persistence,
         }
 
@@ -118,14 +139,21 @@ def preview_qmi_snapshot_policy(
             history_limit=history_limit,
         )
 
+        policy_response, price_capture = _capture_price(
+            normalized_symbol,
+            policy_response,
+        )
+
         previous = history_service.latest_snapshot(normalized_symbol)
 
-        return snapshot_policy_service.evaluate(
+        result = snapshot_policy_service.evaluate(
             symbol=normalized_symbol,
             action_policy_response=policy_response,
             previous_snapshot=previous,
             force=force,
         )
+        result["decision_price_capture"] = price_capture
+        return result
 
     except HTTPException:
         raise
@@ -170,6 +198,11 @@ def record_qmi_smart_snapshot(
             history_limit=history_limit,
         )
 
+        policy_response, price_capture = _capture_price(
+            normalized_symbol,
+            policy_response,
+        )
+
         previous = history_service.latest_snapshot(normalized_symbol)
 
         snapshot_policy = snapshot_policy_service.evaluate(
@@ -196,6 +229,7 @@ def record_qmi_smart_snapshot(
             "version": snapshot_policy_service.VERSION,
             "status": "operational",
             "source_policy_engine_id": policy_response.get("engine_id"),
+            "decision_price_capture": price_capture,
             "snapshot_policy": snapshot_policy,
             "persistence": persistence,
         }

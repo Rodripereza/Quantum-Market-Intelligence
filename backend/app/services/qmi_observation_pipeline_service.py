@@ -4,6 +4,9 @@ from typing import Any
 
 from app.services.qmi_decision_history_service import QMIDecisionHistoryService
 from app.services.qmi_snapshot_policy_service import QMISnapshotPolicyService
+from app.services.qmi_decision_price_capture_service import (
+    QMIDecisionPriceCaptureService,
+)
 
 
 class QMIObservationPipelineService:
@@ -25,17 +28,21 @@ class QMIObservationPipelineService:
     """
 
     ENGINE = "QMI Automatic Observation Pipeline"
-    ENGINE_ID = "DE-CORE-006.2"
-    VERSION = "0.1.0"
+    ENGINE_ID = "DE-CORE-006.5.2"
+    VERSION = "0.1.1"
 
     def __init__(
         self,
         history_service: QMIDecisionHistoryService | None = None,
         snapshot_policy_service: QMISnapshotPolicyService | None = None,
+        price_capture_service: QMIDecisionPriceCaptureService | None = None,
     ) -> None:
         self.history_service = history_service or QMIDecisionHistoryService()
         self.snapshot_policy_service = (
             snapshot_policy_service or QMISnapshotPolicyService()
+        )
+        self.price_capture_service = (
+            price_capture_service or QMIDecisionPriceCaptureService()
         )
 
     def observe(
@@ -58,11 +65,17 @@ class QMIObservationPipelineService:
             )
 
         try:
+            enriched_response, price_capture = self.price_capture_service.enrich(
+                symbol=normalized_symbol,
+                action_policy_response=action_policy_response,
+                fail_open=True,
+            )
+
             previous = self.history_service.latest_snapshot(normalized_symbol)
 
             snapshot_policy = self.snapshot_policy_service.evaluate(
                 symbol=normalized_symbol,
-                action_policy_response=action_policy_response,
+                action_policy_response=enriched_response,
                 previous_snapshot=previous,
                 force=force,
             )
@@ -74,7 +87,7 @@ class QMIObservationPipelineService:
                     symbol=normalized_symbol,
                     period=period,
                     interval=interval,
-                    action_policy_response=action_policy_response,
+                    action_policy_response=enriched_response,
                 )
 
             return {
@@ -95,6 +108,7 @@ class QMIObservationPipelineService:
                 "transition_created": bool(
                     persistence and persistence.get("transition_event")
                 ),
+                "decision_price_capture": price_capture,
                 "snapshot_policy": snapshot_policy,
                 "persistence": persistence,
             }
@@ -128,6 +142,7 @@ class QMIObservationPipelineService:
             "saved": False,
             "snapshot_id": None,
             "transition_created": False,
+            "decision_price_capture": None,
             "fail_open": bool(fail_open),
             "error": error,
             "snapshot_policy": None,
