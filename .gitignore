@@ -101,3 +101,13 @@ backend/data/imports/*
 !backend/data/database/.gitkeep
 !backend/data/exports/.gitkeep
 !backend/data/imports/.gitkeep
+
+# QMI runtime databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Python runtime
+__pycache__/
+*.py[cod]
