@@ -1,6 +1,8 @@
+from time import perf_counter
+
 from fastapi import APIRouter, HTTPException, Query
 
-from app.api.routes.technical import get_technical_analysis
+from app.api.routes.technical import build_technical_analysis
 from app.services.market.market_service import MarketService
 from app.services.technical.confluence_service import (
     TechnicalConfluenceService,
@@ -60,20 +62,27 @@ def get_technical_confluence(
         )
 
     try:
+        t_total = perf_counter()
+
+        t0 = perf_counter()
         history = market_service.get_history(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
         )
+        history_ms = (perf_counter() - t0) * 1000
 
         # Reuse QMI's canonical technical endpoint so DE-TA-008.0 consumes
         # exactly the same Trend / Strength / Momentum / Volatility /
         # Volume engines currently displayed by Technical.jsx.
-        technical_response = get_technical_analysis(
+        t0 = perf_counter()
+        technical_response = build_technical_analysis(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
+            history=history,
         )
+        technical_analysis_ms = (perf_counter() - t0) * 1000
 
         # FastAPI / Pydantic response models are objects, not dictionaries.
         # Convert them explicitly so the Confluence Engine can normalize
@@ -87,19 +96,24 @@ def get_technical_confluence(
         else:
             technical = vars(technical_response)
 
+        t0 = perf_counter()
         market_structure = structure_service.analyze(
             history=history,
             pivot_window=pivot_window,
             max_swings=20,
         )
+        market_structure_ms = (perf_counter() - t0) * 1000
 
+        t0 = perf_counter()
         support_resistance = support_resistance_service.analyze(
             history=history,
             pivot_window=pivot_window,
             min_touches=2,
             max_zones=6,
         )
+        support_resistance_ms = (perf_counter() - t0) * 1000
 
+        t0 = perf_counter()
         liquidity = liquidity_service.analyze(
             history=history,
             pivot_window=pivot_window,
@@ -107,12 +121,30 @@ def get_technical_confluence(
             min_touches=2,
             max_pools=8,
         )
+        liquidity_ms = (perf_counter() - t0) * 1000
 
+        t0 = perf_counter()
         result = confluence_service.analyze(
             technical=technical,
             market_structure=market_structure,
             support_resistance=support_resistance,
             liquidity=liquidity,
+        )
+        confluence_service_ms = (perf_counter() - t0) * 1000
+        total_ms = (perf_counter() - t_total) * 1000
+
+        timings_ms = {
+            "market_history": round(history_ms, 2),
+            "technical_analysis": round(technical_analysis_ms, 2),
+            "market_structure": round(market_structure_ms, 2),
+            "support_resistance": round(support_resistance_ms, 2),
+            "liquidity": round(liquidity_ms, 2),
+            "confluence_service": round(confluence_service_ms, 2),
+            "total": round(total_ms, 2),
+        }
+        slowest_stage = max(
+            (key for key in timings_ms if key != "total"),
+            key=timings_ms.get,
         )
 
         return {
@@ -123,6 +155,12 @@ def get_technical_confluence(
                 "current_price"
             ),
             **result,
+            "performance": {
+                "profiling_enabled": True,
+                "timings_ms": timings_ms,
+                "slowest_stage": slowest_stage,
+                "shared_market_history": True,
+            },
         }
 
     except ValueError as exc:

@@ -103,6 +103,32 @@ class TechnicalStateHistoryService:
                 ON technical_state_transitions(symbol, created_at DESC)
                 """
             )
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS technical_driver_snapshots (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    symbol TEXT NOT NULL, period TEXT NOT NULL, interval TEXT NOT NULL,
+                    engine TEXT NOT NULL, score REAL, state TEXT, confidence REAL,
+                    effective_weight_pct REAL, normalized_contribution REAL,
+                    vote TEXT, source TEXT, created_at TEXT NOT NULL
+                )
+                """
+            )
+            columns = {
+                row["name"]
+                for row in connection.execute("PRAGMA table_info(technical_driver_snapshots)").fetchall()
+            }
+            if "decision_posture" not in columns:
+                connection.execute(
+                    "ALTER TABLE technical_driver_snapshots ADD COLUMN decision_posture TEXT"
+                )
+
+            connection.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_driver_snapshots_symbol_created
+                ON technical_driver_snapshots(symbol, created_at DESC)
+                """
+            )
 
     def record_snapshot(
         self,
@@ -254,6 +280,109 @@ class TechnicalStateHistoryService:
             ),
             "database": str(self.database_path),
         }
+
+    def record_driver_snapshot(
+        self,
+        *,
+        symbol: str,
+        period: str,
+        interval: str,
+        confluence_response: dict[str, Any],
+        decision_posture: str | None = None,
+    ) -> dict[str, Any]:
+        normalized_symbol = symbol.strip().upper()
+        diagnostics = ((confluence_response.get("technical_confluence") or {}).get("diagnostics") or {})
+        contributions = diagnostics.get("engine_contributions") or []
+        created_at = datetime.now(timezone.utc).isoformat()
+        rows = []
+        with self._connect() as connection:
+            for item in contributions:
+                if not isinstance(item, dict) or item.get("available") is False:
+                    continue
+                engine = str(item.get("engine") or "").strip().lower()
+                if not engine:
+                    continue
+                cursor = connection.execute(
+                    """INSERT INTO technical_driver_snapshots
+                    (symbol,period,interval,engine,score,state,confidence,effective_weight_pct,normalized_contribution,vote,source,created_at,decision_posture)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                    (normalized_symbol,period,interval,engine,self._number_or_none(item.get("score")),
+                     item.get("state"),self._number_or_none(item.get("confidence")),
+                     self._number_or_none(item.get("effective_weight_pct")),
+                     self._number_or_none(item.get("normalized_contribution")),
+                     item.get("vote"),item.get("source"),created_at,
+                     str(decision_posture).upper() if decision_posture else None),
+                )
+                rows.append({"id": int(cursor.lastrowid), "engine": engine})
+            connection.commit()
+        return {"symbol": normalized_symbol, "recorded": bool(rows), "driver_count": len(rows), "created_at": created_at}
+
+    def latest_driver_snapshot(self, symbol: str) -> dict[str, Any] | None:
+        normalized_symbol = symbol.strip().upper()
+        with self._connect() as connection:
+            stamp = connection.execute(
+                """SELECT created_at FROM technical_driver_snapshots
+                   WHERE symbol=? ORDER BY id DESC LIMIT 1""", (normalized_symbol,)
+            ).fetchone()
+            if not stamp:
+                return None
+            rows = connection.execute(
+                """SELECT * FROM technical_driver_snapshots
+                   WHERE symbol=? AND created_at=? ORDER BY id ASC""",
+                (normalized_symbol, stamp["created_at"]),
+            ).fetchall()
+        return {"symbol": normalized_symbol, "created_at": stamp["created_at"], "drivers": [dict(r) for r in rows]}
+
+    def driver_history(self, symbol: str, *, limit: int = 12) -> list[dict[str, Any]]:
+        normalized_symbol = symbol.strip().upper()
+        limit = max(1, min(int(limit), 100))
+        with self._connect() as connection:
+            stamps = connection.execute(
+                """SELECT created_at FROM technical_driver_snapshots
+                   WHERE symbol=? GROUP BY created_at
+                   ORDER BY MAX(id) DESC LIMIT ?""",
+                (normalized_symbol, limit),
+            ).fetchall()
+            result = []
+            for stamp in reversed(stamps):
+                rows = connection.execute(
+                    """SELECT engine, score, state, confidence, effective_weight_pct,
+                              normalized_contribution
+                       FROM technical_driver_snapshots
+                       WHERE symbol=? AND created_at=? ORDER BY id ASC""",
+                    (normalized_symbol, stamp["created_at"]),
+                ).fetchall()
+                result.append({"created_at": stamp["created_at"], "drivers": [dict(row) for row in rows]})
+        return result
+
+    def evolution_timeline(self, symbol: str, *, limit: int = 12) -> dict[str, Any]:
+        normalized_symbol = symbol.strip().upper()
+        limit = max(2, min(int(limit), 50))
+        states = list(reversed(self.history(normalized_symbol, limit=limit)))
+        drivers = self.driver_history(normalized_symbol, limit=limit)
+        state_points = [{
+            "id": row.get("id"), "created_at": row.get("created_at"),
+            "state": row.get("state"), "state_score": row.get("state_score"),
+            "direction_score": row.get("direction_score"),
+            "transition_readiness": row.get("transition_readiness_score"),
+            "transition_probability": row.get("next_state_probability"),
+            "risk_score": row.get("risk_score"), "risk_state": row.get("risk_state"),
+            "price": row.get("current_price"),
+        } for row in states]
+        driver_series: dict[str, list[dict[str, Any]]] = {}
+        for snapshot in drivers:
+            for row in snapshot.get("drivers", []):
+                engine = str(row.get("engine") or "").lower()
+                if engine:
+                    driver_series.setdefault(engine, []).append({
+                        "created_at": snapshot.get("created_at"), "score": row.get("score"),
+                        "confidence": row.get("confidence"), "weight_pct": row.get("effective_weight_pct"),
+                        "contribution": row.get("normalized_contribution"), "state": row.get("state"),
+                    })
+        return {"symbol": normalized_symbol, "available": len(state_points) >= 2 or len(drivers) >= 2,
+                "state_points": state_points, "driver_snapshots": drivers,
+                "driver_series": driver_series, "point_count": max(len(state_points), len(drivers)),
+                "limit": limit}
 
     def latest_snapshot(self, symbol: str) -> dict[str, Any] | None:
         normalized_symbol = symbol.strip().upper()

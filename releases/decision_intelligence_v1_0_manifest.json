@@ -1,0 +1,22 @@
+{
+  "release_id": "DE-DI-021",
+  "release_name": "Decision Intelligence v1.0",
+  "status": "FROZEN",
+  "technical_ui_snapshot": "v2.3.0",
+  "quality_control": {
+    "status": "READY",
+    "score": 100.0,
+    "checks": "11/11",
+    "failures": 0,
+    "critical_failures": 0
+  },
+  "freeze_boundary": "DE-DI-020 + FE-DI-006",
+  "governance": {
+    "live_decision_authoritative": true,
+    "shadow_adaptive_decision_simulation_only": true,
+    "automatic_execution": false,
+    "automatic_weight_changes": false,
+    "automatic_threshold_changes": false,
+    "synthetic_history_backfill": false
+  }
+}

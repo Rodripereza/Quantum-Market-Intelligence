@@ -7,7 +7,7 @@ from app.api.routes.technical_decision import (
     get_technical_decision,
 )
 from app.api.routes.technical_risk_exposure import (
-    get_technical_risk_exposure,
+    build_technical_risk_exposure,
 )
 from app.api.routes.technical_scenarios import (
     get_technical_scenarios,
@@ -25,12 +25,15 @@ router = APIRouter(
 position_sizing_service = TechnicalPositionSizingService()
 
 
-@router.get("/position-sizing/{symbol}")
-def get_technical_position_sizing(
+def build_technical_position_sizing(
     symbol: str,
-    period: str = Query(default="1y"),
-    interval: str = Query(default="1d"),
-    pivot_window: int = Query(default=3, ge=1, le=20),
+    period: str = "1y",
+    interval: str = "1d",
+    pivot_window: int = 3,
+    decision_response: dict | None = None,
+    scenario_response: dict | None = None,
+    action_response: dict | None = None,
+    risk_exposure_response: dict | None = None,
 ):
     """
     DE-TA-012.0 — Technical Position Sizing & Capital Allocation
@@ -49,32 +52,35 @@ def get_technical_position_sizing(
         )
 
     try:
-        decision_response = get_technical_decision(
+        decision_response = decision_response or get_technical_decision(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
         )
 
-        scenario_response = get_technical_scenarios(
+        scenario_response = scenario_response or get_technical_scenarios(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
         )
 
-        action_response = get_technical_action_framework(
+        action_response = action_response or get_technical_action_framework(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
         )
 
-        risk_exposure_response = get_technical_risk_exposure(
+        risk_exposure_response = risk_exposure_response or build_technical_risk_exposure(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
+            decision_response=decision_response,
+            scenario_response=scenario_response,
+            action_response=action_response,
         )
 
         result = position_sizing_service.analyze(
@@ -123,3 +129,18 @@ def get_technical_position_sizing(
                 f"{type(exc).__name__}: {exc}"
             ),
         ) from exc
+
+
+@router.get("/position-sizing/{symbol}")
+def get_technical_position_sizing(
+    symbol: str,
+    period: str = Query(default="1y"),
+    interval: str = Query(default="1d"),
+    pivot_window: int = Query(default=3, ge=1, le=20),
+):
+    return build_technical_position_sizing(
+        symbol=symbol,
+        period=period,
+        interval=interval,
+        pivot_window=pivot_window,
+    )

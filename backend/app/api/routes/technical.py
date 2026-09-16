@@ -107,34 +107,18 @@ def _history_to_dataframe(history: list[dict]) -> pd.DataFrame:
     return market_data
 
 
-@router.get(
-    "/{symbol}",
-    response_model=TechnicalAnalysisResponse,
-    summary="Get Technical Analysis",
-    description=(
-        "Retrieve historical market data and calculate a complete "
-        "technical-analysis snapshot for a financial instrument."
-    ),
-)
-def get_technical_analysis(
+def build_technical_analysis(
     symbol: str,
-    period: str = Query(
-        default="1y",
-        description="Historical period requested from the market provider.",
-        examples=["1y"],
-    ),
-    interval: str = Query(
-        default="1d",
-        description="Historical data interval.",
-        examples=["1d"],
-    ),
+    period: str = "1y",
+    interval: str = "1d",
+    history: list[dict] | None = None,
 ) -> TechnicalAnalysisResponse:
     """
     Return a complete technical-analysis snapshot for a symbol.
     """
 
     try:
-        history = market_service.get_history(
+        history = history or market_service.get_history(
             symbol=symbol,
             period=period,
             interval=interval,
@@ -166,3 +150,31 @@ def get_technical_analysis(
             status_code=500,
             detail="Failed to calculate technical analysis.",
         ) from exc
+
+@router.get(
+    "/{symbol}",
+    response_model=TechnicalAnalysisResponse,
+    summary="Get Technical Analysis",
+    description=(
+        "Retrieve historical market data and calculate a complete "
+        "technical-analysis snapshot for a financial instrument."
+    ),
+)
+def get_technical_analysis(
+    symbol: str,
+    period: str = Query(
+        default="1y",
+        description="Historical period requested from the market provider.",
+        examples=["1y"],
+    ),
+    interval: str = Query(
+        default="1d",
+        description="Historical data interval.",
+        examples=["1d"],
+    ),
+) -> TechnicalAnalysisResponse:
+    return build_technical_analysis(
+        symbol=symbol,
+        period=period,
+        interval=interval,
+    )

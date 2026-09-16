@@ -14,12 +14,12 @@ router = APIRouter(
 scenario_service = TechnicalScenarioService()
 
 
-@router.get("/scenarios/{symbol}")
-def get_technical_scenarios(
+def build_technical_scenarios(
     symbol: str,
-    period: str = Query(default="1y"),
-    interval: str = Query(default="1d"),
-    pivot_window: int = Query(default=3, ge=1, le=20),
+    period: str = "1y",
+    interval: str = "1d",
+    pivot_window: int = 3,
+    decision_response: dict | None = None,
 ):
     """
     DE-TA-009.0 — Technical Scenario Engine
@@ -46,7 +46,7 @@ def get_technical_scenarios(
         )
 
     try:
-        decision_response = get_technical_decision(
+        decision_response = decision_response or get_technical_decision(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
@@ -87,3 +87,18 @@ def get_technical_scenarios(
                 f"{type(exc).__name__}: {exc}"
             ),
         ) from exc
+
+
+@router.get("/scenarios/{symbol}")
+def get_technical_scenarios(
+    symbol: str,
+    period: str = Query(default="1y"),
+    interval: str = Query(default="1d"),
+    pivot_window: int = Query(default=3, ge=1, le=20),
+):
+    return build_technical_scenarios(
+        symbol=symbol,
+        period=period,
+        interval=interval,
+        pivot_window=pivot_window,
+    )

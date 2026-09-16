@@ -1,0 +1,171 @@
+/* FE-CORE-001 — QMI Typography System v1.0.0 */
+
+:root {
+  --qmi-type-display-size: 34px;
+  --qmi-type-display-weight: 900;
+
+  --qmi-type-section-size: 20px;
+  --qmi-type-section-weight: 800;
+
+  --qmi-type-card-size: 18px;
+  --qmi-type-card-weight: 800;
+
+  --qmi-type-value-size: 16px;
+  --qmi-type-value-weight: 800;
+
+  --qmi-type-label-size: 14px;
+  --qmi-type-label-weight: 700;
+
+  --qmi-type-secondary-size: 12px;
+  --qmi-type-secondary-weight: 600;
+
+  --qmi-type-eyebrow-size: 11px;
+  --qmi-type-eyebrow-weight: 800;
+
+  --qmi-type-line-tight: 1.20;
+  --qmi-type-line-label: 1.30;
+  --qmi-type-line-body: 1.50;
+}
+
+/* Reusable typography primitives */
+.qmi-type-display {
+  font-size: var(--qmi-type-display-size) !important;
+  font-weight: var(--qmi-type-display-weight) !important;
+  line-height: var(--qmi-type-line-tight) !important;
+  text-transform: none !important;
+}
+.qmi-type-section {
+  font-size: var(--qmi-type-section-size) !important;
+  font-weight: var(--qmi-type-section-weight) !important;
+  line-height: var(--qmi-type-line-tight) !important;
+  text-transform: none !important;
+}
+.qmi-type-card {
+  font-size: var(--qmi-type-card-size) !important;
+  font-weight: var(--qmi-type-card-weight) !important;
+  line-height: var(--qmi-type-line-tight) !important;
+  text-transform: none !important;
+}
+.qmi-type-value {
+  font-size: var(--qmi-type-value-size) !important;
+  font-weight: var(--qmi-type-value-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+  text-transform: none !important;
+}
+.qmi-type-label {
+  font-size: var(--qmi-type-label-size) !important;
+  font-weight: var(--qmi-type-label-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+.qmi-type-secondary {
+  font-size: var(--qmi-type-secondary-size) !important;
+  font-weight: var(--qmi-type-secondary-weight) !important;
+  line-height: var(--qmi-type-line-body) !important;
+  text-transform: none !important;
+}
+.qmi-type-eyebrow {
+  font-size: var(--qmi-type-eyebrow-size) !important;
+  font-weight: var(--qmi-type-eyebrow-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .055em !important;
+}
+
+/* Decision Intelligence — one hierarchy for DE-DI-003 ... DE-DI-009 */
+.qmi-command__calibration-title,
+.qmi-command__outcome-title,
+.qmi-command__reliability-title,
+.qmi-command__breakdown-title,
+.qmi-command__confidence-title,
+.qmi-command__timeline-title {
+  font-size: var(--qmi-type-section-size) !important;
+  font-weight: var(--qmi-type-section-weight) !important;
+  line-height: var(--qmi-type-line-tight) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.qmi-command__calibration-kicker,
+.qmi-command__outcome-kicker,
+.qmi-command__reliability-kicker,
+.qmi-command__breakdown-kicker,
+.qmi-command__confidence-kicker {
+  font-size: var(--qmi-type-eyebrow-size) !important;
+  font-weight: var(--qmi-type-eyebrow-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+  text-transform: uppercase !important;
+  letter-spacing: .055em !important;
+}
+
+/* All equivalent analytical labels use the approved 14 px scale. */
+.qmi-command__driver-label,
+.qmi-command__driver-evolution-row > strong:first-child,
+.qmi-command__confidence-row > span:first-child,
+.qmi-command__confidence-row > strong:first-child,
+.qmi-command__confidence-component > span:first-child,
+.qmi-command__confidence-component > strong:first-child,
+.qmi-command__timeline-card strong,
+.qmi-command__timeline-card b,
+.qmi-command__timeline-row strong,
+.qmi-command__trajectory-row strong,
+.qmi-command__spark-card strong:first-child,
+.qmi-command__outcome-card > span,
+.qmi-command__calibration-card > span {
+  font-size: var(--qmi-type-label-size) !important;
+  font-weight: var(--qmi-type-label-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* Equivalent data values. */
+.qmi-command__driver-evolution-row span,
+.qmi-command__outcome-card > strong,
+.qmi-command__calibration-card > strong {
+  font-size: var(--qmi-type-value-size) !important;
+  font-weight: var(--qmi-type-value-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+}
+
+/* Equivalent explanatory/helper copy. */
+.qmi-command__evolution-note,
+.qmi-command__calibration-note,
+.qmi-command__outcome-card > small,
+.qmi-command__calibration-card > small,
+.qmi-command__timeline-card small,
+.qmi-command__timeline-row small,
+.qmi-command__trajectory-row small,
+.qmi-command__spark-card small {
+  font-size: var(--qmi-type-secondary-size) !important;
+  font-weight: var(--qmi-type-secondary-weight) !important;
+  line-height: var(--qmi-type-line-body) !important;
+  text-transform: none !important;
+}
+
+/* STATUS STANDARD — always Title Case, 14 px / 700.
+   Removes component-specific uppercase / tiny status treatments. */
+.qmi-command__calibration-state,
+.qmi-command__outcome-score > span,
+.qmi-command__reliability-score > span,
+.qmi-command__breakdown-state,
+.qmi-command__confidence-quality {
+  font-size: var(--qmi-type-label-size) !important;
+  font-weight: var(--qmi-type-label-weight) !important;
+  line-height: var(--qmi-type-line-label) !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+/* N/A / principal result remains a display metric, not a status label. */
+.qmi-command__outcome-score > strong,
+.qmi-command__reliability-score > strong {
+  font-size: 30px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-transform: none !important;
+}
+
+/* FE-DI-006 — Final Workspace */
+.qmi-type-release{font-size:12px;font-weight:800;letter-spacing:.02em}

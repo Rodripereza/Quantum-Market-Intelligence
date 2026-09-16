@@ -29,6 +29,7 @@ import {
 } from "../services/technicalService";
 
 import InstitutionalChart from "../components/technical/InstitutionalChart";
+import DecisionIntelligencePanel from "../components/technical/DecisionIntelligencePanel";
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, Number(value || 0)));
@@ -5512,121 +5513,12 @@ export default function Technical({
           </section>
             </div>
 
-            <section className="qmi-synthesis">
-            <div className="qmi-synthesis__header">
-              <div className="qmi-synthesis__title">
-                <div className="qmi-ta-icon-box"><ShieldCheck size={19} strokeWidth={1.8} /></div>
-                <div>
-                  <span className="qmi-ta-kicker">DE-UI-015.0 · DECISION SYNTHESIS</span>
-                  <h2>QMI Technical Decision</h2>
-                </div>
-              </div>
-              <div className="qmi-synthesis__badge">{pretty(synthesisPosture)}</div>
-            </div>
-
-            {decisionSynthesisLoading && !decisionSynthesis ? (
-              <div className="qmi-ta-structure-status">
-                <RefreshCw className="qmi-ta-spin" size={15} />
-                Building final technical decision...
-              </div>
-            ) : decisionSynthesisError ? (
-              <div className="qmi-ta-alert">
-                Decision synthesis unavailable: {decisionSynthesisError}
-              </div>
-            ) : (
-              <>
-                <div className="qmi-synthesis__hero">
-                  <div className="qmi-synthesis__card is-posture">
-                    <span>Final Posture</span>
-                    <strong>{pretty(synthesisPosture)}</strong>
-                    <small>
-                      Conviction {synthesisConviction !== undefined && synthesisConviction !== null
-                        ? formatNumber(synthesisConviction, 1)
-                        : "--"}
-                    </small>
-                  </div>
-
-                  <div className="qmi-synthesis__card">
-                    <span>State Transition</span>
-                    <strong className="qmi-synthesis__transition">
-                      {pretty(synthesisCurrentState)} → {pretty(synthesisTargetState)}
-                    </strong>
-                    <small>{pretty(synthesisExecutionState)}</small>
-                  </div>
-
-                  <div className="qmi-synthesis__card">
-                    <span>Timing</span>
-                    <strong>{pretty(synthesisTiming)}</strong>
-                    <small>Execution timing</small>
-                  </div>
-
-                  <div className="qmi-synthesis__card">
-                    <span>Risk</span>
-                    <strong>{pretty(synthesisRisk)}</strong>
-                    <small>Technical risk state</small>
-                  </div>
-
-                  <div className="qmi-synthesis__card">
-                    <span>Primary Scenario</span>
-                    <strong>{actionText(synthesisScenario)}</strong>
-                    <small>
-                      Direction {synthesisDirection !== undefined && synthesisDirection !== null
-                        ? formatScore(synthesisDirection)
-                        : "--"}
-                    </small>
-                  </div>
-
-                  <div className="qmi-synthesis__card">
-                    <span>Execution Confidence</span>
-                    <strong>
-                      {synthesisExecutionConfidence !== undefined && synthesisExecutionConfidence !== null
-                        ? formatPercent(synthesisExecutionConfidence)
-                        : "--"}
-                    </strong>
-                    <small>Final pipeline confidence</small>
-                  </div>
-                </div>
-
-                <div className="qmi-synthesis__permissions">
-                  {["WAIT", "ENTER", "ADD", "REDUCE", "EXIT"].map((key) => {
-                    const value = synthesisPermission(key);
-                    return (
-                      <div
-                        className={`qmi-synthesis__permission ${synthesisToneClass(value)}`}
-                        key={`synthesis-permission-${key}`}
-                      >
-                        <span>{key}</span>
-                        <strong>{pretty(value)}</strong>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="qmi-synthesis__footer">
-                  <div className="qmi-synthesis__strip">
-                    <span>Active Blockers</span>
-                    <strong>{synthesisBlockerCount}</strong>
-                    {synthesisBlockers.length ? (
-                      <div className="qmi-synthesis__blockers">
-                        {synthesisBlockers.slice(0, 5).map((item, index) => (
-                          <div className="qmi-synthesis__blocker" key={`synthesis-blocker-${index}`}>
-                            {pretty(item?.severity)} · {actionText(item?.reason || item?.type)}
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="qmi-synthesis__strip">
-                    <span>QMI Rationale</span>
-                    <div className="qmi-synthesis__rationale">
-                      {synthesisRationale || "Final deterministic synthesis of the technical decision pipeline."}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-          </section>
+            <DecisionIntelligencePanel
+              symbol={submittedSymbol}
+              decisionSynthesis={decisionSynthesis}
+              loading={decisionSynthesisLoading}
+              error={decisionSynthesisError}
+            />
           </div>
 
           <div className="qmi-detail-divider">

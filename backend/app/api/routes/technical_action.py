@@ -19,12 +19,13 @@ router = APIRouter(
 action_service = TechnicalActionService()
 
 
-@router.get("/action-framework/{symbol}")
-def get_technical_action_framework(
+def build_technical_action_framework(
     symbol: str,
-    period: str = Query(default="1y"),
-    interval: str = Query(default="1d"),
-    pivot_window: int = Query(default=3, ge=1, le=20),
+    period: str = "1y",
+    interval: str = "1d",
+    pivot_window: int = 3,
+    decision_response: dict | None = None,
+    scenario_response: dict | None = None,
 ):
     """
     DE-TA-010.0 — Technical Action Framework
@@ -49,14 +50,14 @@ def get_technical_action_framework(
         )
 
     try:
-        decision_response = get_technical_decision(
+        decision_response = decision_response or get_technical_decision(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
         )
 
-        scenario_response = get_technical_scenarios(
+        scenario_response = scenario_response or get_technical_scenarios(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
@@ -101,3 +102,18 @@ def get_technical_action_framework(
                 f"{type(exc).__name__}: {exc}"
             ),
         ) from exc
+
+
+@router.get("/action-framework/{symbol}")
+def get_technical_action_framework(
+    symbol: str,
+    period: str = Query(default="1y"),
+    interval: str = Query(default="1d"),
+    pivot_window: int = Query(default=3, ge=1, le=20),
+):
+    return build_technical_action_framework(
+        symbol=symbol,
+        period=period,
+        interval=interval,
+        pivot_window=pivot_window,
+    )

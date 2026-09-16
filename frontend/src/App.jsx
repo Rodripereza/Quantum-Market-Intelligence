@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Database,
   Gauge,
+  GitBranch,
   Home,
   LineChart,
   Menu,
@@ -32,6 +33,7 @@ import Market from "./pages/Market";
 import Technical from "./pages/Technical";
 import Fundamental from "./pages/Fundamental";
 import Deliveries from "./pages/Deliveries";
+import DecisionIntelligence from "./pages/DecisionIntelligence";
 import AI from "./pages/AI";
 import RiskPage from "./pages/RiskPage";
 import DataPage from "./pages/DataPage";
@@ -103,6 +105,12 @@ const NAV_SECTIONS = [
   {
     title: "Intelligence",
     items: [
+      {
+        id: "decision-intelligence",
+        label: "Decision Intelligence",
+        icon: GitBranch,
+        description: "Decision command center",
+      },
       {
         id: "ai",
         label: "AI Intelligence",
@@ -182,9 +190,6 @@ function getInitialPage() {
 
 function App() {
   const [page, setPage] = useState(getInitialPage());
-  const [activeTicker, setActiveTicker] = useState(
-    () => localStorage.getItem("qmi_active_ticker") || "NIO"
-  );
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [apiOk, setApiOk] = useState(false);
 
@@ -221,31 +226,6 @@ function App() {
     window.location.hash = `/${nextPage}`;
     setSidebarOpen(false);
   }
-
-  function changeActiveTicker(nextTicker) {
-    const normalized = String(nextTicker || "").trim().toUpperCase();
-
-    if (!normalized) {
-      return;
-    }
-
-    setActiveTicker(normalized);
-    localStorage.setItem("qmi_active_ticker", normalized);
-
-    if (normalized !== "NIO" && page === "deliveries") {
-      setPage("overview");
-      window.location.hash = "/overview";
-      setSidebarOpen(false);
-    }
-  }
-
-  useEffect(() => {
-    if (activeTicker !== "NIO" && page === "deliveries") {
-      setPage("overview");
-      window.location.hash = "/overview";
-      setSidebarOpen(false);
-    }
-  }, [activeTicker, page]);
 
   async function load(activeToken = token) {
     try {
@@ -552,7 +532,6 @@ function App() {
         open={sidebarOpen}
         close={() => setSidebarOpen(false)}
         navSections={NAV_SECTIONS}
-        activeTicker={activeTicker}
       />
 
       <main className="main">
@@ -582,14 +561,14 @@ function App() {
           )}
 
           {page === "technical" && (
-            <Technical token={token} activeTicker={activeTicker} onTickerChange={changeActiveTicker} />
+            <Technical token={token} />
           )}
 
           {page === "fundamental" && (
-            <Fundamental token={token} activeTicker={activeTicker} onTickerChange={changeActiveTicker} />
+            <Fundamental token={token} />
           )}
 
-          {page === "deliveries" && activeTicker === "NIO" && (
+          {page === "deliveries" && (
             <Deliveries token={token} />
           )}
 
@@ -604,6 +583,10 @@ function App() {
               setEditingId={setEditingId}
               startEdit={startEdit}
             />
+          )}
+
+          {page === "decision-intelligence" && (
+            <DecisionIntelligence token={token} />
           )}
 
           {page === "ai" && <AI ai={ai} />}

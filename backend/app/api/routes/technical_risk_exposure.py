@@ -22,12 +22,14 @@ router = APIRouter(
 risk_exposure_service = TechnicalRiskExposureService()
 
 
-@router.get("/risk-exposure/{symbol}")
-def get_technical_risk_exposure(
+def build_technical_risk_exposure(
     symbol: str,
-    period: str = Query(default="1y"),
-    interval: str = Query(default="1d"),
-    pivot_window: int = Query(default=3, ge=1, le=20),
+    period: str = "1y",
+    interval: str = "1d",
+    pivot_window: int = 3,
+    decision_response: dict | None = None,
+    scenario_response: dict | None = None,
+    action_response: dict | None = None,
 ):
     """
     DE-TA-011.0 — Technical Risk & Exposure Gate
@@ -51,21 +53,21 @@ def get_technical_risk_exposure(
         )
 
     try:
-        decision_response = get_technical_decision(
+        decision_response = decision_response or get_technical_decision(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
         )
 
-        scenario_response = get_technical_scenarios(
+        scenario_response = scenario_response or get_technical_scenarios(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
             pivot_window=pivot_window,
         )
 
-        action_response = get_technical_action_framework(
+        action_response = action_response or get_technical_action_framework(
             symbol=normalized_symbol,
             period=period,
             interval=interval,
@@ -114,3 +116,18 @@ def get_technical_risk_exposure(
                 f"{type(exc).__name__}: {exc}"
             ),
         ) from exc
+
+
+@router.get("/risk-exposure/{symbol}")
+def get_technical_risk_exposure(
+    symbol: str,
+    period: str = Query(default="1y"),
+    interval: str = Query(default="1d"),
+    pivot_window: int = Query(default=3, ge=1, le=20),
+):
+    return build_technical_risk_exposure(
+        symbol=symbol,
+        period=period,
+        interval=interval,
+        pivot_window=pivot_window,
+    )

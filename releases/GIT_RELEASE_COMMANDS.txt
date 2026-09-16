@@ -1,0 +1,34 @@
+DE-DI-021 — Git Release
+
+1. Open PowerShell in the QMI project root:
+
+cd C:\Users\rodri\OneDrive\Escritorio\Phyton\QMI_Foundation_v1_3
+
+2. Check the working tree:
+
+git status
+
+3. Stage the completed Decision Intelligence work:
+
+git add .
+
+4. Create the release commit:
+
+git commit -m "release: Decision Intelligence v1.0"
+
+5. Create the annotated release tag:
+
+git tag -a decision-intelligence-v1.0 -m "Decision Intelligence v1.0"
+
+6. Push the branch:
+
+git push
+
+7. Push the release tag:
+
+git push origin decision-intelligence-v1.0
+
+8. Verify:
+
+git status
+git tag --list
