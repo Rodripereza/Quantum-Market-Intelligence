@@ -5,10 +5,10 @@ from typing import Any
 
 class QMIDecisionService:
     """
-    DE-CORE-004.1 — Cross-Engine Decision Fusion + Business Momentum
+    DE-CORE-004.2 — Decision Regime & Conflict Resolution
 
-    Combines the already-finalized Technical Decision Synthesis
-    (DE-TA-015.0) with the Fundamental Decision Engine (DE-FA-004.0).
+    Combines Technical Decision Synthesis (DE-TA-015.0), the explainable
+    Fundamental Decision Engine (FA-DECISION-001.1), and Adaptive Business Momentum.
 
     Scope:
     - strategic cross-engine posture
@@ -23,9 +23,9 @@ class QMIDecisionService:
     - issue an autonomous BUY/HOLD/SELL instruction
     """
 
-    ENGINE_ID = "DE-CORE-004.1"
+    ENGINE_ID = "DE-CORE-004.2"
     ENGINE = "QMI Cross-Engine Decision Fusion"
-    VERSION = "0.1.1"
+    VERSION = "0.3.0"
 
     TECHNICAL_POSTURE_SCORES = {
         "ENTER": 90.0,
@@ -105,7 +105,7 @@ class QMIDecisionService:
             business_momentum.get("confidence") or "LOW"
         ).upper()
 
-        combined_score = self._combined_score(
+        fusion_components = self._fusion_components(
             technical_score=technical_score if technical_available else None,
             fundamental_score=fundamental_score if fundamental_available else None,
             business_momentum_score=(
@@ -113,6 +113,12 @@ class QMIDecisionService:
                 if business_momentum_available
                 else None
             ),
+        )
+
+        combined_score = sum(
+            item["contribution"]
+            for item in fusion_components.values()
+            if item["contribution"] is not None
         )
 
         alignment_score = self._alignment_score(
@@ -134,6 +140,26 @@ class QMIDecisionService:
         timing_gate = self._timing_gate(
             technical_posture=technical_posture,
             technical_available=technical_available,
+        )
+
+        decision_regime = self._decision_regime(
+            technical_posture=technical_posture,
+            technical_available=technical_available,
+            technical_risk_state=str(technical.get("risk_state") or "UNKNOWN").upper(),
+            technical_execution_state=str(technical.get("execution_state") or "UNKNOWN").upper(),
+            alignment=alignment,
+            business_divergence=business_divergence,
+            combined_score=combined_score,
+        )
+
+        conflict_resolution = self._conflict_resolution(
+            decision_regime=decision_regime,
+            technical_posture=technical_posture,
+            technical_available=technical_available,
+            fundamental_stance=fundamental_stance,
+            business_momentum_regime=business_momentum_regime,
+            business_divergence=business_divergence,
+            timing_gate=timing_gate,
         )
 
         integrated_posture = self._integrated_posture(
@@ -212,6 +238,9 @@ class QMIDecisionService:
                     "quality_score": fundamental_decision.get("quality_score"),
                     "regime_score": fundamental_decision.get("regime_score"),
                     "legacy_score": fundamental_decision.get("legacy_score"),
+                    "engine_id": fundamental_decision.get("engine_id") or "FA-DECISION-001",
+                    "version": fundamental_decision.get("version"),
+                    "coverage_pct": fundamental_decision.get("coverage_pct"),
                 },
                 "business_momentum": {
                     "available": business_momentum_available,
@@ -229,11 +258,36 @@ class QMIDecisionService:
                     ),
                 },
                 "business_divergence": business_divergence,
-                "fusion_weights": self._effective_fusion_weights(
-                    technical_available=technical_available,
-                    fundamental_available=fundamental_available,
-                    business_momentum_available=business_momentum_available,
-                ),
+                "decision_regime": decision_regime,
+                "conflict_resolution": conflict_resolution,
+                "fusion_weights": {
+                    key: item["effective_weight"]
+                    for key, item in fusion_components.items()
+                },
+                "fusion_components": fusion_components,
+                "fusion_coverage": {
+                    "active_components": sum(
+                        1 for item in fusion_components.values() if item["available"]
+                    ),
+                    "total_components": len(fusion_components),
+                    "coverage_pct": round(
+                        (
+                            sum(
+                                1
+                                for item in fusion_components.values()
+                                if item["available"]
+                            )
+                            / len(fusion_components)
+                        )
+                        * 100.0,
+                        1,
+                    ),
+                    "weights_renormalized": any(
+                        item["available"]
+                        and abs(item["effective_weight"] - item["base_weight"]) > 0.0001
+                        for item in fusion_components.values()
+                    ),
+                },
                 "thesis": thesis,
                 "supporting_evidence": supporting_evidence,
                 "conflicts": conflicts,
@@ -247,8 +301,8 @@ class QMIDecisionService:
                     "automatic_execution": False,
                     "buy_hold_sell_signal": False,
                     "note": (
-                        "DE-CORE-004.1 fuses technical timing, fundamental "
-                        "quality/direction and adaptive business momentum. "
+                        "DE-CORE-004.1 v0.2.0 fuses technical timing, the explainable "
+                        "fundamental decision and adaptive business momentum. "
                         "Portfolio, macro and news context "
                         "are intentionally outside this version."
                     ),
@@ -268,6 +322,56 @@ class QMIDecisionService:
         adjustment = (conviction - 50.0) * 0.10
 
         return self._clamp(base + adjustment)
+
+    @staticmethod
+    def _fusion_components(
+        *,
+        technical_score: float | None,
+        fundamental_score: float | None,
+        business_momentum_score: float | None,
+    ) -> dict[str, dict[str, Any]]:
+        """Return the complete auditable cross-engine fusion calculation."""
+        raw = {
+            "technical": {"score": technical_score, "base_weight": 0.45},
+            "fundamental": {"score": fundamental_score, "base_weight": 0.35},
+            "business_momentum": {
+                "score": business_momentum_score,
+                "base_weight": 0.20,
+            },
+        }
+
+        active_weight = sum(
+            item["base_weight"]
+            for item in raw.values()
+            if item["score"] is not None
+        )
+
+        result: dict[str, dict[str, Any]] = {}
+        for key, item in raw.items():
+            available = item["score"] is not None
+            effective_weight = (
+                item["base_weight"] / active_weight
+                if available and active_weight > 0
+                else 0.0
+            )
+            contribution = (
+                item["score"] * effective_weight
+                if available
+                else None
+            )
+            result[key] = {
+                "available": available,
+                "score": round(item["score"], 1) if available else None,
+                "base_weight": round(item["base_weight"], 4),
+                "effective_weight": round(effective_weight, 4),
+                "contribution": (
+                    round(contribution, 2)
+                    if contribution is not None
+                    else None
+                ),
+            }
+
+        return result
 
     @staticmethod
     def _combined_score(
@@ -486,6 +590,104 @@ class QMIDecisionService:
         if average >= 55:
             return "MEDIUM"
         return "LOW"
+
+    @staticmethod
+    def _decision_regime(
+        *,
+        technical_posture: str,
+        technical_available: bool,
+        technical_risk_state: str,
+        technical_execution_state: str,
+        alignment: str,
+        business_divergence: dict[str, Any],
+        combined_score: float,
+    ) -> dict[str, Any]:
+        divergence = str(business_divergence.get("state") or "UNAVAILABLE").upper()
+
+        if technical_available and (technical_posture == "EXIT" or technical_risk_state == "CRITICAL"):
+            state, priority, severity = "CAPITAL_PROTECTION", "TECHNICAL_RISK", "HIGH"
+        elif technical_available and technical_posture == "REDUCE":
+            state, priority, severity = "DEFENSIVE", "TECHNICAL_RISK", "HIGH"
+        elif technical_available and technical_posture == "WAIT":
+            state, priority, severity = "TIMING_BLOCKED", "TECHNICAL_TIMING", "MEDIUM"
+        elif divergence == "POSITIVE_BUSINESS_DIVERGENCE":
+            state, priority = "RECOVERY_WATCH", "CONFIRMATION"
+            severity = str(business_divergence.get("severity") or "MEDIUM").upper()
+        elif divergence == "NEGATIVE_BUSINESS_DIVERGENCE":
+            state, priority = "PRICE_AHEAD_OF_BUSINESS", "FUNDAMENTAL_CONFIRMATION"
+            severity = str(business_divergence.get("severity") or "MEDIUM").upper()
+        elif alignment == "CONFLICT":
+            state, priority, severity = "CROSS_ENGINE_CONFLICT", "CONFIRMATION", "MEDIUM"
+        elif alignment in {"STRONG_ALIGNMENT", "ALIGNED"} and combined_score >= 65:
+            state, priority, severity = "CONFIRMED_CONSTRUCTIVE", "BALANCED", "LOW"
+        elif alignment in {"STRONG_ALIGNMENT", "ALIGNED"} and combined_score < 40:
+            state, priority, severity = "CONFIRMED_DEFENSIVE", "CAPITAL_PROTECTION", "HIGH"
+        else:
+            state, priority, severity = "TRANSITION", "BALANCED", "MEDIUM"
+
+        return {
+            "state": state,
+            "priority": priority,
+            "severity": severity,
+            "technical_risk_state": technical_risk_state,
+            "technical_execution_state": technical_execution_state,
+        }
+
+    @staticmethod
+    def _conflict_resolution(
+        *,
+        decision_regime: dict[str, Any],
+        technical_posture: str,
+        technical_available: bool,
+        fundamental_stance: str,
+        business_momentum_regime: str,
+        business_divergence: dict[str, Any],
+        timing_gate: str,
+    ) -> dict[str, Any]:
+        regime = str(decision_regime.get("state") or "TRANSITION").upper()
+        divergence = str(business_divergence.get("state") or "UNAVAILABLE").upper()
+        permission, strategic_state, resolution = "MONITOR", "MIXED", "WAIT_FOR_CONFIRMATION"
+
+        if regime == "CAPITAL_PROTECTION":
+            permission, strategic_state, resolution = "BLOCKED", "DEFENSIVE", "TECHNICAL_RISK_DOMINATES"
+        elif regime == "DEFENSIVE":
+            permission, strategic_state = "REDUCE_ONLY", "DEFENSIVE"
+            resolution = "PRESERVE_CAPITAL_WHILE_MONITORING_FUNDAMENTALS"
+        elif regime == "TIMING_BLOCKED":
+            permission, strategic_state = "BLOCKED", "WATCH"
+            resolution = "FUNDAMENTALS_CANNOT_OVERRIDE_TIMING_GATE"
+        elif regime == "RECOVERY_WATCH":
+            permission = "ACTIONABLE" if technical_posture in {"ENTER", "ADD"} else "MONITOR"
+            strategic_state, resolution = "IMPROVING", "BUSINESS_IMPROVEMENT_AWAITS_PRICE_CONFIRMATION"
+        elif regime == "PRICE_AHEAD_OF_BUSINESS":
+            permission = "ACTIONABLE_WITH_CAUTION" if technical_posture in {"ENTER", "ADD", "PREPARE"} else "MONITOR"
+            strategic_state, resolution = "CAUTION", "PRICE_STRENGTH_AWAITS_BUSINESS_CONFIRMATION"
+        elif regime == "CONFIRMED_CONSTRUCTIVE":
+            permission = "ACTIONABLE" if technical_posture in {"ENTER", "ADD"} else "MONITOR"
+            strategic_state, resolution = "CONSTRUCTIVE", "ENGINES_CONFIRM_DIRECTION"
+        elif regime == "CONFIRMED_DEFENSIVE":
+            permission, strategic_state, resolution = "BLOCKED", "DEFENSIVE", "ENGINES_CONFIRM_DEFENSIVE_POSTURE"
+
+        # Hard invariant: Fundamental/Business cannot relax technical protection gates.
+        if technical_available and technical_posture == "EXIT":
+            permission, resolution = "EXIT_ONLY", "TECHNICAL_EXIT_GATE_DOMINATES"
+        elif technical_available and technical_posture == "REDUCE":
+            permission, resolution = "REDUCE_ONLY", "TECHNICAL_REDUCTION_GATE_DOMINATES"
+        elif technical_available and technical_posture == "WAIT":
+            permission, resolution = "BLOCKED", "TECHNICAL_WAIT_GATE_DOMINATES"
+
+        return {
+            "strategic_state": strategic_state,
+            "execution_permission": permission,
+            "resolution": resolution,
+            "timing_gate": timing_gate,
+            "fundamental_stance": fundamental_stance,
+            "business_momentum_regime": business_momentum_regime,
+            "business_divergence": divergence,
+            "technical_gate_preserved": bool(
+                technical_available and technical_posture in {"WAIT", "REDUCE", "EXIT"}
+            ),
+        }
 
     @staticmethod
     def _supporting_evidence(

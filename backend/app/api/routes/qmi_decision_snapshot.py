@@ -27,7 +27,7 @@ def get_qmi_decision_snapshot(
 
     Returns one consolidated payload for the frontend:
     - Fundamental analysis
-    - DE-CORE-004.0 Cross-Engine Decision
+    - DE-CORE-004.2 Cross-Engine Decision
     - DE-CORE-005.0 Action Policy
 
     The expensive Technical + Fundamental cross-engine calculation is executed
@@ -58,7 +58,7 @@ def get_qmi_decision_snapshot(
             normalized_symbol
         )
 
-        # Reuse the already-built DE-CORE-004.0 decision directly.
+        # Reuse the already-built DE-CORE-004.1 decision directly.
         action_policy_response = policy_service.analyze(
             symbol=normalized_symbol,
             qmi_decision_response=qmi_decision_response,

@@ -18,6 +18,7 @@ import {
 
 import { getFundamental } from "../services/fundamentalService";
 import { getQMIDecisionSnapshot } from "../services/qmiDecisionSnapshotService";
+import { getNioDeliveries } from "../services/nioDeliveryService";
 
 function n(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -127,56 +128,6 @@ function integratedDecisionTone(posture) {
   return "neutral";
 }
 
-
-function businessMomentumTone(value) {
-  const number = n(value);
-  if (number === null) return "neutral";
-  if (number >= 75) return "positive";
-  if (number >= 60) return "constructive";
-  if (number >= 45) return "warning";
-  return "negative";
-}
-
-function familyLabel(key) {
-  return {
-    growth: "Growth",
-    profitability: "Profitability",
-    cash_quality: "Cash & Quality",
-    operating_drivers: "Operating Drivers",
-  }[key] || prettyState(key);
-}
-
-function BusinessMomentumFamilyCard({ familyKey, block }) {
-  const score = n(block?.score);
-  const weight = n(block?.effective_weight);
-  const coverage = n(block?.coverage_pct);
-  const tone = businessMomentumTone(score);
-
-  return (
-    <div className={`qmi-fa-bm-family is-${tone}`}>
-      <div className="qmi-fa-bm-family-head">
-        <div>
-          <span>{familyLabel(familyKey)}</span>
-          <small>{block?.active_components ?? 0}/{block?.total_components ?? 0} active</small>
-        </div>
-        <strong>{score === null ? "--" : score.toFixed(1)}</strong>
-      </div>
-
-      <div className="qmi-fa-bm-family-track">
-        <div
-          className="qmi-fa-bm-family-fill"
-          style={{ width: `${Math.max(0, Math.min(100, score ?? 0))}%` }}
-        />
-      </div>
-
-      <div className="qmi-fa-bm-family-meta">
-        <span>Weight {weight === null ? "--" : `${(weight * 100).toFixed(1)}%`}</span>
-        <span>Coverage {coverage === null ? "--" : `${coverage.toFixed(0)}%`}</span>
-      </div>
-    </div>
-  );
-}
-
 function IntelligenceCard({ label, block }) {
   const state = block?.state || "UNKNOWN";
   const tone = stateTone(state);
@@ -248,36 +199,21 @@ function ListPanel({ title, icon: Icon, items = [], tone = "neutral", empty }) {
   );
 }
 
-export default function Fundamental({
-  token,
-  activeTicker = "NIO",
-  onTickerChange = () => {},
-}) {
-  const initialTicker = String(activeTicker || "NIO").trim().toUpperCase();
-  const [symbol, setSymbol] = useState(initialTicker);
-  const [submittedSymbol, setSubmittedSymbol] = useState(initialTicker);
+export default function Fundamental({ token }) {
+  const [symbol, setSymbol] = useState("NIO");
+  const [submittedSymbol, setSubmittedSymbol] = useState("NIO");
   const [fundamental, setFundamental] = useState(null);
   const [qmiDecisionResponse, setQmiDecisionResponse] = useState(null);
   const [qmiActionPolicyResponse, setQmiActionPolicyResponse] = useState(null);
+  const [nioDeliveries, setNioDeliveries] = useState(null);
+  const [nioDeliveriesLoading, setNioDeliveriesLoading] = useState(false);
+  const [nioDeliveriesError, setNioDeliveriesError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [qmiDecisionLoading, setQmiDecisionLoading] = useState(false);
   const [qmiDecisionError, setQmiDecisionError] = useState("");
   const [qmiActionPolicyLoading, setQmiActionPolicyLoading] = useState(false);
   const [qmiActionPolicyError, setQmiActionPolicyError] = useState("");
-
-  useEffect(() => {
-    const normalized = String(activeTicker || "NIO").trim().toUpperCase();
-
-    if (!normalized || normalized === submittedSymbol) {
-      return;
-    }
-
-    setSymbol(normalized);
-    setSubmittedSymbol(normalized);
-    onTickerChange(normalized);
-  }, [activeTicker, submittedSymbol]);
-
 
   useEffect(() => {
     const controller = new AbortController();
@@ -359,6 +295,44 @@ export default function Fundamental({
     return () => controller.abort();
   }, [submittedSymbol, token]);
 
+  useEffect(() => {
+    if (submittedSymbol !== "NIO") {
+      setNioDeliveries(null);
+      setNioDeliveriesError("");
+      return undefined;
+    }
+
+    const controller = new AbortController();
+
+    async function loadNioDeliveries() {
+      setNioDeliveriesLoading(true);
+      setNioDeliveriesError("");
+
+      try {
+        const result = await getNioDeliveries({
+          token,
+          signal: controller.signal,
+        });
+        setNioDeliveries(result);
+      } catch (requestError) {
+        if (requestError?.name !== "AbortError") {
+          console.error("Unable to load NIO Delivery Intelligence:", requestError);
+          setNioDeliveries(null);
+          setNioDeliveriesError(
+            requestError?.message || "Unable to load NIO Delivery Intelligence"
+          );
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setNioDeliveriesLoading(false);
+        }
+      }
+    }
+
+    loadNioDeliveries();
+
+    return () => controller.abort();
+  }, [submittedSymbol, token]);
 
   const data = fundamental?.data || {};
   const profile = data?.profile || {};
@@ -371,23 +345,23 @@ export default function Fundamental({
   const statements = data?.statements || {};
   const statementIntelligence = data?.statement_intelligence || {};
   const qualityIntelligence = data?.quality_intelligence || {};
+  const growthTrend = fundamental?.growth_trend || {};
+  const profitabilityQuality = fundamental?.profitability_quality || {};
+  const financialHealthIntelligence = fundamental?.financial_health_intelligence || {};
+  const cashFlowIntelligence = fundamental?.cash_flow_intelligence || {};
+  const valuationIntelligence = fundamental?.valuation_intelligence || {};
+  const expectationsIntelligence = fundamental?.expectations_intelligence || {};
+  const companyIntelligence = fundamental?.company_intelligence || {};
   const decision = fundamental?.decision || {};
-  const businessMomentum = fundamental?.business_momentum || {};
-  const businessMomentumFamilies = businessMomentum?.families || {};
-  const businessMomentumScore = n(businessMomentum?.score);
-  const businessMomentumEvidence = Array.isArray(businessMomentum?.evidence)
-    ? businessMomentum.evidence
-    : [];
-  const businessMomentumRisks = Array.isArray(businessMomentum?.risks)
-    ? businessMomentum.risks
-    : [];
   const qmiDecision = qmiDecisionResponse?.qmi_decision || {};
   const qmiTechnical = qmiDecision?.technical || {};
   const qmiFundamental = qmiDecision?.fundamental || {};
-  const qmiBusinessMomentum = qmiDecision?.business_momentum || {};
-  const qmiBusinessDivergence = qmiDecision?.business_divergence || {};
-  const qmiFusionWeights = qmiDecision?.fusion_weights || {};
   const qmiAlignment = qmiDecision?.alignment || {};
+  const qmiBusinessMomentum = qmiDecision?.business_momentum || {};
+  const qmiFusionComponents = qmiDecision?.fusion_components || {};
+  const qmiFusionCoverage = qmiDecision?.fusion_coverage || {};
+  const qmiDecisionRegime = qmiDecision?.decision_regime || {};
+  const qmiConflictResolution = qmiDecision?.conflict_resolution || {};
   const qmiSupportingEvidence = Array.isArray(qmiDecision?.supporting_evidence)
     ? qmiDecision.supporting_evidence
     : [];
@@ -397,8 +371,6 @@ export default function Fundamental({
 
   const actionPolicy = qmiActionPolicyResponse?.action_policy || {};
   const actionSource = actionPolicy?.source || {};
-  const actionBusinessContext = actionPolicy?.business_context || {};
-  const actionStrategicBias = actionPolicy?.strategic_bias || "NEUTRAL";
   const invalidationConditions = Array.isArray(actionPolicy?.invalidation_conditions)
     ? actionPolicy.invalidation_conditions
     : [];
@@ -415,6 +387,16 @@ export default function Fundamental({
     ? actionPolicy.constraints
     : [];
 
+  const nioSnapshot = nioDeliveries?.snapshot || {};
+  const nioIntel = nioDeliveries?.intelligence || {};
+  const nioMonthly = Array.isArray(nioDeliveries?.monthly)
+    ? nioDeliveries.monthly
+    : [];
+  const nioLatestBrands = nioMonthly.length
+    ? nioMonthly[nioMonthly.length - 1]?.brands || {}
+    : {};
+  const nioEvidence = Array.isArray(nioIntel?.evidence) ? nioIntel.evidence : [];
+  const nioRisks = Array.isArray(nioIntel?.risks) ? nioIntel.risks : [];
 
   const marketCurrency =
     profile?.market_currency || profile?.currency || "USD";
@@ -500,7 +482,7 @@ export default function Fundamental({
           display: block;
           margin-bottom: 5px;
           color: #60a5fa;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .08em;
           text-transform: uppercase;
@@ -519,7 +501,7 @@ export default function Fundamental({
         .qmi-fa-section-title p {
           margin: 6px 0 0;
           color: #94a3b8;
-          font-size: 12px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
@@ -578,7 +560,7 @@ export default function Fundamental({
           border: 1px solid rgba(34, 197, 94, .22);
           background: rgba(34, 197, 94, .06);
           color: #86efac;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 850;
         }
 
@@ -608,205 +590,8 @@ export default function Fundamental({
           border-radius: 12px;
           background: rgba(248, 113, 113, .08);
           color: #fecaca;
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 750;
-        }
-
-
-        .qmi-fa-bm-panel {
-          padding: 18px;
-          overflow: hidden;
-          background:
-            radial-gradient(circle at 100% 0%, rgba(59,130,246,.08), transparent 34%),
-            linear-gradient(180deg, rgba(15,23,42,.88), rgba(8,15,28,.94));
-        }
-
-        .qmi-fa-bm-head {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 16px;
-        }
-
-        .qmi-fa-bm-title {
-          display: flex;
-          align-items: center;
-          gap: 11px;
-        }
-
-        .qmi-fa-bm-title-icon {
-          display: grid;
-          width: 38px;
-          height: 38px;
-          place-items: center;
-          border: 1px solid rgba(96,165,250,.22);
-          border-radius: 10px;
-          color: #60a5fa;
-          background: rgba(37,99,235,.10);
-        }
-
-        .qmi-fa-bm-title span,
-        .qmi-fa-bm-score span,
-        .qmi-fa-bm-kpi span {
-          display: block;
-          color: #8190a5;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: .055em;
-          text-transform: uppercase;
-        }
-
-        .qmi-fa-bm-title h2 {
-          margin: 3px 0 0;
-          color: #f8fafc;
-          font-size: 18px;
-          font-weight: 950;
-        }
-
-        .qmi-fa-bm-badge {
-          padding: 7px 10px;
-          border: 1px solid rgba(74,222,128,.18);
-          border-radius: 999px;
-          color: #86efac;
-          background: rgba(34,197,94,.07);
-          font-size: 9px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-
-        .qmi-fa-bm-hero {
-          display: grid;
-          grid-template-columns: 1.25fr repeat(4, minmax(0, .85fr));
-          gap: 9px;
-          margin-top: 14px;
-        }
-
-        .qmi-fa-bm-score,
-        .qmi-fa-bm-kpi,
-        .qmi-fa-bm-family,
-        .qmi-fa-bm-list {
-          min-width: 0;
-          padding: 13px;
-          border: 1px solid rgba(148,163,184,.09);
-          border-radius: 11px;
-          background: rgba(2,6,23,.16);
-        }
-
-        .qmi-fa-bm-score strong {
-          display: block;
-          margin-top: 8px;
-          color: #4ade80;
-          font-size: 30px;
-          line-height: 1;
-          font-weight: 950;
-        }
-
-        .qmi-fa-bm-kpi strong {
-          display: block;
-          margin-top: 8px;
-          color: #e2e8f0;
-          font-size: 15px;
-          font-weight: 950;
-          overflow-wrap: anywhere;
-        }
-
-        .qmi-fa-bm-score small,
-        .qmi-fa-bm-kpi small {
-          display: block;
-          margin-top: 7px;
-          color: #738197;
-          font-size: 9px;
-          line-height: 1.35;
-        }
-
-        .qmi-fa-bm-family-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 9px;
-          margin-top: 10px;
-        }
-
-        .qmi-fa-bm-family-head {
-          display: flex;
-          justify-content: space-between;
-          gap: 10px;
-        }
-
-        .qmi-fa-bm-family-head span {
-          color: #cbd5e1;
-          font-size: 10px;
-          font-weight: 900;
-        }
-
-        .qmi-fa-bm-family-head small {
-          display: block;
-          margin-top: 4px;
-          color: #64748b;
-          font-size: 8px;
-        }
-
-        .qmi-fa-bm-family-head strong {
-          color: #f8fafc;
-          font-size: 17px;
-          font-weight: 950;
-        }
-
-        .qmi-fa-bm-family.is-positive .qmi-fa-bm-family-head strong { color: #4ade80; }
-        .qmi-fa-bm-family.is-constructive .qmi-fa-bm-family-head strong { color: #67e8f9; }
-        .qmi-fa-bm-family.is-warning .qmi-fa-bm-family-head strong { color: #fbbf24; }
-        .qmi-fa-bm-family.is-negative .qmi-fa-bm-family-head strong { color: #fb7185; }
-
-        .qmi-fa-bm-family-track {
-          height: 5px;
-          margin-top: 11px;
-          overflow: hidden;
-          border-radius: 999px;
-          background: rgba(100,116,139,.16);
-        }
-
-        .qmi-fa-bm-family-fill {
-          height: 100%;
-          border-radius: inherit;
-          background: linear-gradient(90deg, #ef4444 0%, #f59e0b 28%, #84cc16 62%, #22c55e 82%, #67e8f9 100%);
-        }
-
-        .qmi-fa-bm-family-meta {
-          display: flex;
-          justify-content: space-between;
-          gap: 8px;
-          margin-top: 8px;
-          color: #64748b;
-          font-size: 8px;
-          font-weight: 800;
-        }
-
-        .qmi-fa-bm-intel {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 9px;
-          margin-top: 10px;
-        }
-
-        .qmi-fa-bm-list > span {
-          color: #8190a5;
-          font-size: 8px;
-          font-weight: 900;
-          text-transform: uppercase;
-        }
-
-        .qmi-fa-bm-list ul {
-          margin: 8px 0 0;
-          padding-left: 16px;
-          color: #aab6c7;
-          font-size: 9px;
-          line-height: 1.55;
-        }
-
-        @media (max-width: 1100px) {
-          .qmi-fa-bm-hero,
-          .qmi-fa-bm-family-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
         }
 
         .qmi-fa-hero {
@@ -832,9 +617,9 @@ export default function Fundamental({
           display: block;
           margin-bottom: 7px;
           color: #8190a5;
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: .055em;
+          font-size: 14px;
+          font-weight: 850;
+          letter-spacing: .045em;
           text-transform: uppercase;
         }
 
@@ -851,7 +636,7 @@ export default function Fundamental({
           display: block;
           margin-top: 7px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.4;
           font-weight: 650;
         }
@@ -859,7 +644,8 @@ export default function Fundamental({
         .qmi-fa-metric strong {
           display: block;
           color: #e2e8f0;
-          font-size: 20px;
+          font-size: 21px;
+          line-height: 1.15;
           font-weight: 950;
           overflow-wrap: anywhere;
         }
@@ -903,13 +689,13 @@ export default function Fundamental({
 
         .qmi-fa-grid-4 {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 10px;
         }
 
         .qmi-fa-grid-3 {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 10px;
         }
 
@@ -939,7 +725,7 @@ export default function Fundamental({
 
         .qmi-fa-data-row strong {
           color: #e2e8f0;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 900;
           text-align: right;
         }
@@ -966,7 +752,7 @@ export default function Fundamental({
 
         .qmi-fa-quality-score span {
           color: #8ea0b8;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .06em;
           text-transform: uppercase;
@@ -983,7 +769,7 @@ export default function Fundamental({
 
         .qmi-fa-quality-score small {
           color: #cbd5e1;
-          font-size: 12px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1019,7 +805,7 @@ export default function Fundamental({
           border-radius: 8px;
           background: rgba(34, 197, 94, .05);
           color: #86efac;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 850;
         }
 
@@ -1063,7 +849,7 @@ export default function Fundamental({
         .qmi-fa-empty {
           margin: 6px 0;
           color: #aab6c7;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.45;
         }
 
@@ -1073,7 +859,7 @@ export default function Fundamental({
           gap: 12px;
           padding: 10px 4px 0;
           color: #64748b;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 750;
         }
 
@@ -1097,7 +883,7 @@ export default function Fundamental({
         .qmi-fa-state-row span {
           display: block;
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -1115,7 +901,7 @@ export default function Fundamental({
           display: block;
           margin-top: 9px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1132,7 +918,7 @@ export default function Fundamental({
 
         .qmi-fa-regime-score span {
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -1149,7 +935,7 @@ export default function Fundamental({
 
         .qmi-fa-regime-score small {
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1193,7 +979,7 @@ export default function Fundamental({
 
         .qmi-fa-intel-meta small {
           color: #94a3b8;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 800;
           text-transform: uppercase;
         }
@@ -1216,7 +1002,7 @@ export default function Fundamental({
           display: block;
           margin-top: 7px;
           color: #e2e8f0;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 950;
         }
 
@@ -1246,7 +1032,7 @@ export default function Fundamental({
         .qmi-fa-quality-intel-card span {
           display: block;
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -1273,7 +1059,7 @@ export default function Fundamental({
           display: block;
           margin-top: 8px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1295,7 +1081,7 @@ export default function Fundamental({
 
         .qmi-fa-quality-intel-confidence small {
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1342,18 +1128,74 @@ export default function Fundamental({
 
         .qmi-fa-quality-intel-footer small {
           color: #94a3b8;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 800;
           text-transform: uppercase;
         }
 
         .qmi-fa-quality-intel-footer em {
           color: #fbbf24;
-          font-size: 9px;
+          font-size: 14px;
           font-style: normal;
           font-weight: 900;
           text-transform: uppercase;
           text-align: right;
+        }
+
+        .qmi-fa-decision-explain {
+          display: grid;
+          gap: 8px;
+          margin-bottom: 10px;
+          padding: 14px 15px;
+          border: 1px solid rgba(96, 165, 250, .14);
+          border-radius: 11px;
+          background: rgba(59, 130, 246, .035);
+        }
+
+        .qmi-fa-decision-explain-head,
+        .qmi-fa-decision-factor {
+          display: grid;
+          grid-template-columns: minmax(160px, 1.4fr) repeat(3, minmax(90px, .7fr));
+          gap: 10px;
+          align-items: center;
+        }
+
+        .qmi-fa-decision-explain-head {
+          padding: 0 10px 7px;
+          color: #64748b;
+          font-size: 14px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-decision-factor {
+          padding: 10px;
+          border-radius: 9px;
+          background: rgba(2, 6, 23, .18);
+        }
+
+        .qmi-fa-decision-factor span {
+          color: #cbd5e1;
+          font-size: 16px;
+          font-weight: 850;
+        }
+
+        .qmi-fa-decision-factor strong {
+          color: #f8fafc;
+          font-size: 16px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-decision-factor strong:last-child {
+          color: #60a5fa;
+        }
+
+        .qmi-fa-decision-audit {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+          margin-bottom: 10px;
         }
 
         .qmi-fa-decision-hero {
@@ -1378,7 +1220,7 @@ export default function Fundamental({
         .qmi-fa-decision-list span {
           display: block;
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -1406,7 +1248,7 @@ export default function Fundamental({
           border-radius: 999px;
           color: #cbd5e1;
           background: rgba(59, 130, 246, .06);
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 950;
           text-transform: uppercase;
         }
@@ -1415,7 +1257,7 @@ export default function Fundamental({
           display: block;
           margin-top: 10px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1438,7 +1280,7 @@ export default function Fundamental({
 
         .qmi-fa-decision-score small {
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1482,7 +1324,7 @@ export default function Fundamental({
           margin: 10px 0 0;
           padding-left: 18px;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
@@ -1493,7 +1335,7 @@ export default function Fundamental({
         .qmi-fa-decision-empty {
           margin-top: 10px;
           color: #64748b;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 700;
         }
 
@@ -1520,7 +1362,7 @@ export default function Fundamental({
         .qmi-fa-core-list span {
           display: block;
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -1548,7 +1390,7 @@ export default function Fundamental({
           border-radius: 999px;
           color: #cbd5e1;
           background: rgba(59, 130, 246, .06);
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 950;
           text-transform: uppercase;
         }
@@ -1557,7 +1399,7 @@ export default function Fundamental({
           display: block;
           margin-top: 10px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
           line-height: 1.5;
         }
@@ -1581,13 +1423,13 @@ export default function Fundamental({
 
         .qmi-fa-core-score small {
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
         .qmi-fa-core-grid {
           display: grid;
-          grid-template-columns: repeat(5, minmax(0, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 10px;
           margin-bottom: 10px;
         }
@@ -1612,190 +1454,16 @@ export default function Fundamental({
           display: block;
           margin-top: 8px;
           color: #94a3b8;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 800;
           line-height: 1.45;
         }
 
         .qmi-fa-core-compare {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 10px;
           margin-bottom: 10px;
-        }
-
-        .qmi-fa-core-divergence {
-          display: grid;
-          grid-template-columns: 1fr .62fr;
-          gap: 10px;
-          margin-bottom: 10px;
-        }
-
-        .qmi-fa-core-divergence-main,
-        .qmi-fa-core-weights {
-          padding: 16px;
-          border: 1px solid rgba(148, 163, 184, .10);
-          border-radius: 11px;
-          background: rgba(148, 163, 184, .025);
-        }
-
-        .qmi-fa-core-divergence-main {
-          position: relative;
-          overflow: hidden;
-          background:
-            radial-gradient(circle at 100% 0%, rgba(34,197,94,.09), transparent 38%),
-            rgba(148, 163, 184, .025);
-        }
-
-        .qmi-fa-core-divergence-main.is-negative {
-          background:
-            radial-gradient(circle at 100% 0%, rgba(244,63,94,.10), transparent 38%),
-            rgba(148, 163, 184, .025);
-        }
-
-        .qmi-fa-core-divergence-main.is-aligned {
-          background:
-            radial-gradient(circle at 100% 0%, rgba(96,165,250,.09), transparent 38%),
-            rgba(148, 163, 184, .025);
-        }
-
-        .qmi-fa-core-divergence-head {
-          display: flex;
-          align-items: flex-start;
-          justify-content: space-between;
-          gap: 12px;
-        }
-
-        .qmi-fa-core-divergence-head span,
-        .qmi-fa-core-weights > span {
-          display: block;
-          color: #8190a5;
-          font-size: 10px;
-          font-weight: 900;
-          letter-spacing: .055em;
-          text-transform: uppercase;
-        }
-
-        .qmi-fa-core-divergence-head strong {
-          display: block;
-          margin-top: 7px;
-          color: #f8fafc;
-          font-size: 21px;
-          font-weight: 950;
-        }
-
-        .qmi-fa-core-divergence-head b {
-          color: #4ade80;
-          font-size: 32px;
-          line-height: 1;
-          font-weight: 950;
-        }
-
-        .qmi-fa-core-divergence-main.is-negative .qmi-fa-core-divergence-head b {
-          color: #fb7185;
-        }
-
-        .qmi-fa-core-divergence-main.is-aligned .qmi-fa-core-divergence-head b {
-          color: #60a5fa;
-        }
-
-        .qmi-fa-core-divergence-meta {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 10px;
-          margin-top: 12px;
-          color: #94a3b8;
-          font-size: 10px;
-          font-weight: 800;
-        }
-
-        .qmi-fa-core-divergence-track {
-          position: relative;
-          height: 7px;
-          margin-top: 12px;
-          overflow: hidden;
-          border-radius: 999px;
-          background: rgba(100,116,139,.16);
-        }
-
-        .qmi-fa-core-divergence-center {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 50%;
-          width: 1px;
-          background: rgba(226,232,240,.35);
-          z-index: 2;
-        }
-
-        .qmi-fa-core-divergence-marker {
-          position: absolute;
-          top: 50%;
-          width: 11px;
-          height: 11px;
-          border: 2px solid #0f172a;
-          border-radius: 50%;
-          background: #4ade80;
-          transform: translate(-50%, -50%);
-          box-shadow: 0 0 0 3px rgba(74,222,128,.10);
-          z-index: 3;
-        }
-
-        .qmi-fa-core-divergence-main.is-negative .qmi-fa-core-divergence-marker {
-          background: #fb7185;
-          box-shadow: 0 0 0 3px rgba(251,113,133,.10);
-        }
-
-        .qmi-fa-core-divergence-main.is-aligned .qmi-fa-core-divergence-marker {
-          background: #60a5fa;
-          box-shadow: 0 0 0 3px rgba(96,165,250,.10);
-        }
-
-        .qmi-fa-core-weights-grid {
-          display: grid;
-          gap: 8px;
-          margin-top: 11px;
-        }
-
-        .qmi-fa-core-weight-row {
-          display: grid;
-          grid-template-columns: 1fr auto;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .qmi-fa-core-weight-row div {
-          min-width: 0;
-        }
-
-        .qmi-fa-core-weight-row small {
-          display: block;
-          margin-bottom: 5px;
-          color: #94a3b8;
-          font-size: 9px;
-          font-weight: 850;
-        }
-
-        .qmi-fa-core-weight-bar {
-          height: 5px;
-          overflow: hidden;
-          border-radius: 999px;
-          background: rgba(100,116,139,.16);
-        }
-
-        .qmi-fa-core-weight-fill {
-          height: 100%;
-          border-radius: inherit;
-          background: linear-gradient(90deg, rgba(59,130,246,.8), rgba(103,232,249,.9));
-        }
-
-        .qmi-fa-core-weight-row b {
-          min-width: 42px;
-          text-align: right;
-          color: #e2e8f0;
-          font-size: 11px;
-          font-weight: 950;
         }
 
         .qmi-fa-core-engine {
@@ -1815,7 +1483,7 @@ export default function Fundamental({
 
         .qmi-fa-core-engine-head span {
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           text-transform: uppercase;
           letter-spacing: .055em;
@@ -1850,7 +1518,7 @@ export default function Fundamental({
         .qmi-fa-core-engine-meta span {
           display: block;
           color: #64748b;
-          font-size: 9px;
+          font-size: 14px;
           font-weight: 900;
           text-transform: uppercase;
         }
@@ -1859,7 +1527,7 @@ export default function Fundamental({
           display: block;
           margin-top: 5px;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 900;
           word-break: break-word;
         }
@@ -1885,7 +1553,7 @@ export default function Fundamental({
           margin: 10px 0 0;
           padding-left: 18px;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
@@ -1894,7 +1562,7 @@ export default function Fundamental({
           align-items: center;
           gap: 8px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -1921,7 +1589,7 @@ export default function Fundamental({
         .qmi-fa-policy-list span {
           display: block;
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -1944,7 +1612,7 @@ export default function Fundamental({
           border: 1px solid rgba(251, 191, 36, .22);
           color: #fbbf24;
           background: rgba(251, 191, 36, .06);
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 950;
           text-transform: uppercase;
         }
@@ -1953,7 +1621,7 @@ export default function Fundamental({
           display: block;
           margin-top: 10px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
           line-height: 1.5;
         }
@@ -1977,91 +1645,8 @@ export default function Fundamental({
 
         .qmi-fa-policy-state small {
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
-        }
-
-
-        .qmi-fa-policy-bias {
-          display: grid;
-          grid-template-columns: 1.25fr repeat(3, minmax(0, .75fr));
-          gap: 10px;
-          margin: 10px 0;
-        }
-
-        .qmi-fa-policy-bias-main,
-        .qmi-fa-policy-bias-card {
-          padding: 15px;
-          border: 1px solid rgba(148,163,184,.10);
-          border-radius: 11px;
-          background: rgba(2,6,23,.16);
-        }
-
-        .qmi-fa-policy-bias-main {
-          position: relative;
-          overflow: hidden;
-          background:
-            radial-gradient(circle at 100% 0%, rgba(34,197,94,.10), transparent 40%),
-            rgba(2,6,23,.16);
-        }
-
-        .qmi-fa-policy-bias-main.is-caution {
-          background:
-            radial-gradient(circle at 100% 0%, rgba(251,191,36,.10), transparent 40%),
-            rgba(2,6,23,.16);
-        }
-
-        .qmi-fa-policy-bias-main.is-risk {
-          background:
-            radial-gradient(circle at 100% 0%, rgba(244,63,94,.10), transparent 40%),
-            rgba(2,6,23,.16);
-        }
-
-        .qmi-fa-policy-bias-main span,
-        .qmi-fa-policy-bias-card span {
-          display: block;
-          color: #8190a5;
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: .055em;
-          text-transform: uppercase;
-        }
-
-        .qmi-fa-policy-bias-main strong {
-          display: block;
-          margin-top: 7px;
-          color: #4ade80;
-          font-size: 22px;
-          font-weight: 950;
-          letter-spacing: -.025em;
-        }
-
-        .qmi-fa-policy-bias-main.is-caution strong { color: #fbbf24; }
-        .qmi-fa-policy-bias-main.is-risk strong { color: #fb7185; }
-
-        .qmi-fa-policy-bias-main small {
-          display: block;
-          margin-top: 7px;
-          color: #94a3b8;
-          font-size: 9px;
-          line-height: 1.45;
-          font-weight: 700;
-        }
-
-        .qmi-fa-policy-bias-card strong {
-          display: block;
-          margin-top: 8px;
-          color: #e2e8f0;
-          font-size: 17px;
-          font-weight: 950;
-        }
-
-        .qmi-fa-policy-bias-card small {
-          display: block;
-          margin-top: 6px;
-          color: #738197;
-          font-size: 8.5px;
-          line-height: 1.35;
         }
 
         .qmi-fa-policy-grid {
@@ -2091,7 +1676,7 @@ export default function Fundamental({
           display: block;
           margin-top: 8px;
           color: #94a3b8;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 800;
           line-height: 1.45;
         }
@@ -2114,7 +1699,7 @@ export default function Fundamental({
           margin: 10px 0 0;
           padding-left: 18px;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
@@ -2149,7 +1734,7 @@ export default function Fundamental({
         .qmi-fa-nio-monthly span {
           display: block;
           color: #8190a5;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 900;
           letter-spacing: .055em;
           text-transform: uppercase;
@@ -2172,7 +1757,7 @@ export default function Fundamental({
           border-radius: 999px;
           color: #4ade80;
           background: rgba(74, 222, 128, .05);
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 950;
           text-transform: uppercase;
         }
@@ -2182,7 +1767,7 @@ export default function Fundamental({
           display: block;
           margin-top: 9px;
           color: #94a3b8;
-          font-size: 11px;
+          font-size: 14px;
           font-weight: 800;
           line-height: 1.45;
         }
@@ -2233,7 +1818,7 @@ export default function Fundamental({
           display: block;
           margin-top: 7px;
           color: #94a3b8;
-          font-size: 10px;
+          font-size: 14px;
           font-weight: 800;
         }
 
@@ -2266,7 +1851,7 @@ export default function Fundamental({
           margin: 10px 0 0;
           padding-left: 18px;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
           line-height: 1.55;
         }
 
@@ -2289,7 +1874,7 @@ export default function Fundamental({
           border-bottom: 1px solid rgba(148, 163, 184, .08);
           text-align: right;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 14px;
         }
 
         .qmi-fa-nio-monthly th:first-child,
@@ -2299,7 +1884,7 @@ export default function Fundamental({
 
         .qmi-fa-nio-monthly th {
           color: #8190a5;
-          font-size: 9px;
+          font-size: 14px;
           font-weight: 900;
           text-transform: uppercase;
           letter-spacing: .05em;
@@ -2307,6 +1892,137 @@ export default function Fundamental({
 
         .qmi-fa-nio-monthly tbody tr:last-child td {
           border-bottom: 0;
+        }
+
+
+
+        /* FE-FA-001.4 — Institutional visual pass */
+        .qmi-fa-workspace {
+          padding: 20px;
+        }
+
+        .qmi-fa-workspace .qmi-fa-section-head {
+          margin-bottom: 16px;
+        }
+
+        .qmi-fa-workspace .qmi-fa-kicker {
+          font-size: 14px;
+          letter-spacing: .07em;
+        }
+
+        .qmi-fa-workspace .qmi-fa-section-title h2 {
+          margin-top: 3px;
+          font-size: 23px;
+          line-height: 1.12;
+          font-weight: 950;
+          letter-spacing: -.025em;
+        }
+
+        .qmi-fa-workspace .qmi-fa-section-title p {
+          margin-top: 4px;
+          font-size: 14px;
+          line-height: 1.4;
+        }
+
+        .qmi-fa-workspace {
+          padding: 18px;
+          border-color: rgba(96, 165, 250, .20);
+          background:
+            linear-gradient(180deg, rgba(37, 99, 235, .055), rgba(15, 23, 42, .72) 42%);
+        }
+
+        .qmi-fa-workspace-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 12px;
+        }
+
+        .qmi-fa-workspace-card {
+          min-width: 0;
+          padding: 18px 16px;
+          border: 1px solid rgba(96, 165, 250, .18);
+          border-radius: 13px;
+          background: linear-gradient(180deg, rgba(10, 24, 48, .72), rgba(2, 6, 23, .34));
+        }
+
+        .qmi-fa-workspace-card > span,
+        .qmi-fa-workspace-row span {
+          display: block;
+          color: #8190a5;
+          font-size: 14px;
+          font-weight: 900;
+          letter-spacing: .055em;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-workspace-head {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          align-items: flex-start;
+          margin-bottom: 16px;
+        }
+
+        .qmi-fa-workspace-head strong {
+          display: block;
+          margin-top: 6px;
+          color: #f8fafc;
+          font-size: 20px;
+          font-weight: 950;
+        }
+
+        .qmi-fa-workspace-score {
+          color: #60a5fa;
+          font-size: 32px;
+          line-height: 1;
+          font-weight: 950;
+          white-space: nowrap;
+        }
+
+        .qmi-fa-workspace-state {
+          display: inline-block;
+          margin-top: 7px;
+          color: #cbd5e1;
+          font-size: 14px;
+          font-weight: 900;
+          text-transform: uppercase;
+        }
+
+        .qmi-fa-workspace-rows {
+          display: grid;
+          gap: 9px;
+        }
+
+        .qmi-fa-workspace-row {
+          display: flex;
+          justify-content: space-between;
+          gap: 10px;
+          padding-top: 10px;
+          border-top: 1px solid rgba(148, 163, 184, .08);
+        }
+
+        .qmi-fa-workspace-row strong {
+          color: #e2e8f0;
+          font-size: 14px;
+          line-height: 1.25;
+          font-weight: 900;
+          text-align: right;
+        }
+
+        .qmi-fa-workspace-row strong.is-positive { color: #4ade80; }
+        .qmi-fa-workspace-row strong.is-negative { color: #fb7185; }
+        .qmi-fa-workspace-row strong.is-warning { color: #fbbf24; }
+
+        .qmi-fa-workspace-note {
+          margin-top: 11px;
+          color: #64748b;
+          font-size: 11.5px;
+          font-weight: 700;
+          line-height: 1.45;
+        }
+
+        @media (max-width: 1500px) {
+          .qmi-fa-workspace-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
 
         @media (max-width: 1150px) {
@@ -2320,6 +2036,7 @@ export default function Fundamental({
           .qmi-fa-core-compare { grid-template-columns: 1fr; }
           .qmi-fa-policy-hero { grid-template-columns: 1fr; }
           .qmi-fa-nio-hero { grid-template-columns: 1fr; }
+          .qmi-fa-workspace-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .qmi-fa-decision-lists { grid-template-columns: 1fr; }
           .qmi-fa-quality-intel-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .qmi-fa-state-matrix { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2327,6 +2044,7 @@ export default function Fundamental({
         }
 
         @media (max-width: 760px) {
+          .qmi-fa-workspace-grid { grid-template-columns: 1fr; }
           .qmi-fa-command-head,
           .qmi-fa-search,
           .qmi-fa-section-head {
@@ -2351,7 +2069,6 @@ export default function Fundamental({
           .qmi-fa-decision-lists,
           .qmi-fa-core-grid,
           .qmi-fa-core-lists,
-          .qmi-fa-policy-bias,
           .qmi-fa-policy-grid,
           .qmi-fa-policy-lists,
           .qmi-fa-nio-grid,
@@ -2422,116 +2139,6 @@ export default function Fundamental({
         ) : null}
 
         {fundamental ? (
-          <section className="qmi-fa-panel qmi-fa-bm-panel" style={{ marginTop: 14 }}>
-            <div className="qmi-fa-bm-head">
-              <div className="qmi-fa-bm-title">
-                <div className="qmi-fa-bm-title-icon">
-                  <TrendingUp size={18} />
-                </div>
-                <div>
-                  <span>DE-FA-BM-001.1 · ADAPTIVE BUSINESS MOMENTUM</span>
-                  <h2>Business Momentum Intelligence</h2>
-                </div>
-              </div>
-
-              <div className="qmi-fa-bm-badge">
-                {businessMomentum?.factor_family_architecture
-                  ? "Factor Families Active"
-                  : "Adaptive Weighting"}
-              </div>
-            </div>
-
-            <div className="qmi-fa-bm-hero">
-              <div className="qmi-fa-bm-score">
-                <span>Business Momentum</span>
-                <strong>
-                  {businessMomentumScore === null ? "--" : businessMomentumScore.toFixed(1)}
-                </strong>
-                <small>
-                  {prettyState(businessMomentum?.regime)} ·{" "}
-                  {businessMomentum?.confidence || "LOW"} confidence
-                </small>
-              </div>
-
-              <div className="qmi-fa-bm-kpi">
-                <span>Trend</span>
-                <strong>{prettyState(businessMomentum?.trend)}</strong>
-                <small>Directional business state</small>
-              </div>
-
-              <div className="qmi-fa-bm-kpi">
-                <span>Coverage</span>
-                <strong>
-                  {n(businessMomentum?.coverage_pct) === null
-                    ? "--"
-                    : `${n(businessMomentum?.coverage_pct).toFixed(0)}%`}
-                </strong>
-                <small>
-                  {businessMomentum?.active_components ?? 0}/
-                  {businessMomentum?.total_components ?? 0} active components
-                </small>
-              </div>
-
-              <div className="qmi-fa-bm-kpi">
-                <span>Operating Driver Cap</span>
-                <strong>
-                  {n(businessMomentum?.operating_driver_cap_pct) === null
-                    ? "--"
-                    : `${n(businessMomentum?.operating_driver_cap_pct).toFixed(0)}%`}
-                </strong>
-                <small>Maximum company-specific contribution</small>
-              </div>
-
-              <div className="qmi-fa-bm-kpi">
-                <span>Weighting</span>
-                <strong>{businessMomentum?.adaptive_weighting ? "Adaptive" : "Static"}</strong>
-                <small>Missing metrics are excluded, never scored as zero</small>
-              </div>
-            </div>
-
-            <div className="qmi-fa-bm-family-grid">
-              {["growth", "profitability", "cash_quality", "operating_drivers"].map(
-                (familyKey) => (
-                  <BusinessMomentumFamilyCard
-                    key={familyKey}
-                    familyKey={familyKey}
-                    block={businessMomentumFamilies?.[familyKey] || {}}
-                  />
-                )
-              )}
-            </div>
-
-            {(businessMomentumEvidence.length > 0 || businessMomentumRisks.length > 0) && (
-              <div className="qmi-fa-bm-intel">
-                <div className="qmi-fa-bm-list">
-                  <span>Supporting Evidence</span>
-                  <ul>
-                    {(businessMomentumEvidence.length
-                      ? businessMomentumEvidence
-                      : ["No positive family-level evidence available."]
-                    ).map((item, index) => (
-                      <li key={`bm-evidence-${index}`}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="qmi-fa-bm-list">
-                  <span>Momentum Risks</span>
-                  <ul>
-                    {(businessMomentumRisks.length
-                      ? businessMomentumRisks
-                      : ["No material business-momentum risks detected."]
-                    ).map((item, index) => (
-                      <li key={`bm-risk-${index}`}>{item}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-          </section>
-        ) : null}
-
-        {fundamental ? (
           <div className="qmi-fa-hero">
             <div className="qmi-fa-company">
               <span>Company</span>
@@ -2590,7 +2197,442 @@ export default function Fundamental({
 
       {fundamental ? (
         <>
-          <section className="qmi-fa-panel qmi-fa-section">
+          <section className="qmi-fa-panel qmi-fa-workspace">
+            <div className="qmi-fa-section-head">
+              <div className="qmi-fa-section-title">
+                <div className="qmi-fa-icon-box">
+                  <Gauge size={17} />
+                </div>
+                <div>
+                  <span className="qmi-fa-kicker">FE-FA-001 · FUNDAMENTAL INTELLIGENCE WORKSPACE</span>
+                  <h2>Fundamental Intelligence</h2>
+                  <p>
+                    Integrated view of Growth, Quality, Financial Health, Cash Flow, Valuation and Expectations intelligence.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="qmi-fa-workspace-grid">
+              <div className="qmi-fa-workspace-card">
+                <div className="qmi-fa-workspace-head">
+                  <div>
+                    <span>FA-METRICS-001</span>
+                    <strong>Growth & Trend</strong>
+                    <b className="qmi-fa-workspace-state">
+                      {prettyState(growthTrend?.summary?.revenue_trend)}
+                    </b>
+                  </div>
+                  <div className="qmi-fa-workspace-score">
+                    {n(growthTrend?.summary?.average_latest_growth_pct) === null
+                      ? "--"
+                      : `${n(growthTrend.summary.average_latest_growth_pct).toFixed(1)}%`}
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-rows">
+                  <div className="qmi-fa-workspace-row">
+                    <span>Revenue</span>
+                    <strong>{prettyState(growthTrend?.summary?.revenue_trend)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Earnings</span>
+                    <strong>{prettyState(growthTrend?.summary?.earnings_trend)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Free Cash Flow</span>
+                    <strong>{prettyState(growthTrend?.summary?.cash_flow_trend)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Metrics Available</span>
+                    <strong>{growthTrend?.summary?.growth_metrics_available ?? "--"}</strong>
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-note">
+                  Growth, acceleration, CAGR and margin direction from normalized statement history.
+                </div>
+              </div>
+
+              <div className="qmi-fa-workspace-card">
+                <div className="qmi-fa-workspace-head">
+                  <div>
+                    <span>FA-METRICS-002</span>
+                    <strong>Profitability & Quality</strong>
+                    <b className="qmi-fa-workspace-state">
+                      {prettyState(profitabilityQuality?.quality_state)}
+                    </b>
+                  </div>
+                  <div className="qmi-fa-workspace-score">
+                    {n(profitabilityQuality?.quality_score) === null
+                      ? "--"
+                      : n(profitabilityQuality.quality_score).toFixed(1)}
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-rows">
+                  <div className="qmi-fa-workspace-row">
+                    <span>Earnings Quality</span>
+                    <strong>{prettyState(profitabilityQuality?.cash_conversion?.earnings_quality)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Capital Efficiency</span>
+                    <strong>{prettyState(profitabilityQuality?.capital_efficiency?.state)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>OCF Conversion</span>
+                    <strong>
+                      {n(profitabilityQuality?.cash_conversion?.operating_cash_flow_to_net_income_pct) === null
+                        ? "--"
+                        : `${n(profitabilityQuality.cash_conversion.operating_cash_flow_to_net_income_pct).toFixed(1)}%`}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Coverage</span>
+                    <strong>
+                      {n(profitabilityQuality?.coverage?.coverage_pct) === null
+                        ? "--"
+                        : `${n(profitabilityQuality.coverage.coverage_pct).toFixed(0)}%`}
+                    </strong>
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-note">
+                  Domain Quality Score only; it does not replace the existing Fundamental Decision score.
+                </div>
+              </div>
+
+              <div className="qmi-fa-workspace-card">
+                <div className="qmi-fa-workspace-head">
+                  <div>
+                    <span>FA-METRICS-003</span>
+                    <strong>Financial Health</strong>
+                    <b className="qmi-fa-workspace-state">
+                      {prettyState(financialHealthIntelligence?.financial_health_state)}
+                    </b>
+                  </div>
+                  <div className="qmi-fa-workspace-score">
+                    {n(financialHealthIntelligence?.financial_health_score) === null
+                      ? "--"
+                      : n(financialHealthIntelligence.financial_health_score).toFixed(1)}
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-rows">
+                  <div className="qmi-fa-workspace-row">
+                    <span>Liquidity</span>
+                    <strong>{prettyState(financialHealthIntelligence?.liquidity?.state)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Leverage</span>
+                    <strong>{prettyState(financialHealthIntelligence?.leverage?.state)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Resilience</span>
+                    <strong>{prettyState(financialHealthIntelligence?.resilience?.state)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Net Cash / Debt</span>
+                    <strong>
+                      {compactMoney(financialHealthIntelligence?.balance_sheet?.net_cash, financialCurrency)}
+                    </strong>
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-note">
+                  Balance-sheet strength from cash, debt, liquidity, leverage and cash-flow resilience.
+                </div>
+              </div>
+
+              <div className="qmi-fa-workspace-card">
+                <div className="qmi-fa-workspace-head">
+                  <div>
+                    <span>FA-METRICS-004</span>
+                    <strong>Cash Flow Intelligence</strong>
+                    <b className="qmi-fa-workspace-state">
+                      {prettyState(cashFlowIntelligence?.cash_flow_state)}
+                    </b>
+                  </div>
+                  <div className="qmi-fa-workspace-score">
+                    {n(cashFlowIntelligence?.cash_flow_score) === null
+                      ? "--"
+                      : n(cashFlowIntelligence.cash_flow_score).toFixed(1)}
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-rows">
+                  <div className="qmi-fa-workspace-row">
+                    <span>Generation</span>
+                    <strong>{prettyState(cashFlowIntelligence?.cash_generation?.state)}</strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Cash Burn</span>
+                    <strong
+                      className={
+                        cashFlowIntelligence?.cash_generation?.burn_state === "HIGH" ||
+                        cashFlowIntelligence?.cash_generation?.burn_state === "PRESENT"
+                          ? "is-negative"
+                          : cashFlowIntelligence?.cash_generation?.burn_state === "NONE"
+                            ? "is-positive"
+                            : ""
+                      }
+                    >
+                      {prettyState(cashFlowIntelligence?.cash_generation?.burn_state)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>FCF Margin</span>
+                    <strong>
+                      {n(cashFlowIntelligence?.cash_margins?.free_cash_flow_margin_pct) === null
+                        ? "--"
+                        : `${n(cashFlowIntelligence.cash_margins.free_cash_flow_margin_pct).toFixed(1)}%`}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>FCF Trend</span>
+                    <strong>
+                      {prettyState(
+                        cashFlowIntelligence?.historical_trend?.quarterly_free_cash_flow !== "UNAVAILABLE"
+                          ? cashFlowIntelligence?.historical_trend?.quarterly_free_cash_flow
+                          : cashFlowIntelligence?.historical_trend?.annual_free_cash_flow
+                      )}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>CapEx Intensity</span>
+                    <strong>
+                      {n(cashFlowIntelligence?.capex?.capex_intensity_pct) === null
+                        ? "--"
+                        : `${n(cashFlowIntelligence.capex.capex_intensity_pct).toFixed(1)}%`}
+                    </strong>
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-note">
+                  Cash generation, burn, conversion, CapEx intensity and historical FCF direction.
+                </div>
+
+              
+              </div>
+            <div className="qmi-fa-workspace-card">
+                <div className="qmi-fa-workspace-head">
+                  <div>
+                    <span>FA-METRICS-005</span>
+                    <strong>Valuation Intelligence</strong>
+                    <b className="qmi-fa-workspace-state">
+                      {prettyState(valuationIntelligence?.valuation_state)}
+                    </b>
+                  </div>
+                  <div className="qmi-fa-workspace-score">
+                    {n(valuationIntelligence?.valuation_score) === null
+                      ? "--"
+                      : n(valuationIntelligence.valuation_score).toFixed(1)}
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-rows">
+                  <div className="qmi-fa-workspace-row">
+                    <span>Price / Sales</span>
+                    <strong>
+                      {n(valuationIntelligence?.metrics?.price_to_sales) === null
+                        ? "--"
+                        : n(valuationIntelligence.metrics.price_to_sales).toFixed(2)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>EV / Revenue</span>
+                    <strong>
+                      {n(valuationIntelligence?.metrics?.enterprise_to_revenue) === null
+                        ? "--"
+                        : n(valuationIntelligence.metrics.enterprise_to_revenue).toFixed(2)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Forward P/E</span>
+                    <strong>
+                      {n(valuationIntelligence?.metrics?.forward_pe) === null
+                        ? "--"
+                        : n(valuationIntelligence.metrics.forward_pe).toFixed(2)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>EV / EBITDA</span>
+                    <strong>
+                      {n(valuationIntelligence?.metrics?.enterprise_to_ebitda) === null
+                        ? "--"
+                        : n(valuationIntelligence.metrics.enterprise_to_ebitda).toFixed(2)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Coverage</span>
+                    <strong>
+                      {n(valuationIntelligence?.coverage?.coverage_pct) === null
+                        ? "--"
+                        : `${n(valuationIntelligence.coverage.coverage_pct).toFixed(0)}%`}
+                    </strong>
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-note">
+                  Multiples interpreted with Growth, Profitability Quality and Cash Flow context.
+                </div>
+              </div>
+            
+<div className="qmi-fa-workspace-card">
+                <div className="qmi-fa-workspace-head">
+                  <div>
+                    <span>FA-METRICS-006</span>
+                    <strong>Expectations Intelligence</strong>
+                    <b className="qmi-fa-workspace-state">
+                      {prettyState(expectationsIntelligence?.expectations_state)}
+                    </b>
+                  </div>
+                  <div className="qmi-fa-workspace-score">
+                    {n(expectationsIntelligence?.expectations_score) === null
+                      ? "--"
+                      : n(expectationsIntelligence.expectations_score).toFixed(1)}
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-rows">
+                  <div className="qmi-fa-workspace-row">
+                    <span>Revenue Growth</span>
+                    <strong>
+                      {n(expectationsIntelligence?.expectations?.revenue_growth_pct) === null
+                        ? "--"
+                        : `${n(expectationsIntelligence.expectations.revenue_growth_pct).toFixed(1)}%`}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Earnings Growth</span>
+                    <strong>
+                      {n(expectationsIntelligence?.expectations?.earnings_growth_pct) === null
+                        ? "--"
+                        : `${n(expectationsIntelligence.expectations.earnings_growth_pct).toFixed(1)}%`}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Quarterly Earnings</span>
+                    <strong>
+                      {prettyState(expectationsIntelligence?.trajectory?.quarterly_earnings)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Forward P/E</span>
+                    <strong>
+                      {n(expectationsIntelligence?.expectations?.forward_pe) === null
+                        ? "--"
+                        : n(expectationsIntelligence.expectations.forward_pe).toFixed(2)}
+                    </strong>
+                  </div>
+                  <div className="qmi-fa-workspace-row">
+                    <span>Coverage</span>
+                    <strong>
+                      {n(expectationsIntelligence?.coverage?.coverage_pct) === null
+                        ? "--"
+                        : `${n(expectationsIntelligence.coverage.coverage_pct).toFixed(0)}%`}
+                    </strong>
+                  </div>
+                </div>
+                <div className="qmi-fa-workspace-note">
+                  Forward expectations interpreted against current Growth, Quality, Cash Flow and Valuation.
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          
+
+          
+        <section className="qmi-fa-panel qmi-fa-section">
+          <div className="qmi-fa-section-head">
+            <div className="qmi-fa-section-title">
+              <div className="qmi-fa-icon-box">
+                <Building2 size={18} />
+              </div>
+              <div>
+                <span className="qmi-fa-kicker">FA-COMPANY-001</span>
+                <h2>Company Intelligence</h2>
+                <p>
+                  Company-specific intelligence isolated from the universal
+                  fundamental engine.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="qmi-fa-grid-3">
+            <Metric
+              label="Engine"
+              value={companyIntelligence?.engine_id || "--"}
+              detail={`Version ${companyIntelligence?.version || "--"}`}
+            />
+            <Metric
+              label="Status"
+              value={prettyState(companyIntelligence?.status)}
+              tone={
+                String(companyIntelligence?.status || "").toLowerCase() === "operational"
+                  ? "positive"
+                  : "neutral"
+              }
+            />
+            <Metric
+              label="Coverage"
+              value={
+                n(companyIntelligence?.coverage?.coverage_pct) === null
+                  ? "--"
+                  : scorePercent(companyIntelligence?.coverage?.coverage_pct)
+              }
+              detail="Company-specific dataset"
+            />
+            <Metric
+              label="Company"
+              value={
+                companyIntelligence?.company?.company_name ||
+                companyIntelligence?.company?.name ||
+                profile?.company_name ||
+                submittedSymbol
+              }
+              detail={companyIntelligence?.company?.sector || profile?.sector || "Company context"}
+            />
+          </div>
+
+          <div className="qmi-fa-core-compare" style={{ marginTop: 10 }}>
+            <div className="qmi-fa-data-card">
+              <div className="qmi-fa-data-row">
+                <span>Symbol</span>
+                <strong>
+                  {companyIntelligence?.company?.symbol || submittedSymbol}
+                </strong>
+              </div>
+              <div className="qmi-fa-data-row">
+                <span>Industry</span>
+                <strong>
+                  {companyIntelligence?.company?.industry || profile?.industry || "--"}
+                </strong>
+              </div>
+              <div className="qmi-fa-data-row">
+                <span>Country</span>
+                <strong>
+                  {companyIntelligence?.company?.country || profile?.country || "--"}
+                </strong>
+              </div>
+            </div>
+
+            <div className="qmi-fa-data-card">
+              {Object.keys(companyIntelligence?.company_specific || {}).length ? (
+                Object.entries(companyIntelligence.company_specific)
+                  .slice(0, 6)
+                  .map(([key, value]) => (
+                    <div className="qmi-fa-data-row" key={key}>
+                      <span>{prettyState(key)}</span>
+                      <strong>
+                        {value !== null && typeof value === "object"
+                          ? prettyState(value?.state || value?.regime || "AVAILABLE")
+                          : String(value ?? "--")}
+                      </strong>
+                    </div>
+                  ))
+              ) : (
+                <div className="qmi-fa-empty">
+                  No company-specific intelligence is available for this ticker.
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+<section className="qmi-fa-panel qmi-fa-section">
             <div className="qmi-fa-section-head">
               <div className="qmi-fa-section-title">
                 <div className="qmi-fa-icon-box">
@@ -2888,7 +2930,7 @@ export default function Fundamental({
                   <Target size={17} />
                 </div>
                 <div>
-                  <span className="qmi-fa-kicker">DE-FA-004.0 · FUNDAMENTAL DECISION ENGINE</span>
+                  <span className="qmi-fa-kicker">FA-DECISION-001.1 · FUNDAMENTAL DECISION ENGINE</span>
                   <h2>Fundamental Decision</h2>
                 </div>
               </div>
@@ -2900,7 +2942,7 @@ export default function Fundamental({
                 <strong>{prettyState(decision?.stance)}</strong>
                 <b>{decision?.conviction || "LOW"} conviction</b>
                 <small>
-                  Consolidated posture from quality, statement regime and legacy fundamental score.
+                  Weighted fusion of Growth, Profitability, Financial Health, Cash Flow, Valuation and Expectations.
                 </small>
               </div>
 
@@ -2917,31 +2959,79 @@ export default function Fundamental({
               </div>
             </div>
 
-            <div className="qmi-fa-decision-breakdown">
-              <div>
-                <span>Quality Score</span>
-                <strong>
-                  {n(decision?.quality_score) === null
-                    ? "--"
-                    : n(decision?.quality_score).toFixed(1)}
-                </strong>
+            <div className="qmi-fa-decision-explain">
+              <div className="qmi-fa-decision-explain-head">
+                <span>Decision Factor</span>
+                <span>Score</span>
+                <span>Effective Weight</span>
+                <span>Contribution</span>
               </div>
-              <div>
-                <span>Regime Score</span>
-                <strong>
-                  {n(decision?.regime_score) === null
-                    ? "--"
-                    : n(decision?.regime_score).toFixed(1)}
-                </strong>
-              </div>
-              <div>
-                <span>Legacy Score</span>
-                <strong>
-                  {n(decision?.legacy_score) === null
-                    ? "--"
-                    : n(decision?.legacy_score).toFixed(1)}
-                </strong>
-              </div>
+
+              {[
+                ["growth", "Growth"],
+                ["profitability", "Profitability"],
+                ["financial_health", "Financial Health"],
+                ["cash_flow", "Cash Flow"],
+                ["valuation", "Valuation"],
+                ["expectations", "Expectations"],
+              ].map(([key, label]) => {
+                const component = decision?.components?.[key] || {};
+                return (
+                  <div className="qmi-fa-decision-factor" key={key}>
+                    <span>{label}</span>
+                    <strong>
+                      {n(component?.score) === null ? "--" : n(component.score).toFixed(1)}
+                    </strong>
+                    <strong>
+                      {n(component?.effective_weight) === null
+                        ? "--"
+                        : `${(n(component.effective_weight) * 100).toFixed(1)}%`}
+                    </strong>
+                    <strong>
+                      {n(component?.contribution) === null
+                        ? "--"
+                        : n(component.contribution).toFixed(2)}
+                    </strong>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="qmi-fa-decision-audit">
+              <Metric
+                label="Engine"
+                value={decision?.engine_id || "FA-DECISION-001"}
+                detail={`Version ${decision?.version || "--"}`}
+              />
+              <Metric
+                label="Coverage"
+                value={`${decision?.active_components ?? 0} / ${decision?.total_components ?? 6}`}
+                detail={
+                  n(decision?.coverage_pct) === null
+                    ? "Decision factor coverage"
+                    : `${n(decision.coverage_pct).toFixed(1)}% available`
+                }
+              />
+              <Metric
+                label="Conviction"
+                value={decision?.conviction || "LOW"}
+                tone={
+                  decision?.conviction === "HIGH"
+                    ? "positive"
+                    : decision?.conviction === "MEDIUM"
+                      ? "neutral"
+                      : "negative"
+                }
+              />
+              <Metric
+                label="Weighting"
+                value={decision?.weights_renormalized ? "ADAPTIVE" : "FULL"}
+                detail={
+                  decision?.weights_renormalized
+                    ? "Missing factors excluded; active weights renormalized"
+                    : "All six base weights active"
+                }
+              />
             </div>
 
             <div className="qmi-fa-decision-lists">
@@ -2993,7 +3083,7 @@ export default function Fundamental({
                   <GitMerge size={17} />
                 </div>
                 <div>
-                  <span className="qmi-fa-kicker">DE-CORE-004.1 · CROSS-ENGINE DECISION FUSION</span>
+                  <span className="qmi-fa-kicker">DE-CORE-004.2 · DECISION REGIME & CONFLICT RESOLUTION</span>
                   <h2>QMI Integrated Decision</h2>
                 </div>
               </div>
@@ -3001,7 +3091,7 @@ export default function Fundamental({
               {qmiDecisionLoading ? (
                 <div className="qmi-fa-core-status">
                   <RefreshCw className="qmi-fa-spin" size={14} />
-                  Fusing Technical + Fundamental + Business
+                  Fusing Technical + Fundamental
                 </div>
               ) : qmiDecisionError ? (
                 <div className="qmi-fa-core-status" style={{ color: "#fb7185" }}>
@@ -3033,7 +3123,7 @@ export default function Fundamental({
                 <b>{qmiDecision?.confidence || "LOW"} confidence</b>
                 <small>
                   {qmiDecision?.thesis ||
-                    "Technical timing, fundamental direction and business momentum fused under preserved risk gates."}
+                    "Technical timing and fundamental direction fused under preserved risk gates."}
                 </small>
               </div>
 
@@ -3048,6 +3138,93 @@ export default function Fundamental({
                   <small>0–100 cross-engine decision intelligence</small>
                 </div>
               </div>
+            </div>
+
+            <div className="qmi-fa-decision-explain" style={{ marginTop: 12 }}>
+              <div className="qmi-fa-decision-explain-head">
+                <span>Fusion Engine</span>
+                <span>Score</span>
+                <span>Effective Weight</span>
+                <span>Contribution</span>
+              </div>
+
+              {[
+                ["technical", "Technical"],
+                ["fundamental", "Fundamental"],
+                ["business_momentum", "Business Momentum"],
+              ].map(([key, label]) => {
+                const component = qmiFusionComponents?.[key] || {};
+                return (
+                  <div className="qmi-fa-decision-factor" key={`fusion-${key}`}>
+                    <span>{label}</span>
+                    <strong>
+                      {n(component?.score) === null ? "--" : n(component.score).toFixed(1)}
+                    </strong>
+                    <strong>
+                      {n(component?.effective_weight) === null
+                        ? "--"
+                        : `${(n(component.effective_weight) * 100).toFixed(1)}%`}
+                    </strong>
+                    <strong>
+                      {n(component?.contribution) === null
+                        ? "--"
+                        : n(component.contribution).toFixed(2)}
+                    </strong>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="qmi-fa-decision-audit" style={{ marginTop: 10 }}>
+              <Metric
+                label="Fusion Coverage"
+                value={`${qmiFusionCoverage?.active_components ?? 0} / ${qmiFusionCoverage?.total_components ?? 3}`}
+                detail={
+                  n(qmiFusionCoverage?.coverage_pct) === null
+                    ? "Cross-engine coverage"
+                    : `${n(qmiFusionCoverage.coverage_pct).toFixed(1)}% available`
+                }
+              />
+              <Metric
+                label="Weighting"
+                value={qmiFusionCoverage?.weights_renormalized ? "ADAPTIVE" : "FULL"}
+                detail={
+                  qmiFusionCoverage?.weights_renormalized
+                    ? "Available engines renormalized to 100%"
+                    : "45% Technical · 35% Fundamental · 20% Business"
+                }
+              />
+              <Metric
+                label="Business Momentum"
+                value={
+                  n(qmiBusinessMomentum?.score) === null
+                    ? "--"
+                    : n(qmiBusinessMomentum.score).toFixed(1)
+                }
+                detail={prettyState(qmiBusinessMomentum?.regime)}
+              />
+              <Metric
+                label="Cross-Engine Alignment"
+                value={prettyState(qmiAlignment?.state)}
+                detail={
+                  n(qmiAlignment?.score) === null
+                    ? "Technical vs Fundamental"
+                    : `${n(qmiAlignment.score).toFixed(1)} / 100`
+                }
+              />
+            </div>
+
+            <div className="qmi-fa-decision-audit" style={{ marginTop: 10 }}>
+              <Metric label="Decision Regime" value={prettyState(qmiDecisionRegime?.state)}
+                detail={`Priority: ${prettyState(qmiDecisionRegime?.priority)}`} />
+              <Metric label="Regime Severity" value={prettyState(qmiDecisionRegime?.severity)}
+                detail={`Risk: ${prettyState(qmiDecisionRegime?.technical_risk_state)}`} />
+              <Metric label="Strategic State" value={prettyState(qmiConflictResolution?.strategic_state)}
+                detail={prettyState(qmiConflictResolution?.resolution)} />
+              <Metric label="Execution Permission" value={prettyState(qmiConflictResolution?.execution_permission)}
+                detail={qmiConflictResolution?.technical_gate_preserved
+                  ? "Technical protection gate preserved"
+                  : "No hard technical gate active"} />
             </div>
 
             <div className="qmi-fa-core-grid">
@@ -3084,104 +3261,6 @@ export default function Fundamental({
                 <strong>{prettyState(qmiFundamental?.stance)}</strong>
                 <small>{qmiFundamental?.conviction || "LOW"} conviction</small>
               </div>
-
-              <div className="qmi-fa-core-card">
-                <span>Business Momentum</span>
-                <strong>
-                  {n(qmiBusinessMomentum?.score) === null
-                    ? "--"
-                    : n(qmiBusinessMomentum?.score).toFixed(1)}
-                </strong>
-                <small>
-                  {prettyState(qmiBusinessMomentum?.regime)} ·{" "}
-                  {qmiBusinessMomentum?.confidence || "LOW"} confidence
-                </small>
-              </div>
-            </div>
-
-            <div className="qmi-fa-core-divergence">
-              <div
-                className={`qmi-fa-core-divergence-main ${
-                  String(qmiBusinessDivergence?.state || "").includes("NEGATIVE")
-                    ? "is-negative"
-                    : String(qmiBusinessDivergence?.state || "") === "ALIGNED"
-                      ? "is-aligned"
-                      : ""
-                }`}
-              >
-                <div className="qmi-fa-core-divergence-head">
-                  <div>
-                    <span>Business / Price Divergence</span>
-                    <strong>{prettyState(qmiBusinessDivergence?.state)}</strong>
-                  </div>
-                  <b>
-                    {n(qmiBusinessDivergence?.spread) === null
-                      ? "--"
-                      : `${n(qmiBusinessDivergence?.spread) > 0 ? "+" : ""}${n(
-                          qmiBusinessDivergence?.spread
-                        ).toFixed(1)}`}
-                  </b>
-                </div>
-
-                <div className="qmi-fa-core-divergence-meta">
-                  <span>
-                    Business {n(qmiBusinessMomentum?.score) === null
-                      ? "--"
-                      : n(qmiBusinessMomentum?.score).toFixed(1)}
-                  </span>
-                  <span>{qmiBusinessDivergence?.severity || "NONE"} severity</span>
-                  <span>
-                    Technical {n(qmiTechnical?.score) === null
-                      ? "--"
-                      : n(qmiTechnical?.score).toFixed(1)}
-                  </span>
-                </div>
-
-                <div className="qmi-fa-core-divergence-track">
-                  <div className="qmi-fa-core-divergence-center" />
-                  <div
-                    className="qmi-fa-core-divergence-marker"
-                    style={{
-                      left: `${Math.max(
-                        2,
-                        Math.min(
-                          98,
-                          50 + (n(qmiBusinessDivergence?.spread) ?? 0) * 0.8
-                        )
-                      )}%`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="qmi-fa-core-weights">
-                <span>Fusion Weights</span>
-                <div className="qmi-fa-core-weights-grid">
-                  {[
-                    ["Technical", qmiFusionWeights?.technical],
-                    ["Fundamental", qmiFusionWeights?.fundamental],
-                    ["Business", qmiFusionWeights?.business_momentum],
-                  ].map(([label, weight]) => {
-                    const value = n(weight);
-                    const pctValue = value === null ? 0 : value * 100;
-
-                    return (
-                      <div className="qmi-fa-core-weight-row" key={label}>
-                        <div>
-                          <small>{label}</small>
-                          <div className="qmi-fa-core-weight-bar">
-                            <div
-                              className="qmi-fa-core-weight-fill"
-                              style={{ width: `${Math.max(0, Math.min(100, pctValue))}%` }}
-                            />
-                          </div>
-                        </div>
-                        <b>{value === null ? "--" : `${pctValue.toFixed(0)}%`}</b>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
 
             <div className="qmi-fa-core-compare">
@@ -3217,7 +3296,7 @@ export default function Fundamental({
               <div className="qmi-fa-core-engine">
                 <div className="qmi-fa-core-engine-head">
                   <div>
-                    <span>Fundamental Engine · DE-FA-004.0</span>
+                    <span>Fundamental Engine · FA-DECISION-001.1</span>
                     <strong>{prettyState(qmiFundamental?.stance)}</strong>
                   </div>
                   <b>
@@ -3264,7 +3343,7 @@ export default function Fundamental({
                   <b>
                     {n(qmiBusinessMomentum?.score) === null
                       ? "--"
-                      : n(qmiBusinessMomentum?.score).toFixed(1)}
+                      : n(qmiBusinessMomentum.score).toFixed(1)}
                   </b>
                 </div>
 
@@ -3274,19 +3353,15 @@ export default function Fundamental({
                     <strong>{prettyState(qmiBusinessMomentum?.trend)}</strong>
                   </div>
                   <div>
+                    <span>Confidence</span>
+                    <strong>{prettyState(qmiBusinessMomentum?.confidence)}</strong>
+                  </div>
+                  <div>
                     <span>Coverage</span>
                     <strong>
                       {n(qmiBusinessMomentum?.coverage_pct) === null
                         ? "--"
-                        : `${n(qmiBusinessMomentum?.coverage_pct).toFixed(0)}%`}
-                    </strong>
-                  </div>
-                  <div>
-                    <span>Driver Cap</span>
-                    <strong>
-                      {n(qmiBusinessMomentum?.operating_driver_cap_pct) === null
-                        ? "--"
-                        : `${n(qmiBusinessMomentum?.operating_driver_cap_pct).toFixed(0)}%`}
+                        : `${n(qmiBusinessMomentum.coverage_pct).toFixed(0)}%`}
                     </strong>
                   </div>
                 </div>
@@ -3333,7 +3408,7 @@ export default function Fundamental({
                   <Target size={17} />
                 </div>
                 <div>
-                  <span className="qmi-fa-kicker">DE-CORE-005.2 · BUSINESS-AWARE DECISION POLICY</span>
+                  <span className="qmi-fa-kicker">DE-CORE-005.0 · DECISION POLICY / ACTION ENGINE</span>
                   <h2>QMI Action Policy</h2>
                 </div>
               </div>
@@ -3382,65 +3457,6 @@ export default function Fundamental({
               </div>
             </div>
 
-            <div className="qmi-fa-policy-bias">
-              <div
-                className={`qmi-fa-policy-bias-main ${
-                  actionStrategicBias === "BUSINESS_CAUTION"
-                    ? "is-caution"
-                    : actionStrategicBias === "RISK_FIRST"
-                      ? "is-risk"
-                      : ""
-                }`}
-              >
-                <span>Strategic Bias</span>
-                <strong>{prettyState(actionStrategicBias)}</strong>
-                <small>
-                  {actionStrategicBias === "REENTRY_WATCH"
-                    ? "Strong business momentum is preserved as a future re-entry watch, but the current technical protection gate remains dominant."
-                    : actionStrategicBias === "BUSINESS_CAUTION"
-                      ? "Price action is stronger than the business backdrop; escalation requires business confirmation."
-                      : actionStrategicBias === "RISK_FIRST"
-                        ? "Critical technical risk dominates the current policy."
-                        : "No material strategic bias beyond the active policy state."}
-                </small>
-              </div>
-
-              <div className="qmi-fa-policy-bias-card">
-                <span>Business Momentum</span>
-                <strong>
-                  {n(actionBusinessContext?.score) === null
-                    ? "--"
-                    : n(actionBusinessContext?.score).toFixed(1)}
-                </strong>
-                <small>
-                  {prettyState(actionBusinessContext?.regime)}
-                </small>
-              </div>
-
-              <div className="qmi-fa-policy-bias-card">
-                <span>Business Trend</span>
-                <strong>{prettyState(actionBusinessContext?.trend)}</strong>
-                <small>
-                  {actionBusinessContext?.confidence || "LOW"} confidence
-                </small>
-              </div>
-
-              <div className="qmi-fa-policy-bias-card">
-                <span>Business Divergence</span>
-                <strong>
-                  {n(actionBusinessContext?.divergence_spread) === null
-                    ? "--"
-                    : `${n(actionBusinessContext?.divergence_spread) > 0 ? "+" : ""}${n(
-                        actionBusinessContext?.divergence_spread
-                      ).toFixed(1)}`}
-                </strong>
-                <small>
-                  {prettyState(actionBusinessContext?.divergence_state)} ·{" "}
-                  {actionBusinessContext?.divergence_severity || "NONE"}
-                </small>
-              </div>
-            </div>
-
             <div className="qmi-fa-policy-grid">
               <div className="qmi-fa-policy-card">
                 <span>Combined Score</span>
@@ -3455,7 +3471,7 @@ export default function Fundamental({
               <div className="qmi-fa-policy-card">
                 <span>Integrated Posture</span>
                 <strong>{prettyState(actionPolicy?.integrated_posture)}</strong>
-                <small>Source: DE-CORE-004.1</small>
+                <small>Source: DE-CORE-004.0</small>
               </div>
 
               <div className="qmi-fa-policy-card">
@@ -3541,6 +3557,170 @@ export default function Fundamental({
             </div>
           </section>
 
+          {submittedSymbol === "NIO" ? (
+            <section className="qmi-fa-panel qmi-fa-section">
+              <div className="qmi-fa-section-head">
+                <div className="qmi-fa-section-title">
+                  <div className="qmi-fa-icon-box">
+                    <BarChart3 size={17} />
+                  </div>
+                  <div>
+                    <span className="qmi-fa-kicker">DE-CI-NIO-001.0 · COMPANY INTELLIGENCE</span>
+                    <h2>NIO Delivery Intelligence</h2>
+                  </div>
+                </div>
+
+                {nioDeliveriesLoading ? (
+                  <div className="qmi-fa-core-status">
+                    <RefreshCw className="qmi-fa-spin" size={14} />
+                    Loading deliveries
+                  </div>
+                ) : nioDeliveriesError ? (
+                  <div className="qmi-fa-core-status" style={{ color: "#fb7185" }}>
+                    <AlertTriangle size={14} />
+                    Delivery engine unavailable
+                  </div>
+                ) : (
+                  <div className="qmi-fa-core-status" style={{ color: "#4ade80" }}>
+                    <CheckCircle2 size={14} />
+                    Delivery engine operational
+                  </div>
+                )}
+              </div>
+
+              {nioDeliveriesError ? (
+                <div className="qmi-fa-alert" style={{ marginBottom: 10 }}>
+                  {nioDeliveriesError}
+                </div>
+              ) : null}
+
+              <div className="qmi-fa-nio-hero">
+                <div className="qmi-fa-nio-main">
+                  <span>Delivery Regime</span>
+                  <strong>{prettyState(nioIntel?.delivery_regime)}</strong>
+                  <b>{nioIntel?.momentum_state || "UNKNOWN"} momentum</b>
+                  <small>
+                    Latest period {nioSnapshot?.latest_period || "--"} ·
+                    {nioIntel?.confidence || "LOW"} confidence
+                  </small>
+                </div>
+
+                <div className="qmi-fa-nio-score">
+                  <div>
+                    <span>Delivery Score</span>
+                    <strong>
+                      {n(nioIntel?.delivery_score) === null
+                        ? "--"
+                        : n(nioIntel?.delivery_score).toFixed(1)}
+                    </strong>
+                    <small>0–100 company-specific delivery intelligence</small>
+                  </div>
+                </div>
+              </div>
+
+              <div className="qmi-fa-nio-grid">
+                <div className="qmi-fa-nio-card">
+                  <span>Latest Month</span>
+                  <strong>{nioSnapshot?.latest_total?.toLocaleString?.() || "--"}</strong>
+                  <small>
+                    MoM {nioSnapshot?.mom_pct == null ? "--" : `${nioSnapshot.mom_pct.toFixed(1)}%`}
+                  </small>
+                </div>
+                <div className="qmi-fa-nio-card">
+                  <span>YTD Deliveries</span>
+                  <strong>{nioSnapshot?.ytd_total?.toLocaleString?.() || "--"}</strong>
+                  <small>
+                    YoY {nioSnapshot?.yoy_pct == null ? "--" : `${nioSnapshot.yoy_pct.toFixed(1)}%`}
+                  </small>
+                </div>
+                <div className="qmi-fa-nio-card">
+                  <span>3M Average</span>
+                  <strong>{n(nioSnapshot?.avg_3m) === null ? "--" : Math.round(n(nioSnapshot.avg_3m)).toLocaleString()}</strong>
+                  <small>{prettyState(nioIntel?.trend_3m)}</small>
+                </div>
+                <div className="qmi-fa-nio-card">
+                  <span>Annualized Run Rate</span>
+                  <strong>{n(nioSnapshot?.annualized_run_rate) === null ? "--" : Math.round(n(nioSnapshot.annualized_run_rate)).toLocaleString()}</strong>
+                  <small>{prettyState(nioIntel?.brand_diversification)}</small>
+                </div>
+              </div>
+
+              <div className="qmi-fa-nio-brand-grid">
+                <div className="qmi-fa-nio-brand">
+                  <span>NIO Brand</span>
+                  <strong>{nioLatestBrands?.nio?.toLocaleString?.() || "--"}</strong>
+                  <small>{nioSnapshot?.brand_mix?.NIO == null ? "--" : `${nioSnapshot.brand_mix.NIO.toFixed(1)}% mix`}</small>
+                </div>
+                <div className="qmi-fa-nio-brand">
+                  <span>ONVO</span>
+                  <strong>{nioLatestBrands?.onvo?.toLocaleString?.() || "--"}</strong>
+                  <small>{nioSnapshot?.brand_mix?.ONVO == null ? "--" : `${nioSnapshot.brand_mix.ONVO.toFixed(1)}% mix`}</small>
+                </div>
+                <div className="qmi-fa-nio-brand">
+                  <span>FIREFLY</span>
+                  <strong>{nioLatestBrands?.firefly?.toLocaleString?.() || "--"}</strong>
+                  <small>{nioSnapshot?.brand_mix?.FIREFLY == null ? "--" : `${nioSnapshot.brand_mix.FIREFLY.toFixed(1)}% mix`}</small>
+                </div>
+              </div>
+
+              <div className="qmi-fa-nio-lists">
+                <div className="qmi-fa-nio-list is-evidence">
+                  <span>Delivery Evidence</span>
+                  {nioEvidence.length ? (
+                    <ul>
+                      {nioEvidence.map((item, index) => (
+                        <li key={`nio-evidence-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="qmi-fa-decision-empty">No delivery evidence available.</div>
+                  )}
+                </div>
+
+                <div className="qmi-fa-nio-list is-risks">
+                  <span>Delivery Risks</span>
+                  {nioRisks.length ? (
+                    <ul>
+                      {nioRisks.map((item, index) => (
+                        <li key={`nio-risk-${index}`}>{item}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="qmi-fa-decision-empty">No material delivery risks detected.</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="qmi-fa-nio-monthly">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Period</th>
+                      <th>Total</th>
+                      <th>NIO</th>
+                      <th>ONVO</th>
+                      <th>FIREFLY</th>
+                      <th>MoM</th>
+                      <th>YoY</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {nioMonthly.map((row) => (
+                      <tr key={row.period}>
+                        <td>{row.period}</td>
+                        <td>{row.total?.toLocaleString?.() || "--"}</td>
+                        <td>{row.brands?.nio?.toLocaleString?.() || "--"}</td>
+                        <td>{row.brands?.onvo?.toLocaleString?.() || "--"}</td>
+                        <td>{row.brands?.firefly?.toLocaleString?.() || "--"}</td>
+                        <td>{row.mom_pct == null ? "--" : `${row.mom_pct.toFixed(1)}%`}</td>
+                        <td>{row.yoy_pct == null ? "--" : `${row.yoy_pct.toFixed(1)}%`}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          ) : null}
 
           <section className="qmi-fa-panel qmi-fa-section">
             <div className="qmi-fa-section-head">

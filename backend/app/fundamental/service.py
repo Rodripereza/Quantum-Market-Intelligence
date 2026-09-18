@@ -7,6 +7,18 @@ QMI-level interpretations.
 
 from app.fundamental.collector import FundamentalCollector
 from app.fundamental.business_momentum import AdaptiveBusinessMomentumEngine
+from app.fundamental.architecture import FundamentalArchitectureService
+from app.fundamental.data_foundation import FinancialDataFoundationService
+from app.fundamental.statement_history import FinancialStatementHistoryService
+from app.fundamental.statement_provider_adapter import StatementProviderAdapter
+from app.fundamental.growth_trend_engine import FundamentalGrowthTrendEngine
+from app.fundamental.profitability_quality_engine import FundamentalProfitabilityQualityEngine
+from app.fundamental.financial_health_engine import FundamentalFinancialHealthEngine
+from app.fundamental.cash_flow_intelligence_engine import FundamentalCashFlowIntelligenceEngine
+from app.fundamental.valuation_intelligence_engine import FundamentalValuationIntelligenceEngine
+from app.fundamental.expectations_intelligence_engine import FundamentalExpectationsIntelligenceEngine
+from app.fundamental.company_intelligence_engine import FundamentalCompanyIntelligenceEngine
+from app.fundamental.fundamental_decision_engine import FundamentalDecisionEngine
 from app.fundamental.schemas import (
     FundamentalAnalysisResult,
     FundamentalDecision,
@@ -23,6 +35,18 @@ class FundamentalService:
     ) -> None:
         self.collector = collector or FundamentalCollector()
         self.business_momentum_engine = AdaptiveBusinessMomentumEngine()
+        self.architecture_service = FundamentalArchitectureService()
+        self.data_foundation_service = FinancialDataFoundationService()
+        self.statement_history_service = FinancialStatementHistoryService()
+        self.statement_provider_adapter = StatementProviderAdapter()
+        self.growth_trend_engine = FundamentalGrowthTrendEngine()
+        self.profitability_quality_engine = FundamentalProfitabilityQualityEngine()
+        self.financial_health_engine = FundamentalFinancialHealthEngine()
+        self.cash_flow_intelligence_engine = FundamentalCashFlowIntelligenceEngine()
+        self.valuation_intelligence_engine = FundamentalValuationIntelligenceEngine()
+        self.expectations_intelligence_engine = FundamentalExpectationsIntelligenceEngine()
+        self.company_intelligence_engine = FundamentalCompanyIntelligenceEngine()
+        self.fundamental_decision_engine = FundamentalDecisionEngine()
 
     @staticmethod
     def _get_company_specific_momentum(symbol: str) -> dict:
@@ -72,21 +96,94 @@ class FundamentalService:
             company_specific=company_specific,
         )
 
+        data_foundation_payload = self.data_foundation_service.audit(
+            symbol=symbol,
+            data=data,
+        )
+
+        statement_provider_payload = self.statement_provider_adapter.adapt(
+            data=data,
+        )
+        statement_history_payload = self.statement_history_service.normalize(
+            symbol=symbol,
+            annual=statement_provider_payload["annual"],
+            quarterly=statement_provider_payload["quarterly"],
+            provider=statement_provider_payload["provider"],
+        )
+        statement_history_payload["provider_adapter"] = {
+            "engine_id": statement_provider_payload["engine_id"],
+            "version": statement_provider_payload["version"],
+            "contracts": statement_provider_payload["contracts"],
+            "ttm": statement_provider_payload["ttm"],
+            "latest_balance_sheet": statement_provider_payload["latest_balance_sheet"],
+            "source_quality": statement_provider_payload["source_quality"],
+        }
+
+        growth_trend_payload = self.growth_trend_engine.analyze(
+            statement_history=statement_history_payload,
+        )
+
+        profitability_quality_payload = self.profitability_quality_engine.analyze(
+            data=data,
+            statement_history=statement_history_payload,
+            growth_trend=growth_trend_payload,
+        )
+
+        financial_health_payload = self.financial_health_engine.analyze(
+            data=data,
+            statement_history=statement_history_payload,
+        )
+
+        cash_flow_intelligence_payload = self.cash_flow_intelligence_engine.analyze(
+            data=data,
+            statement_history=statement_history_payload,
+            profitability_quality=profitability_quality_payload,
+        )
+
+        valuation_intelligence_payload = self.valuation_intelligence_engine.analyze(
+            data=data,
+            growth_trend=growth_trend_payload,
+            profitability_quality=profitability_quality_payload,
+            cash_flow_intelligence=cash_flow_intelligence_payload,
+        )
+
+        expectations_intelligence_payload = self.expectations_intelligence_engine.analyze(
+            data=data,
+            growth_trend=growth_trend_payload,
+            profitability_quality=profitability_quality_payload,
+            cash_flow_intelligence=cash_flow_intelligence_payload,
+            valuation_intelligence=valuation_intelligence_payload,
+        )
+
+        architecture_payload = self.architecture_service.build(
+            data=data,
+            company_specific=company_specific,
+        )
+
         score = self._calculate_score(data)
         rating = self._get_rating(score)
 
         strengths = self._detect_strengths(data)
         weaknesses = self._detect_weaknesses(data)
         warnings = self._detect_warnings(data)
-        decision = self._build_decision(
+        data.fundamental_score = score
+
+        company_intelligence_payload = self.company_intelligence_engine.analyze(
             data=data,
-            legacy_score=score,
-            strengths=strengths,
-            weaknesses=weaknesses,
-            warnings=warnings,
         )
 
-        data.fundamental_score = score
+        decision = self.fundamental_decision_engine.analyze(
+            data=data,
+            growth_trend=growth_trend_payload,
+            profitability_quality=profitability_quality_payload,
+            financial_health=financial_health_payload,
+            cash_flow_intelligence=cash_flow_intelligence_payload,
+            valuation_intelligence=valuation_intelligence_payload,
+            expectations_intelligence=expectations_intelligence_payload,
+            company_intelligence=company_intelligence_payload,
+            business_momentum=business_momentum_payload,
+            legacy_score=score,
+        )
 
         return FundamentalInsight(
             data=data,
@@ -97,6 +194,16 @@ class FundamentalService:
             warnings=warnings,
             decision=decision,
             business_momentum=business_momentum_payload,
+            architecture=architecture_payload,
+            data_foundation=data_foundation_payload,
+            statement_history=statement_history_payload,
+            growth_trend=growth_trend_payload,
+            profitability_quality=profitability_quality_payload,
+            financial_health_intelligence=financial_health_payload,
+            cash_flow_intelligence=cash_flow_intelligence_payload,
+            valuation_intelligence=valuation_intelligence_payload,
+            expectations_intelligence=expectations_intelligence_payload,
+            company_intelligence=company_intelligence_payload,
         )
 
     def _calculate_score(

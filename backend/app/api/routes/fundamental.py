@@ -2,6 +2,8 @@
 Fundamental Analysis API
 """
 
+import traceback
+
 from fastapi import APIRouter, HTTPException
 
 from app.fundamental.service import FundamentalService
@@ -29,6 +31,7 @@ def get_fundamental_analysis(symbol: str):
         return service.analyze(symbol.upper())
 
     except Exception as exc:
+        traceback.print_exc()
         raise HTTPException(
             status_code=500,
             detail=str(exc),

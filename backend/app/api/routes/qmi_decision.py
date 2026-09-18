@@ -23,11 +23,11 @@ def get_qmi_decision(
     history_limit: int = Query(default=500, ge=1, le=1000),
 ):
     """
-    DE-CORE-004.1 — Cross-Engine Decision Fusion + Business Momentum
+    DE-CORE-004.2 — Decision Regime & Conflict Resolution
 
     Fuses:
     - DE-TA-015.0 Technical Decision Synthesis
-    - DE-FA-004.0 Fundamental Decision Engine
+    - FA-DECISION-001.1 Fundamental Decision Engine
     - DE-FA-BM-001.1 Adaptive Business Momentum
 
     Technical execution/risk gates are preserved. This endpoint does not
@@ -74,7 +74,13 @@ def get_qmi_decision(
             "source_fundamental_engine_id": (
                 fundamental_response.data.engine_version
             ),
-            "source_fundamental_decision_engine_id": "DE-FA-004.0",
+            "source_fundamental_decision_engine_id": (
+                getattr(
+                    getattr(fundamental_response, "decision", None),
+                    "engine_id",
+                    "FA-DECISION-001",
+                )
+            ),
             "source_business_momentum_engine_id": (
                 getattr(
                     getattr(fundamental_response, "business_momentum", None),

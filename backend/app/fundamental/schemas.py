@@ -352,19 +352,180 @@ class AdaptiveBusinessMomentum(BaseModel):
 
 
 class FundamentalDecision(BaseModel):
-    """DE-FA-004.0 — consolidated fundamental decision layer."""
+    """FA-DECISION-001.1 — consolidated and explainable fundamental decision layer."""
+
+    engine_id: str = "FA-DECISION-001"
+    version: str = "0.1.1"
 
     stance: str = "UNKNOWN"
     decision_score: Optional[float] = Field(default=None, ge=0, le=100)
     conviction: str = "LOW"
 
+    # Backward-compatible fields retained for the existing UI.
     quality_score: Optional[float] = None
     regime_score: Optional[float] = None
     legacy_score: Optional[float] = None
 
+    # Explainability contract. Each component exposes score, base weight,
+    # effective weight and weighted contribution.
+    components: Dict[str, Any] = Field(default_factory=dict)
+    active_components: int = 0
+    total_components: int = 6
+    coverage_pct: float = Field(default=0.0, ge=0, le=100)
+    weights_renormalized: bool = False
+
     thesis: List[str] = Field(default_factory=list)
     catalysts: List[str] = Field(default_factory=list)
     risks: List[str] = Field(default_factory=list)
+
+
+class FundamentalCompanyIntelligence(BaseModel):
+    """FA-COMPANY-001 — optional company-specific intelligence domain."""
+    engine_id: str = "FA-COMPANY-001"
+    version: str = "0.1.0"
+    status: str = "operational"
+    company: Dict[str, Any] = Field(default_factory=dict)
+    company_specific: Dict[str, Any] = Field(default_factory=dict)
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalExpectationsIntelligence(BaseModel):
+    """FA-METRICS-006 — forward expectations with fundamental context."""
+
+    engine_id: str = "FA-METRICS-006"
+    version: str = "0.1.0"
+    status: str = "operational"
+    expectations: Dict[str, Any] = Field(default_factory=dict)
+    trajectory: Dict[str, Any] = Field(default_factory=dict)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    expectations_score: Optional[float] = None
+    expectations_state: str = "UNAVAILABLE"
+    evidence: List[str] = Field(default_factory=list)
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalValuationIntelligence(BaseModel):
+    """FA-METRICS-005 — valuation multiples interpreted with business context."""
+
+    engine_id: str = "FA-METRICS-005"
+    version: str = "0.1.0"
+    status: str = "operational"
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+    multiple_diagnostics: Dict[str, Any] = Field(default_factory=dict)
+    context: Dict[str, Any] = Field(default_factory=dict)
+    valuation_score: Optional[float] = None
+    valuation_state: str = "UNAVAILABLE"
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalCashFlowIntelligence(BaseModel):
+    """FA-METRICS-004 — cash generation, conversion, CapEx and sustainability."""
+
+    engine_id: str = "FA-METRICS-004"
+    version: str = "0.1.0"
+    status: str = "operational"
+    cash_generation: Dict[str, Any] = Field(default_factory=dict)
+    cash_margins: Dict[str, Any] = Field(default_factory=dict)
+    cash_conversion: Dict[str, Any] = Field(default_factory=dict)
+    capex: Dict[str, Any] = Field(default_factory=dict)
+    historical_trend: Dict[str, Any] = Field(default_factory=dict)
+    cash_flow_score: Optional[float] = None
+    cash_flow_state: str = "UNAVAILABLE"
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalFinancialHealth(BaseModel):
+    engine_id: str = "FA-METRICS-003"
+    version: str = "0.1.0"
+    status: str = "operational"
+    balance_sheet: Dict[str, Any] = Field(default_factory=dict)
+    liquidity: Dict[str, Any] = Field(default_factory=dict)
+    leverage: Dict[str, Any] = Field(default_factory=dict)
+    resilience: Dict[str, Any] = Field(default_factory=dict)
+    financial_health_score: Optional[float] = None
+    financial_health_state: str = "UNAVAILABLE"
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+class FundamentalProfitabilityQuality(BaseModel):
+    """FA-METRICS-002 — profitability, cash conversion and quality contract."""
+
+    engine_id: str = "FA-METRICS-002"
+    version: str = "0.1.0"
+    status: str = "operational"
+    profitability: Dict[str, Any] = Field(default_factory=dict)
+    cash_conversion: Dict[str, Any] = Field(default_factory=dict)
+    margin_quality: Dict[str, Any] = Field(default_factory=dict)
+    capital_efficiency: Dict[str, Any] = Field(default_factory=dict)
+    quality_score: Optional[float] = None
+    quality_state: str = "UNAVAILABLE"
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalGrowthTrend(BaseModel):
+    """FA-METRICS-001 — growth, acceleration, CAGR and margin trend contract."""
+
+    engine_id: str = "FA-METRICS-001"
+    version: str = "0.1.0"
+    status: str = "operational"
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+    margins: Dict[str, Any] = Field(default_factory=dict)
+    free_cash_flow_trend: Dict[str, Any] = Field(default_factory=dict)
+    summary: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalStatementHistory(BaseModel):
+    """FA-DATA-002 — annual/quarterly financial-statement history contract."""
+
+    engine_id: str = "FA-DATA-002"
+    version: str = "0.2.0"
+    status: str = "operational"
+    symbol: str = ""
+    provider: str = ""
+    normalized_at: Optional[str] = None
+    annual: Dict[str, Any] = Field(default_factory=dict)
+    quarterly: Dict[str, Any] = Field(default_factory=dict)
+    coverage: Dict[str, Any] = Field(default_factory=dict)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalDataFoundation(BaseModel):
+    """FA-DATA-001 — normalized financial-data quality/provenance contract."""
+
+    engine_id: str = "FA-DATA-001"
+    version: str = "0.1.0"
+    status: str = "operational"
+    symbol: str = ""
+    provider: str = ""
+    normalized_at: Optional[str] = None
+    quality_state: str = "LOW"
+    coverage_pct: float = Field(default=0.0, ge=0, le=100)
+    metrics_available: int = 0
+    metrics_total: int = 0
+    groups: Dict[str, Any] = Field(default_factory=dict)
+    missing_metrics: List[str] = Field(default_factory=list)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+
+
+class FundamentalArchitecture(BaseModel):
+    """FA-CORE-001 — stable Fundamental Intelligence architecture contract."""
+
+    engine_id: str = "FA-CORE-001"
+    version: str = "0.1.0"
+    architecture: str = "QMI Fundamental Intelligence"
+    pipeline: List[str] = Field(default_factory=list)
+    domains: Dict[str, Any] = Field(default_factory=dict)
+    active_domains: int = 0
+    total_domains: int = 0
+    universal_domain_coverage_pct: float = Field(default=0.0, ge=0, le=100)
+    contracts: Dict[str, bool] = Field(default_factory=dict)
+    legacy_engines_preserved: List[str] = Field(default_factory=list)
 
 
 class FundamentalInsight(BaseModel):
@@ -384,3 +545,13 @@ class FundamentalInsight(BaseModel):
     warnings: List[str] = Field(default_factory=list)
     decision: FundamentalDecision = Field(default_factory=FundamentalDecision)
     business_momentum: AdaptiveBusinessMomentum = Field(default_factory=AdaptiveBusinessMomentum)
+    architecture: FundamentalArchitecture = Field(default_factory=FundamentalArchitecture)
+    data_foundation: FundamentalDataFoundation = Field(default_factory=FundamentalDataFoundation)
+    statement_history: FundamentalStatementHistory = Field(default_factory=FundamentalStatementHistory)
+    growth_trend: FundamentalGrowthTrend = Field(default_factory=FundamentalGrowthTrend)
+    profitability_quality: FundamentalProfitabilityQuality = Field(default_factory=FundamentalProfitabilityQuality)
+    financial_health_intelligence: FundamentalFinancialHealth = Field(default_factory=FundamentalFinancialHealth)
+    cash_flow_intelligence: FundamentalCashFlowIntelligence = Field(default_factory=FundamentalCashFlowIntelligence)
+    valuation_intelligence: FundamentalValuationIntelligence = Field(default_factory=FundamentalValuationIntelligence)
+    expectations_intelligence: FundamentalExpectationsIntelligence = Field(default_factory=FundamentalExpectationsIntelligence)
+    company_intelligence: FundamentalCompanyIntelligence = Field(default_factory=FundamentalCompanyIntelligence)

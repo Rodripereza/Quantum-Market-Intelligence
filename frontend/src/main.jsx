@@ -8,7 +8,6 @@ import "./styles/design-system/layout.css";
 import "./styles/design-system/components.css";
 import "./styles/design-system/utilities.css";
 import "./styles/tokens.css";
-import "./styles/tokens.css";
 import "./style.css";
 import "./styles/pages/overview.css";
 
