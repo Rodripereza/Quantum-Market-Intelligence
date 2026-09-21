@@ -5,7 +5,7 @@ from typing import Any
 
 class QMIDecisionService:
     """
-    DE-CORE-004.2 — Decision Regime & Conflict Resolution
+    DE-CORE-004.4 — Decision Trust Layer
 
     Combines Technical Decision Synthesis (DE-TA-015.0), the explainable
     Fundamental Decision Engine (FA-DECISION-001.1), and Adaptive Business Momentum.
@@ -23,9 +23,9 @@ class QMIDecisionService:
     - issue an autonomous BUY/HOLD/SELL instruction
     """
 
-    ENGINE_ID = "DE-CORE-004.2"
+    ENGINE_ID = "DE-CORE-004.4"
     ENGINE = "QMI Cross-Engine Decision Fusion"
-    VERSION = "0.3.0"
+    VERSION = "0.5.0"
 
     TECHNICAL_POSTURE_SCORES = {
         "ENTER": 90.0,
@@ -39,12 +39,31 @@ class QMIDecisionService:
 
     TECHNICAL_HARD_GATES = {"WAIT", "REDUCE", "EXIT"}
 
+    BASE_FUSION_WEIGHTS = {
+        "technical": 0.45,
+        "fundamental": 0.35,
+        "business_momentum": 0.20,
+    }
+
+    REGIME_FUSION_WEIGHTS = {
+        "CAPITAL_PROTECTION": {"technical": 0.65, "fundamental": 0.25, "business_momentum": 0.10},
+        "DEFENSIVE": {"technical": 0.60, "fundamental": 0.25, "business_momentum": 0.15},
+        "TIMING_BLOCKED": {"technical": 0.55, "fundamental": 0.30, "business_momentum": 0.15},
+        "RECOVERY_WATCH": {"technical": 0.40, "fundamental": 0.30, "business_momentum": 0.30},
+        "PRICE_AHEAD_OF_BUSINESS": {"technical": 0.50, "fundamental": 0.35, "business_momentum": 0.15},
+        "CROSS_ENGINE_CONFLICT": {"technical": 0.50, "fundamental": 0.35, "business_momentum": 0.15},
+        "CONFIRMED_CONSTRUCTIVE": {"technical": 0.45, "fundamental": 0.35, "business_momentum": 0.20},
+        "CONFIRMED_DEFENSIVE": {"technical": 0.60, "fundamental": 0.30, "business_momentum": 0.10},
+        "TRANSITION": {"technical": 0.45, "fundamental": 0.35, "business_momentum": 0.20},
+    }
+
     def analyze(
         self,
         *,
         symbol: str,
         technical_response: dict[str, Any],
         fundamental_response: Any,
+        decision_intelligence: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         technical = (
             technical_response.get("technical_decision_synthesis")
@@ -105,35 +124,28 @@ class QMIDecisionService:
             business_momentum.get("confidence") or "LOW"
         ).upper()
 
-        fusion_components = self._fusion_components(
+        # Stage 1: calculate the neutral/base fusion. The regime is derived from
+        # this score so adaptive weighting cannot recursively redefine its own regime.
+        base_fusion_components = self._fusion_components(
             technical_score=technical_score if technical_available else None,
             fundamental_score=fundamental_score if fundamental_available else None,
             business_momentum_score=(
-                business_momentum_score
-                if business_momentum_available
-                else None
+                business_momentum_score if business_momentum_available else None
             ),
+            target_weights=self.BASE_FUSION_WEIGHTS,
         )
-
-        combined_score = sum(
-            item["contribution"]
-            for item in fusion_components.values()
-            if item["contribution"] is not None
-        )
+        base_combined_score = self._score_from_components(base_fusion_components)
 
         alignment_score = self._alignment_score(
             technical_score=technical_score if technical_available else None,
             fundamental_score=fundamental_score if fundamental_available else None,
         )
-
         alignment = self._alignment_state(alignment_score)
 
         business_divergence = self._business_divergence(
             technical_score=technical_score if technical_available else None,
             business_momentum_score=(
-                business_momentum_score
-                if business_momentum_available
-                else None
+                business_momentum_score if business_momentum_available else None
             ),
         )
 
@@ -149,8 +161,24 @@ class QMIDecisionService:
             technical_execution_state=str(technical.get("execution_state") or "UNKNOWN").upper(),
             alignment=alignment,
             business_divergence=business_divergence,
-            combined_score=combined_score,
+            combined_score=base_combined_score,
         )
+
+        # Stage 2: the resolved regime selects a transparent weight policy. Missing
+        # engines are still renormalized to 100% after the regime policy is applied.
+        regime_state = str(decision_regime.get("state") or "TRANSITION").upper()
+        regime_weights = self.REGIME_FUSION_WEIGHTS.get(
+            regime_state, self.BASE_FUSION_WEIGHTS
+        )
+        fusion_components = self._fusion_components(
+            technical_score=technical_score if technical_available else None,
+            fundamental_score=fundamental_score if fundamental_available else None,
+            business_momentum_score=(
+                business_momentum_score if business_momentum_available else None
+            ),
+            target_weights=regime_weights,
+        )
+        combined_score = self._score_from_components(fusion_components)
 
         conflict_resolution = self._conflict_resolution(
             decision_regime=decision_regime,
@@ -192,6 +220,8 @@ class QMIDecisionService:
             business_divergence=business_divergence,
         )
 
+        decision_trust = self._decision_trust(decision_intelligence or {})
+
         thesis = self._thesis(
             integrated_posture=integrated_posture,
             technical_posture=technical_posture,
@@ -213,6 +243,7 @@ class QMIDecisionService:
                 "available": True,
                 "integrated_posture": integrated_posture,
                 "combined_score": round(combined_score, 1),
+                "base_combined_score": round(base_combined_score, 1),
                 "confidence": confidence,
                 "alignment": {
                     "state": alignment,
@@ -260,6 +291,17 @@ class QMIDecisionService:
                 "business_divergence": business_divergence,
                 "decision_regime": decision_regime,
                 "conflict_resolution": conflict_resolution,
+                "decision_trust": decision_trust,
+                "adaptive_weighting": {
+                    "enabled": True,
+                    "regime": regime_state,
+                    "base_weights": self.BASE_FUSION_WEIGHTS,
+                    "regime_weights": regime_weights,
+                    "weights_changed": any(
+                        abs(regime_weights.get(key, self.BASE_FUSION_WEIGHTS[key]) - self.BASE_FUSION_WEIGHTS[key]) > 0.0001
+                        for key in self.BASE_FUSION_WEIGHTS
+                    ),
+                },
                 "fusion_weights": {
                     key: item["effective_weight"]
                     for key, item in fusion_components.items()
@@ -284,7 +326,7 @@ class QMIDecisionService:
                     ),
                     "weights_renormalized": any(
                         item["available"]
-                        and abs(item["effective_weight"] - item["base_weight"]) > 0.0001
+                        and abs(item["effective_weight"] - item["regime_weight"]) > 0.0001
                         for item in fusion_components.values()
                     ),
                 },
@@ -301,12 +343,110 @@ class QMIDecisionService:
                     "automatic_execution": False,
                     "buy_hold_sell_signal": False,
                     "note": (
-                        "DE-CORE-004.1 v0.2.0 fuses technical timing, the explainable "
-                        "fundamental decision and adaptive business momentum. "
+                        "DE-CORE-004.4 v0.5.0 adds an auditable Decision Trust Layer over regime-aware adaptive fusion. "
+                        "Trust evaluates evidence quality without changing the combined decision score or technical gates. "
                         "Portfolio, macro and news context "
                         "are intentionally outside this version."
                     ),
                 },
+            },
+        }
+
+    def _decision_trust(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """DE-CORE-004.4: quantify trust without changing direction or execution."""
+        reliability = (payload.get("decision_reliability") or {}).get("decision_reliability") or {}
+        evidence = (payload.get("decision_evidence_score") or {}).get("decision_evidence_score") or {}
+        gate = (payload.get("decision_evidence_gate") or {}).get("decision_evidence_gate") or {}
+        validation = (payload.get("decision_validation_state") or {}).get("decision_validation_state") or {}
+        momentum = (payload.get("decision_validation_momentum") or {}).get("decision_validation_momentum") or {}
+        contradiction = (payload.get("decision_contradiction_guard") or {}).get("decision_contradiction_guard") or {}
+        calibration = (payload.get("decision_calibration") or {}).get("decision_calibration") or {}
+        edge = (payload.get("historical_edge") or {}).get("historical_edge") or {}
+
+        validation_state = str(validation.get("validation_state") or "UNAVAILABLE").upper()
+        validation_score = {
+            "VALIDATED": 90.0, "CONFIRMED": 90.0, "CONDITIONAL": 60.0,
+            "UNVALIDATED": 25.0, "UNAVAILABLE": None,
+        }.get(validation_state, 50.0 if validation.get("available") else None)
+
+        raw = {
+            "evidence": (self._number_or_none(evidence.get("score")), 0.40),
+            "reliability": (self._number_or_none(reliability.get("reliability_pct")), 0.25),
+            "coherence": (self._number_or_none(contradiction.get("coherence_score")), 0.20),
+            "validation": (validation_score, 0.15),
+        }
+        active_weight = sum(weight for score, weight in raw.values() if score is not None)
+        components = {}
+        raw_score = None
+        if active_weight > 0:
+            total = 0.0
+            for key, (score, base_weight) in raw.items():
+                effective = base_weight / active_weight if score is not None else 0.0
+                contribution = score * effective if score is not None else None
+                components[key] = {
+                    "available": score is not None,
+                    "score": round(score, 1) if score is not None else None,
+                    "base_weight": base_weight,
+                    "effective_weight": round(effective, 4),
+                    "contribution": round(contribution, 2) if contribution is not None else None,
+                }
+                if contribution is not None:
+                    total += contribution
+            raw_score = self._clamp(total)
+        else:
+            for key, (_, base_weight) in raw.items():
+                components[key] = {"available": False, "score": None, "base_weight": base_weight, "effective_weight": 0.0, "contribution": None}
+
+        gate_state = str(gate.get("gate") or "UNAVAILABLE").upper()
+        guard_state = str(contradiction.get("guard_state") or "UNAVAILABLE").upper()
+        cap = 100.0
+        cap_reason = "NONE"
+        if guard_state == "HARD_CONFLICT":
+            cap, cap_reason = 39.0, "HARD_CONFLICT"
+        elif gate_state == "BLOCKED":
+            cap, cap_reason = 49.0, "EVIDENCE_GATE_BLOCKED"
+        elif validation_state == "UNVALIDATED":
+            cap, cap_reason = 59.0, "DECISION_UNVALIDATED"
+
+        trust_score = min(raw_score, cap) if raw_score is not None else None
+        if trust_score is None:
+            level = "INSUFFICIENT_EVIDENCE"
+        elif trust_score >= 80:
+            level = "HIGH"
+        elif trust_score >= 65:
+            level = "MEDIUM_HIGH"
+        elif trust_score >= 50:
+            level = "MEDIUM"
+        elif trust_score >= 35:
+            level = "LOW"
+        else:
+            level = "VERY_LOW"
+
+        return {
+            "available": trust_score is not None,
+            "trust_score": round(trust_score, 1) if trust_score is not None else None,
+            "raw_trust_score": round(raw_score, 1) if raw_score is not None else None,
+            "trust_level": level,
+            "coverage_pct": round(sum(1 for x in components.values() if x["available"]) / len(components) * 100.0, 1),
+            "components": components,
+            "governance_cap": {"applied": cap < 100.0, "cap": cap if cap < 100.0 else None, "reason": cap_reason},
+            "evidence_gate": gate_state,
+            "validation_state": validation_state,
+            "validation_momentum": str(momentum.get("state") or "UNAVAILABLE").upper(),
+            "contradiction_guard": guard_state,
+            "calibration_readiness": str(calibration.get("readiness") or "INSUFFICIENT_HISTORY").upper(),
+            "historical_edge": {
+                "available": bool(edge.get("available")),
+                "score": self._number_or_none(edge.get("edge_score")),
+                "quality": str(edge.get("evidence") or "INSUFFICIENT_HISTORY").upper(),
+                "sample_size": int(edge.get("total_completed_samples") or 0),
+            },
+            "scope": {
+                "advisory_only": True,
+                "changes_combined_score": False,
+                "changes_fusion_weights": False,
+                "changes_execution_permission": False,
+                "technical_gates_preserved": True,
             },
         }
 
@@ -323,55 +463,54 @@ class QMIDecisionService:
 
         return self._clamp(base + adjustment)
 
-    @staticmethod
+    @classmethod
     def _fusion_components(
+        cls,
         *,
         technical_score: float | None,
         fundamental_score: float | None,
         business_momentum_score: float | None,
+        target_weights: dict[str, float] | None = None,
     ) -> dict[str, dict[str, Any]]:
-        """Return the complete auditable cross-engine fusion calculation."""
-        raw = {
-            "technical": {"score": technical_score, "base_weight": 0.45},
-            "fundamental": {"score": fundamental_score, "base_weight": 0.35},
-            "business_momentum": {
-                "score": business_momentum_score,
-                "base_weight": 0.20,
-            },
+        """Return an auditable base -> regime -> effective fusion calculation."""
+        target = target_weights or cls.BASE_FUSION_WEIGHTS
+        scores = {
+            "technical": technical_score,
+            "fundamental": fundamental_score,
+            "business_momentum": business_momentum_score,
         }
-
         active_weight = sum(
-            item["base_weight"]
-            for item in raw.values()
-            if item["score"] is not None
+            float(target.get(key, cls.BASE_FUSION_WEIGHTS[key]))
+            for key, score in scores.items()
+            if score is not None
         )
-
         result: dict[str, dict[str, Any]] = {}
-        for key, item in raw.items():
-            available = item["score"] is not None
+        for key, score in scores.items():
+            available = score is not None
+            base_weight = cls.BASE_FUSION_WEIGHTS[key]
+            regime_weight = float(target.get(key, base_weight))
             effective_weight = (
-                item["base_weight"] / active_weight
-                if available and active_weight > 0
-                else 0.0
+                regime_weight / active_weight if available and active_weight > 0 else 0.0
             )
-            contribution = (
-                item["score"] * effective_weight
-                if available
-                else None
-            )
+            contribution = score * effective_weight if available else None
             result[key] = {
                 "available": available,
-                "score": round(item["score"], 1) if available else None,
-                "base_weight": round(item["base_weight"], 4),
+                "score": round(score, 1) if available else None,
+                "base_weight": round(base_weight, 4),
+                "regime_weight": round(regime_weight, 4),
                 "effective_weight": round(effective_weight, 4),
-                "contribution": (
-                    round(contribution, 2)
-                    if contribution is not None
-                    else None
-                ),
+                "weight_delta": round(regime_weight - base_weight, 4),
+                "contribution": round(contribution, 2) if contribution is not None else None,
             }
-
         return result
+
+    @staticmethod
+    def _score_from_components(components: dict[str, dict[str, Any]]) -> float:
+        return sum(
+            float(item["contribution"])
+            for item in components.values()
+            if item.get("contribution") is not None
+        )
 
     @staticmethod
     def _combined_score(

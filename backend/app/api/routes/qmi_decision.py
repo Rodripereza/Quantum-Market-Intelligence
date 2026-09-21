@@ -23,7 +23,7 @@ def get_qmi_decision(
     history_limit: int = Query(default=500, ge=1, le=1000),
 ):
     """
-    DE-CORE-004.2 — Decision Regime & Conflict Resolution
+    DE-CORE-004.4 — Decision Trust Layer
 
     Fuses:
     - DE-TA-015.0 Technical Decision Synthesis
@@ -58,10 +58,25 @@ def get_qmi_decision(
             normalized_symbol
         )
 
+        decision_intelligence = {
+            key: technical_snapshot.get(key)
+            for key in (
+                "decision_reliability",
+                "decision_calibration",
+                "historical_edge",
+                "decision_evidence_score",
+                "decision_evidence_gate",
+                "decision_validation_state",
+                "decision_validation_momentum",
+                "decision_contradiction_guard",
+            )
+        }
+
         result = qmi_decision_service.analyze(
             symbol=normalized_symbol,
             technical_response=technical_response,
             fundamental_response=fundamental_response,
+            decision_intelligence=decision_intelligence,
         )
 
         return {

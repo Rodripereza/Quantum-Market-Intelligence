@@ -361,7 +361,11 @@ export default function Fundamental({ token }) {
   const qmiFusionComponents = qmiDecision?.fusion_components || {};
   const qmiFusionCoverage = qmiDecision?.fusion_coverage || {};
   const qmiDecisionRegime = qmiDecision?.decision_regime || {};
+  const qmiAdaptiveWeighting = qmiDecision?.adaptive_weighting || {};
   const qmiConflictResolution = qmiDecision?.conflict_resolution || {};
+  const qmiDecisionTrust = qmiDecision?.decision_trust || {};
+  const qmiTrustComponents = qmiDecisionTrust?.components || {};
+  const qmiHistoricalEdge = qmiDecisionTrust?.historical_edge || {};
   const qmiSupportingEvidence = Array.isArray(qmiDecision?.supporting_evidence)
     ? qmiDecision.supporting_evidence
     : [];
@@ -1160,6 +1164,11 @@ export default function Fundamental({ token }) {
           align-items: center;
         }
 
+
+        .qmi-fa-fusion-adaptive .qmi-fa-decision-explain-head,
+        .qmi-fa-fusion-adaptive .qmi-fa-decision-factor {
+          grid-template-columns: minmax(160px, 1.4fr) repeat(4, minmax(88px, .7fr));
+        }
         .qmi-fa-decision-explain-head {
           padding: 0 10px 7px;
           color: #64748b;
@@ -3083,7 +3092,7 @@ export default function Fundamental({ token }) {
                   <GitMerge size={17} />
                 </div>
                 <div>
-                  <span className="qmi-fa-kicker">DE-CORE-004.2 · DECISION REGIME & CONFLICT RESOLUTION</span>
+                  <span className="qmi-fa-kicker">DE-CORE-004.4 · DECISION TRUST LAYER</span>
                   <h2>QMI Integrated Decision</h2>
                 </div>
               </div>
@@ -3140,11 +3149,12 @@ export default function Fundamental({ token }) {
               </div>
             </div>
 
-            <div className="qmi-fa-decision-explain" style={{ marginTop: 12 }}>
+            <div className="qmi-fa-decision-explain qmi-fa-fusion-adaptive" style={{ marginTop: 12 }}>
               <div className="qmi-fa-decision-explain-head">
                 <span>Fusion Engine</span>
                 <span>Score</span>
-                <span>Effective Weight</span>
+                <span>Base Weight</span>
+                <span>Regime Weight</span>
                 <span>Contribution</span>
               </div>
 
@@ -3161,9 +3171,14 @@ export default function Fundamental({ token }) {
                       {n(component?.score) === null ? "--" : n(component.score).toFixed(1)}
                     </strong>
                     <strong>
-                      {n(component?.effective_weight) === null
+                      {n(component?.base_weight) === null
                         ? "--"
-                        : `${(n(component.effective_weight) * 100).toFixed(1)}%`}
+                        : `${(n(component.base_weight) * 100).toFixed(1)}%`}
+                    </strong>
+                    <strong>
+                      {n(component?.regime_weight) === null
+                        ? "--"
+                        : `${(n(component.regime_weight) * 100).toFixed(1)}%`}
                     </strong>
                     <strong>
                       {n(component?.contribution) === null
@@ -3187,11 +3202,13 @@ export default function Fundamental({ token }) {
               />
               <Metric
                 label="Weighting"
-                value={qmiFusionCoverage?.weights_renormalized ? "ADAPTIVE" : "FULL"}
+                value={qmiAdaptiveWeighting?.weights_changed ? "REGIME ADAPTIVE" : (qmiFusionCoverage?.weights_renormalized ? "RENORMALIZED" : "BASE")}
                 detail={
-                  qmiFusionCoverage?.weights_renormalized
-                    ? "Available engines renormalized to 100%"
-                    : "45% Technical · 35% Fundamental · 20% Business"
+                  qmiAdaptiveWeighting?.weights_changed
+                    ? `${prettyState(qmiAdaptiveWeighting?.regime)} weight policy`
+                    : qmiFusionCoverage?.weights_renormalized
+                      ? "Available engines renormalized to 100%"
+                      : "45% Technical · 35% Fundamental · 20% Business"
                 }
               />
               <Metric
@@ -3211,6 +3228,90 @@ export default function Fundamental({ token }) {
                     ? "Technical vs Fundamental"
                     : `${n(qmiAlignment.score).toFixed(1)} / 100`
                 }
+              />
+            </div>
+
+            <div className="qmi-fa-decision-audit" style={{ marginTop: 10 }}>
+              <Metric
+                label="Decision Trust"
+                value={n(qmiDecisionTrust?.trust_score) === null ? "--" : `${n(qmiDecisionTrust.trust_score).toFixed(1)} / 100`}
+                detail={prettyState(qmiDecisionTrust?.trust_level)}
+              />
+              <Metric
+                label="Evidence Gate"
+                value={prettyState(qmiDecisionTrust?.evidence_gate)}
+                detail={`Coverage ${n(qmiDecisionTrust?.coverage_pct) === null ? "--" : `${n(qmiDecisionTrust.coverage_pct).toFixed(0)}%`}`}
+              />
+              <Metric
+                label="Validation"
+                value={prettyState(qmiDecisionTrust?.validation_state)}
+                detail={`Momentum: ${prettyState(qmiDecisionTrust?.validation_momentum)}`}
+              />
+              <Metric
+                label="Contradiction Guard"
+                value={prettyState(qmiDecisionTrust?.contradiction_guard)}
+                detail={qmiDecisionTrust?.governance_cap?.applied
+                  ? `Trust capped: ${prettyState(qmiDecisionTrust?.governance_cap?.reason)}`
+                  : "No trust cap active"}
+              />
+            </div>
+
+            <div className="qmi-fa-decision-explain" style={{ marginTop: 12 }}>
+              <div className="qmi-fa-decision-explain-head">
+                <span>Decision Trust Breakdown</span>
+                <span>Score</span>
+                <span>Weight</span>
+                <span>Contribution</span>
+              </div>
+
+              {[
+                ["evidence", "Evidence Score"],
+                ["reliability", "Historical Reliability"],
+                ["coherence", "Contradiction Coherence"],
+                ["validation", "Validation State"],
+              ].map(([key, label]) => {
+                const component = qmiTrustComponents?.[key] || {};
+                return (
+                  <div className="qmi-fa-decision-factor" key={`trust-${key}`}>
+                    <span>{label}</span>
+                    <strong>{n(component?.score) === null ? "--" : n(component.score).toFixed(1)}</strong>
+                    <strong>
+                      {n(component?.effective_weight) === null
+                        ? "--"
+                        : `${(n(component.effective_weight) * 100).toFixed(1)}%`}
+                    </strong>
+                    <strong>
+                      {n(component?.contribution) === null
+                        ? "--"
+                        : n(component.contribution).toFixed(2)}
+                    </strong>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="qmi-fa-decision-audit" style={{ marginTop: 10 }}>
+              <Metric
+                label="Raw Trust"
+                value={n(qmiDecisionTrust?.raw_trust_score) === null ? "--" : `${n(qmiDecisionTrust.raw_trust_score).toFixed(1)} / 100`}
+                detail={qmiDecisionTrust?.governance_cap?.applied
+                  ? `Governance cap ${n(qmiDecisionTrust?.governance_cap?.cap)?.toFixed(0) ?? "--"}`
+                  : "No governance cap applied"}
+              />
+              <Metric
+                label="Historical Edge"
+                value={n(qmiHistoricalEdge?.score) === null ? "--" : n(qmiHistoricalEdge.score).toFixed(1)}
+                detail={`${prettyState(qmiHistoricalEdge?.quality)} · ${qmiHistoricalEdge?.sample_size ?? 0} samples`}
+              />
+              <Metric
+                label="Calibration"
+                value={prettyState(qmiDecisionTrust?.calibration_readiness)}
+                detail="Historical calibration readiness"
+              />
+              <Metric
+                label="Trust Coverage"
+                value={n(qmiDecisionTrust?.coverage_pct) === null ? "--" : `${n(qmiDecisionTrust.coverage_pct).toFixed(0)}%`}
+                detail="Available trust components"
               />
             </div>
 
